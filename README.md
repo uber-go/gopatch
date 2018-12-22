@@ -41,6 +41,60 @@ multiple lines, and affect type or function declarations.
 +client.Timeout = 3 * time.Second
 ```
 
+## Metavariables
+
+The functionality demonstrated so far is powerful but it is limited by matching
+expressions and names verbatim. Metavariables solve that.
+
+Metavariables allow you to declare zero or more identifiers in the patch that
+should be treated more generically when being matched. Metavariables are
+declared in the `@@` section at the start of each change.
+
+Consider the previous example of converting calls of `foo` to `bar`. In the
+example, we were hard-coding the arguments like so, `foo(1, 2, 3)`. This won't
+match all calls to `foo`. To match all calls, we declare three metavariables
+for the three arguments and specify a transformation based on that.
+
+```diff
+@@
+var x, y, z expression
+@@
+-foo(x, y, z)
++bar(x, y, z)
+```
+
+The above will transform all calls of `foo` to `bar` for *any* expressions `x`,
+`y`, and `z`. This includes the following:
+
+```
+foo(1, 2, 3)  // => bar(1, 2, 3)
+foo(4, 5, 6)  // => bar(4, 5, 6)
+foo(a+1, rand.Int()+42, c*2)
+              // => bar(a+1, rand.Int()+42, c*2)
+```
+
+Similarly, the prior example of changing the client timeout can be altered to
+work for any variable instead of just `client`.
+
+```diff
+@@
+var client identifier
+@@
+-client.Timeout = 5 * time.Second
++client.Timeout = 3 * time.Second
+```
+
+The above will look for any statement where we're setting a `Timeout` field on
+an object to 5 seconds and change it to 3 seconds.
+
+The following types of metavariables are supported:
+
+- **expression** matches any Go expression. This includes variables, function
+  calls, arithmetic expressions, etc. If you can assign it to a variable,
+  expression can match it.
+- **identifier** matches Go identifiers. This is useful when the name of a
+  variable, type, field, or function is dynamic.
+
 ## Limitations
 
 - Changes affecting type or function declarations can match against single

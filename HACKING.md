@@ -80,6 +80,25 @@ meta = ???;
 patch = ???;
 ```
 
+Once the source is broken apart into sections, we parse each section separately
+into the actual patch AST.
+
+## Metavariables
+
+The metavariables section contains zero or more `var` declarations in standard
+Go style.
+
+```
+meta = var_decl*;
+var_decl = "var" var_name ("," var_name)* type_name eol;
+var_name = ident;
+type_name = ident;
+eol = '\n' | ';';
+```
+
+Using Go syntax here allows using the `go/scanner` package to parse this
+section.
+
 # Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and
@@ -174,3 +193,15 @@ Given a `File`, conversion between `Pos` and offset is possible with the
 Given a `File` or `FileSet`, complete positional information (file name, line
 number, and column number) can be obtained with the `Position(Pos)` method
 which returns a `Position` struct.
+
+## Correlating positions between files
+
+`File`s support recording overrides for positional information based on an
+offset using the `AddLineColumnInfo(offset, filename, line, column)` method.
+For any offset in a file, you can use `AddLineColumnInfo` to state a different
+file name, line number, and column number that the contents of that line
+correlate to.
+
+The purpose of this API is to support error messages for issues found in
+generated code that correlate back to the actual source file. This is how the
+compiler supports `//line` directives.
