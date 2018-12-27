@@ -173,17 +173,36 @@ func (p *programSplitter) readName() string {
 	switch {
 	case text == "@@":
 		// unnamed
-		return ""
 	case len(text) > 2 && text[0] == '@' && text[len(text)-1] == '@':
 		// named
+
 		name := text[1:]          // leading @
 		name = name[:len(name)-1] // trailing @
-		return strings.TrimSpace(name)
-		// TODO(abg): check if valid identifier
+
+		// Number of bytes shaved off the front of text. We'll use this to
+		// mark the position in the error message in case of an invalid name.
+		shift := 1 // leading @
+
+		// Manually trim the left so that we can keep track of the number of
+		// bytes we're shifting.
+		if idx := strings.IndexFunc(name, notIsSpace); idx >= 0 {
+			name = name[idx:]
+			shift += idx
+		}
+
+		name = strings.TrimRightFunc(name, unicode.IsSpace)
+
+		i, ch, ok := validateChangeName(name)
+		if ok {
+			return name
+		}
+
+		p.errf(p.startOffset+shift+i,
+			"invalid name: must be a valid Go identifier: unexpected character %q", ch)
 	default:
 		p.errf(p.startOffset, `unexpected %q, expected "@@" or "@ change_name @"`, text)
-		return ""
 	}
+	return ""
 }
 
 // Reads the metavariables section of the change.
@@ -214,4 +233,29 @@ func (p *programSplitter) readPatch() Section {
 		s = append(s, &Line{StartPos: p.pos, Text: p.text})
 	}
 	return s
+}
+
+// Validates that the given non-empty string is a valid Go identifier. If the
+// name is invalid, the first invalid character and the index at which it
+// occurs is returned.
+func validateChangeName(s string) (i int, ch rune, ok bool) {
+	for i, ch := range s {
+		// Only letters and underscores are allowed.
+		if unicode.IsLetter(ch) || ch == '_' {
+			continue
+		}
+
+		// ...unless this is past the first character, in which case numbers
+		// are allowed too.
+		if i > 0 && unicode.IsDigit(ch) {
+			continue
+		}
+
+		return i, ch, false
+	}
+	return 0, 0, true
+}
+
+func notIsSpace(ch rune) bool {
+	return !unicode.IsSpace(ch)
 }

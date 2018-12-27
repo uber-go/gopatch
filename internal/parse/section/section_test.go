@@ -55,6 +55,36 @@ func TestSplit(t *testing.T) {
 			},
 		},
 		{
+			desc: "invalid name/@",
+			give: text.Unlines(
+				"@@ foo @@",
+				"@@",
+			),
+			wantErrs: []string{
+				"test.patch:1:2: invalid name: must be a valid Go identifier: unexpected character '@'",
+			},
+		},
+		{
+			desc: "invalid name/space",
+			give: text.Unlines(
+				"@ foo bar @",
+				"@@",
+			),
+			wantErrs: []string{
+				"test.patch:1:6: invalid name: must be a valid Go identifier: unexpected character ' '",
+			},
+		},
+		{
+			desc: "invalid name/number",
+			give: text.Unlines(
+				"@ 1oo @",
+				"@@",
+			),
+			wantErrs: []string{
+				"test.patch:1:3: invalid name: must be a valid Go identifier: unexpected character '1'",
+			},
+		},
+		{
 			desc: "empty change",
 			give: text.Unlines(
 				"@@",
@@ -70,6 +100,20 @@ func TestSplit(t *testing.T) {
 				1: {L: 1, C: 1}, // @@
 				3: {L: 1, C: 3},
 				4: {L: 2, C: 1}, // @@
+			},
+		},
+		{
+			desc: "number in name",
+			give: text.Unlines(
+				"@ foo4_2 @",
+				"@@",
+			),
+			want: Program{
+				{
+					Name:      "foo4_2",
+					HeaderPos: 1,
+					AtPos:     12,
+				},
 			},
 		},
 		{
