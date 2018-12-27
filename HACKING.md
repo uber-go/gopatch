@@ -139,6 +139,43 @@ transformations].
 
   [Basic transformations]: http://coccinelle.lip6.fr/docs/main_grammar005.html#sec10
 
+## pgo
+
+A before/after version of the patch is not necessarily valid Go syntax. It is a
+superset of the Go syntax which we have dubbed pgo, as in Patch Go. We want to
+to use `go/parser` to parse pgo. To make this possible, we need to process pgo
+further before using `go/parser`.
+
+Consider the before section from above,
+
+```go
+x, err := foo(...)
+if err != nil {   
+  ...             
+  return err      
+}                 
+```
+
+This code, despite being invalid Go syntax, still contains valid Go tokens. To
+parse pgo, we scan through it with `go/scanner` and transform it so that it's
+parseable with `go/parser`. For example, here's how the block above gets
+transformed.
+
+
+```
+                   | package _            
+                   | func _() {           
+x, err := foo(...) |   x, err := foo(dts) 
+if err != nil {    |   if err != nil {    
+  ...              |     dts              
+  return err       |     return err       
+}                  |   }                  
+                   | }                    
+```
+
+It can then be parsed with `go/parser` and the relevant portions of the AST can
+be extracted.
+
 # Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and
