@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"fmt"
 	"go/token"
 
 	"github.com/uber-go/gopatch/internal/parse/section"
@@ -17,6 +18,13 @@ type parser struct {
 
 func newParser(fset *token.FileSet) *parser {
 	return &parser{fset: fset}
+}
+
+func (p *parser) errf(pos token.Pos, msg string, args ...interface{}) error {
+	if len(args) > 0 {
+		msg = fmt.Sprintf(msg, args...)
+	}
+	return fmt.Errorf("%v: %v", p.fset.Position(pos), msg)
 }
 
 func (p *parser) parseProgram(filename string, contents []byte) (*Program, error) {

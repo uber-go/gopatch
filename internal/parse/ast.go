@@ -34,7 +34,8 @@ type Change struct {
 	// Metavariables defined for this change.
 	Meta *Meta
 
-	// TODO: Diff
+	// Patch for this change.
+	Patch *Patch
 }
 
 // Meta represents the metavariables section of a change.
@@ -76,3 +77,20 @@ func (d *VarDecl) End() token.Pos {
 	}
 	return token.NoPos
 }
+
+// Patch is the patch portion of the change containing the unified diff of the
+// match/transformation.
+type Patch struct {
+	// Positions at which the entire patch begins and ends.
+	StartPos, EndPos token.Pos
+
+	// TODO: patch contents
+}
+
+var _ ast.Node = (*Patch)(nil)
+
+// Pos returns the position at which this patch begins.
+func (p *Patch) Pos() token.Pos { return p.StartPos }
+
+// End returns the position immediately after this patch.
+func (p *Patch) End() token.Pos { return p.EndPos }

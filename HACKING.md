@@ -99,6 +99,46 @@ eol = '\n' | ';';
 Using Go syntax here allows using the `go/scanner` package to parse this
 section.
 
+## Patch
+
+Patches are specified as unified diffs of Go-ish syntax.
+
+```diff
+-x, err := foo(...)
++x, err := bar(...)
+ if err != nil {
+   ...
+-  return err
++  return nil, err
+ }
+```
+
+To parse a patch, we first break the unified diff apart into the two versions:
+before and after. The above becomes,
+
+```
+Before                  After
+------------------      ------------------
+x, err := foo(...)      x, err := bar(...) 
+if err != nil {         if err != nil {    
+  ...                     ...
+  return err              return nil, err
+}                       }
+```
+
+Then each version is parsed separately (more on that later). Separating the
+unified diff like this has a few benefits:
+
+- We don't have to write a custom parser to understand leading `-`/`+`s.
+- Parsing each version separately guarantees that they are both valid syntax.
+- The same file parsing logic can be used to parse both, the Before and After
+  versions of the file.
+
+This is similar to the approach employed by Coccinelle, mentioned under [Basic
+transformations].
+
+  [Basic transformations]: http://coccinelle.lip6.fr/docs/main_grammar005.html#sec10
+
 # Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and

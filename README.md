@@ -29,6 +29,9 @@ follows.
  )
 ```
 
+Note that as per the Unified Diff format, lines must begin with `-` or `+` to
+specify that the matching code must be deleted or added.
+
 Unlike [gofmt rewrite rules], gopatch supports transformations that span
 multiple lines, and affect type or function declarations.
 

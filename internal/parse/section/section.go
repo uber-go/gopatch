@@ -5,6 +5,7 @@ package section
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/token"
 	"strings"
 	"unicode"
@@ -36,6 +37,8 @@ type Change struct {
 	Patch Section
 }
 
+var _ ast.Node = (*Change)(nil)
+
 // Pos returns the position at which this change begins.
 func (c *Change) Pos() token.Pos { return c.HeaderPos }
 
@@ -62,6 +65,8 @@ type Line struct {
 	// Contents of the line.
 	Text []byte
 }
+
+var _ ast.Node = (*Line)(nil)
 
 // Pos returns the position at which this line begins.
 func (l *Line) Pos() token.Pos { return l.StartPos }
