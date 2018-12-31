@@ -173,8 +173,37 @@ if err != nil {    |   if err != nil {
                    | }                    
 ```
 
-It can then be parsed with `go/parser` and the relevant portions of the AST can
-be extracted.
+It can then be parsed with `go/parser`. The relevant portion of the AST is
+extracted and transformed, replacing nodes at positions we recorded during
+augmentation.
+
+For example, `foo(...)` gets changed to `foo(dts)`, which gets parsed into the
+following AST.
+
+```go
+&ast.CallExpr{
+  Fun: &ast.Ident{Name: "foo"},
+  Args: []ast.Expr{&ast.Ident{Name: "dts"}},
+}
+```
+
+We recorded the position we placed `dts` at so the corresponding node in the
+AST can be replaced with a `pgo.Dots` node.
+
+```go
+&ast.CallExpr{
+  Fun: &ast.Ident{Name: "foo"},
+  Args: []ast.Expr{&pgo.Dots{}},
+}
+```
+
+Some transformations add or remove characters to the provided source. This
+will affect the positions of all the user-input that follows after the
+transformation. To adjust for this, we generate `PosAdjustment`s which inform
+our parsing logic how much positions should be adjusted. For example, if a
+`package` clause wasn't specified, one is generated and a `PosAdjustment` is
+returned that indicates that starting at offset x in the augmented source,
+reduce all positions by y to get positions in the original source.
 
 # Position Tracking
 
