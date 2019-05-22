@@ -205,7 +205,21 @@ our parsing logic how much positions should be adjusted. For example, if a
 returned that indicates that starting at offset x in the augmented source,
 reduce all positions by y to get positions in the original source.
 
-# Position Tracking
+# Compilation
+
+The parsed patch is compiled to a secondary representation with thorough type
+checking and validation. This representation is used by the [Engine] to drive
+the patching algorithm.
+
+  [Engine]: #engine
+
+# Engine
+
+The runtime engine for gopatch drives the patching behavior of the tool. The
+engine interprets the parsed patch and operates on user-supplied Go files based
+on the patch.
+
+# Appendix: Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and
 concepts of that package are not obvious so this section attempts to explain
