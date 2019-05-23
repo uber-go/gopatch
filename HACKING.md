@@ -219,6 +219,34 @@ The runtime engine for gopatch drives the patching behavior of the tool. The
 engine interprets the parsed patch and operates on user-supplied Go files based
 on the patch.
 
+The engine is comprised of the following primary abstractions:
+
+- **Matcher**, compiled from the "minus" section of a patch reports whether it
+  matches Go code.
+
+<!-- NOTE: More here in a follow-up change. -->
+
+Given a patch,
+
+```diff
+-err := f()
+-if err != nil {
++if err := f(); err != nil {
+    ...
+ }
+```
+
+The following code gets compiled into a **Matcher**.
+
+```go
+err := f()
+if err != nil {
+    ...
+}
+```
+
+<!-- NOTE: More here in a follow-up change. -->
+
 # Appendix: Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and
