@@ -2,9 +2,11 @@ package parse
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	"github.com/uber-go/gopatch/internal/parse/section"
+	"github.com/uber-go/gopatch/internal/pgo"
 )
 
 // parsePatch parses a Patch from the given source.
@@ -18,10 +20,44 @@ func (p *parser) parsePatch(i int, c *section.Change) (*Patch, error) {
 		EndPos:   c.End(),
 	}
 
-	splitPatch(c.Patch)
-	// TODO(abg): Parse the two versions.
+	filename := p.fset.File(c.Pos()).Name()
+	if c.Name != "" {
+		filename += "/" + c.Name
+	} else {
+		filename += fmt.Sprintf("/%d", i)
+	}
+
+	minus, plus := splitPatch(c.Patch)
+
+	var err error
+	patch.Minus, err = p.parsePatchVersion(filename+".minus", minus)
+	if err != nil {
+		return nil, err
+	}
+
+	patch.Plus, err = p.parsePatchVersion(filename+".plus", plus)
+	if err != nil {
+		return nil, err
+	}
 
 	return &patch, nil
+}
+
+// parses one version of the unified diff of a file.
+func (p *parser) parsePatchVersion(name string, f patchVersion) (*pgo.File, error) {
+	pfile, err := pgo.Parse(p.fset, name, f.Contents)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: fill position data for lines before msrc.Node.
+	file := p.fset.File(pfile.Node.Pos())
+	for _, i := range f.Lines {
+		position := p.fset.Position(i.Pos)
+		file.AddLineColumnInfo(i.Offset, position.Filename, position.Line, position.Column)
+	}
+
+	return pfile, nil
 }
 
 // patchVersion is one of the versions of a patch specified in a unified diff.

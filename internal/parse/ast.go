@@ -3,6 +3,8 @@ package parse
 import (
 	"go/ast"
 	"go/token"
+
+	"github.com/uber-go/gopatch/internal/pgo"
 )
 
 // Program is a single gopatch program consisting of one or more changes.
@@ -10,13 +12,12 @@ type Program struct {
 	Changes []*Change
 }
 
-// Change is a single change in a program. Changes are specified in the
-// format,
+// Change is a single change in a patch. Changes are specified in the format,
 //
 //  @@
 //  # metavariables go here
 //  @@
-//  # diff goes here
+//  # patch goes here
 //
 // Optionally, a name may be specified for a change between the first two
 // "@@"s.
@@ -84,7 +85,9 @@ type Patch struct {
 	// Positions at which the entire patch begins and ends.
 	StartPos, EndPos token.Pos
 
-	// TODO: patch contents
+	// The before and after versions of the Patch broken apart from the
+	// unified diff.
+	Minus, Plus *pgo.File
 }
 
 var _ ast.Node = (*Patch)(nil)
