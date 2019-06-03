@@ -223,8 +223,8 @@ The engine is comprised of the following primary abstractions:
 
 - **Matcher**, compiled from the "minus" section of a patch reports whether it
   matches Go code.
-
-<!-- NOTE: More here in a follow-up change. -->
+- **Replacer**, compiled from the "plus" section of a patch builds the AST that
+  should be placed in place of the matched code.
 
 Given a patch,
 
@@ -245,7 +245,13 @@ if err != nil {
 }
 ```
 
-<!-- NOTE: More here in a follow-up change. -->
+And the following code gets compiled into a **Replacer**.
+
+```go
+if err := f(); err != nil {
+    ...
+}
+```
 
 # Appendix: Position Tracking
 

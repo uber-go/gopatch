@@ -10,13 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func refl(v interface{}) reflect.Value {
-	return reflect.ValueOf(v)
-}
-
-func stringPtr(s string) *string { return &s }
-
-func TestGeneric(t *testing.T) {
+func TestGenericMatcher(t *testing.T) {
 	type emptyStruct struct{}
 	type someNode struct{ X string }
 
