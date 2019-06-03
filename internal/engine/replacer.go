@@ -1,12 +1,16 @@
 package engine
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/uber-go/gopatch/internal/data"
+)
 
 // Replacer generates portions of the Go AST meant to replace sections matched
 // by a Matcher. A Replacer is built from the "+" portion of a patch.
 type Replacer interface {
-	// Replace generates values for a Go AST.
-	Replace() (v reflect.Value, err error)
+	// Replace generates values for a Go AST provided prior match data.
+	Replace(d data.Data) (v reflect.Value, err error)
 }
 
 // replacerCompiler compiles the "+" portion of a patch into a Replacer which
@@ -28,6 +32,6 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 type ZeroReplacer struct{ Type reflect.Type }
 
 // Replace replaces with a zero value.
-func (r ZeroReplacer) Replace() (reflect.Value, error) {
+func (r ZeroReplacer) Replace(data.Data) (reflect.Value, error) {
 	return reflect.Zero(r.Type), nil
 }

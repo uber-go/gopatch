@@ -253,6 +253,10 @@ if err := f(); err != nil {
 }
 ```
 
+Matchers and Replacers share information using **Data** objects. Data is an
+immutable key-value store similar to `context.Context` with support for
+adding and looking up values.
+
 # Appendix: Position Tracking
 
 gopatch relies on `"go/token".Pos` for position tracking. The usage and

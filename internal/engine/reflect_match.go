@@ -1,6 +1,10 @@
 package engine
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/uber-go/gopatch/internal/data"
+)
 
 // compileGeneric compiles a Matcher for arbitrary values inside a Go AST.
 func (c *matcherCompiler) compileGeneric(v reflect.Value) (m Matcher) {
@@ -33,11 +37,11 @@ func (c *matcherCompiler) compilePtr(v reflect.Value) Matcher {
 }
 
 // Match matches a non-nil pointer.
-func (m PtrMatcher) Match(got reflect.Value) bool {
+func (m PtrMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
 	if got.Kind() != reflect.Ptr || got.IsNil() {
-		return false
+		return d, false
 	}
-	return m.Matcher.Match(got.Elem())
+	return m.Matcher.Match(got.Elem(), d)
 }
 
 // SliceMatcher matches a slice of values exactly.
@@ -60,18 +64,20 @@ func (c *matcherCompiler) compileSlice(v reflect.Value) Matcher {
 }
 
 // Match mathces a slice of values.
-func (m SliceMatcher) Match(got reflect.Value) bool {
+func (m SliceMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
 	if got.Kind() != reflect.Slice || len(m.Items) != got.Len() {
-		return false
+		return d, false
 	}
 
 	for i, im := range m.Items {
-		if !im.Match(got.Index(i)) {
-			return false
+		var ok bool
+		d, ok = im.Match(got.Index(i), d)
+		if !ok {
+			return d, false
 		}
 	}
 
-	return true
+	return d, true
 }
 
 // StructMatcher matches a struct.
@@ -97,16 +103,18 @@ func (c *matcherCompiler) compileStruct(v reflect.Value) Matcher {
 }
 
 // Match matches a struct.
-func (m StructMatcher) Match(got reflect.Value) bool {
+func (m StructMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
 	if m.Type != got.Type() {
-		return false
+		return d, false
 	}
 	for i, f := range m.Fields {
-		if !f.Match(got.Field(i)) {
-			return false
+		var ok bool
+		d, ok = f.Match(got.Field(i), d)
+		if !ok {
+			return d, false
 		}
 	}
-	return true
+	return d, true
 }
 
 // InterfaceMatcher matches an interface value.
@@ -122,11 +130,11 @@ func (c *matcherCompiler) compileInterface(v reflect.Value) Matcher {
 }
 
 // Match matches non-nil interface nalues.
-func (m InterfaceMatcher) Match(got reflect.Value) bool {
+func (m InterfaceMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
 	if got.Kind() != reflect.Interface || got.IsNil() {
-		return false
+		return d, false
 	}
-	return m.Matcher.Match(got.Elem())
+	return m.Matcher.Match(got.Elem(), d)
 }
 
 // ValueMatcher matches a value as-is.
@@ -136,9 +144,9 @@ type ValueMatcher struct {
 }
 
 // Match matches a value as-is.
-func (m ValueMatcher) Match(got reflect.Value) bool {
+func (m ValueMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
 	if m.Type != got.Type() {
-		return false
+		return d, false
 	}
-	return m.Value == got.Interface()
+	return d, m.Value == got.Interface()
 }

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func TestGenericReplacer(t *testing.T) {
 			r := newReplacerCompiler().compileGeneric(tt.value)
 
 			t.Run("equality", func(t *testing.T) {
-				got, err := r.Replace()
+				got, err := r.Replace(data.New())
 				require.NoError(t, err)
 				assert.Equal(t, tt.value.Interface(), got.Interface())
 			})
@@ -61,10 +62,11 @@ func TestGenericReplacer(t *testing.T) {
 			t.Run("matches self", func(t *testing.T) {
 				m := newMatcherCompiler().compileGeneric(tt.value)
 
-				got, err := r.Replace()
+				got, err := r.Replace(data.New())
 				require.NoError(t, err)
 
-				assert.True(t, m.Match(got))
+				_, ok := m.Match(got, data.New())
+				assert.True(t, ok)
 			})
 		})
 	}

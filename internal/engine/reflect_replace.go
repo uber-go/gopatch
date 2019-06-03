@@ -1,6 +1,10 @@
 package engine
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/uber-go/gopatch/internal/data"
+)
 
 // compileGeneric compiles a Replacer for arbitrary values inside a Go AST.
 func (c *replacerCompiler) compileGeneric(v reflect.Value) (r Replacer) {
@@ -37,8 +41,8 @@ func (c *replacerCompiler) compilePtr(v reflect.Value) Replacer {
 }
 
 // Replace replaces a pointer type.
-func (r PtrReplacer) Replace() (reflect.Value, error) {
-	x, err := r.Replacer.Replace()
+func (r PtrReplacer) Replace(d data.Data) (reflect.Value, error) {
+	x, err := r.Replacer.Replace(d)
 	if err != nil {
 		return reflect.Value{}, err
 	}
@@ -75,10 +79,10 @@ func (c *replacerCompiler) compileSlice(v reflect.Value) Replacer {
 }
 
 // Replace replaces a slice.
-func (r SliceReplacer) Replace() (reflect.Value, error) {
+func (r SliceReplacer) Replace(d data.Data) (reflect.Value, error) {
 	v := reflect.MakeSlice(r.Type, len(r.Items), len(r.Items))
 	for i, itemR := range r.Items {
-		item, err := itemR.Replace()
+		item, err := itemR.Replace(d)
 		if err != nil {
 			return reflect.Value{}, err
 		}
@@ -111,10 +115,10 @@ func (c *replacerCompiler) compileStruct(v reflect.Value) Replacer {
 }
 
 // Replace replaces a struct value.
-func (r StructReplacer) Replace() (reflect.Value, error) {
+func (r StructReplacer) Replace(d data.Data) (reflect.Value, error) {
 	v := reflect.New(r.Type).Elem()
 	for i, f := range r.Fields {
-		fv, err := f.Replace()
+		fv, err := f.Replace(d)
 		if err != nil {
 			return reflect.Value{}, err
 		}
@@ -141,8 +145,8 @@ func (c *replacerCompiler) compileInterface(v reflect.Value) Replacer {
 }
 
 // Replace replaces an interface value.
-func (r InterfaceReplacer) Replace() (reflect.Value, error) {
-	x, err := r.Replacer.Replace()
+func (r InterfaceReplacer) Replace(d data.Data) (reflect.Value, error) {
+	x, err := r.Replacer.Replace(d)
 	if err != nil {
 		return reflect.Value{}, err
 	}
@@ -156,6 +160,6 @@ func (r InterfaceReplacer) Replace() (reflect.Value, error) {
 type ValueReplacer struct{ Value reflect.Value }
 
 // Replace replaces a value as-is.
-func (r ValueReplacer) Replace() (reflect.Value, error) {
+func (r ValueReplacer) Replace(data.Data) (reflect.Value, error) {
 	return r.Value, nil
 }

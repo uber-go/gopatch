@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"reflect"
 
+	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/parse"
 )
 
@@ -31,7 +32,18 @@ func (c *compiler) compileChange(achange *parse.Change) *Change {
 	}
 }
 
-// Match searches for this change in the given AST Node and its descendants.
-func (c *Change) Match(f *ast.File) (ok bool) {
-	return c.matcher.Match(reflect.ValueOf(f))
+// Match matches this change in the given Go AST and returns captured match
+// information it a Data object.
+func (c *Change) Match(f *ast.File) (d data.Data, ok bool) {
+	return c.matcher.Match(reflect.ValueOf(f), data.New())
+}
+
+// Replace generates a replacement File based on previously captured match
+// data.
+func (c *Change) Replace(d data.Data) (*ast.File, error) {
+	v, err := c.replacer.Replace(d)
+	if err != nil {
+		return nil, err
+	}
+	return v.Interface().(*ast.File), nil
 }

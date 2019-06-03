@@ -1,12 +1,20 @@
 package engine
 
-import "reflect"
+import (
+	"reflect"
+
+	"github.com/uber-go/gopatch/internal/data"
+)
 
 // Matcher matches values in a Go AST. It is built from the "-" portion of a
 // patch.
 type Matcher interface {
-	// Match reports whether the provided value from a Go AST matches it.
-	Match(reflect.Value) (ok bool)
+	// Match is called with the a value from the AST being compared with the
+	// match data captured so far.
+	//
+	// Match reports whether the match succeeded and if so, returns the
+	// original or a different Data object containing additional match data.
+	Match(reflect.Value, data.Data) (_ data.Data, ok bool)
 }
 
 // matcherCompiler compiles the "-" portion of a patch into a Matcher which
@@ -26,8 +34,8 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 
 type matcherFunc func(reflect.Value) bool
 
-func (f matcherFunc) Match(v reflect.Value) bool {
-	return f(v)
+func (f matcherFunc) Match(v reflect.Value, d data.Data) (data.Data, bool) {
+	return d, f(v)
 }
 
 // nilMatcher is a Matcher that only matches nil values.
