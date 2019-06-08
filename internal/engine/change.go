@@ -21,8 +21,8 @@ type Change struct {
 
 func (c *compiler) compileChange(achange *parse.Change) *Change {
 	meta := c.compileMeta(achange.Meta)
-	mc := newMatcherCompiler()
-	rc := newReplacerCompiler()
+	mc := newMatcherCompiler(c.fset, meta)
+	rc := newReplacerCompiler(c.fset, meta)
 	return &Change{
 		Name:     achange.Name, // TODO(abg): validate name
 		Meta:     meta,

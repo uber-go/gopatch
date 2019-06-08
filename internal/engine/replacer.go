@@ -1,9 +1,11 @@
 package engine
 
 import (
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/goast"
 )
 
 // Replacer generates portions of the Go AST meant to replace sections matched
@@ -16,15 +18,23 @@ type Replacer interface {
 // replacerCompiler compiles the "+" portion of a patch into a Replacer which
 // will generate the portions to fill in the original AST.
 type replacerCompiler struct {
+	fset *token.FileSet
+	meta *Meta // declared metavariables, if any
 }
 
-func newReplacerCompiler() *replacerCompiler {
-	return &replacerCompiler{}
+func newReplacerCompiler(fset *token.FileSet, meta *Meta) *replacerCompiler {
+	return &replacerCompiler{
+		fset: fset,
+		meta: meta,
+	}
 }
 
 func (c *replacerCompiler) compile(v reflect.Value) Replacer {
-	// NOTE: We're currently relying entirely on the reflection-based
-	// replacer. Upcoming changes will flesh out this method further.
+	switch v.Type() {
+	case goast.IdentPtrType:
+		return c.compileIdent(v)
+		// TODO: Other special cases go here.
+	}
 	return c.compileGeneric(v)
 }
 

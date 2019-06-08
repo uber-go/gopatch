@@ -1,9 +1,11 @@
 package engine
 
 import (
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/goast"
 )
 
 // Matcher matches values in a Go AST. It is built from the "-" portion of a
@@ -20,15 +22,23 @@ type Matcher interface {
 // matcherCompiler compiles the "-" portion of a patch into a Matcher which
 // will report whether another Go AST matches it.
 type matcherCompiler struct {
+	fset *token.FileSet
+	meta *Meta // declared metavariables, if any
 }
 
-func newMatcherCompiler() *matcherCompiler {
-	return &matcherCompiler{}
+func newMatcherCompiler(fset *token.FileSet, meta *Meta) *matcherCompiler {
+	return &matcherCompiler{
+		fset: fset,
+		meta: meta,
+	}
 }
 
 func (c *matcherCompiler) compile(v reflect.Value) Matcher {
-	// NOTE: We're currently relying entirely on the reflection-based matcher.
-	// Upcoming changes will flesh out this method further.
+	switch v.Type() {
+	case goast.IdentPtrType:
+		return c.compileIdent(v)
+		// TODO: Other special cases go here.
+	}
 	return c.compileGeneric(v)
 }
 

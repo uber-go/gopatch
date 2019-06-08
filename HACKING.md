@@ -253,9 +253,90 @@ if err := f(); err != nil {
 }
 ```
 
+## Data Sharing
+
 Matchers and Replacers share information using **Data** objects. Data is an
 immutable key-value store similar to `context.Context` with support for
 adding and looking up values.
+
+## Metavariables
+
+Given a metavariable declaration,
+
+    @@
+    var f expression
+    @@
+
+Each occurrence of `f` in the minus section of the patch is converted into a
+`MetavarMatcher` and each occurrence in the plus section is converted into a
+`MetavarReplacer`.
+
+Consider,
+
+```diff
+@@
+var f expression
+@@
+-f(42)
++f(100)
+```
+
+The Go AST representation of `f(42)` is,
+
+```go
+&ast.CallExpr{
+  Fun: &ast.Ident{Name: "f"},
+  Args: []ast.Expr{
+    &ast.BasicLit{
+      Kind: token.INT,
+      Value: "42",
+    },
+  },
+}
+```
+
+The Matcher for it will look similar to the following.
+
+```go
+CallExprMatcher{
+  Fun: MetavarMatcher{Name: "f"},
+  Args: []ExprMatcher{
+    BasicLitMatcher{
+      Kind: ValueMatcher{Value: token.INT},
+      Value: ValueMatcher{Value: "42"},
+    }
+  },
+}
+```
+
+(Except we're actually using reflection to build the `CallExpr` matcher because
+we don't want to write matchers by hand for every AST node type, but you get
+the point.)
+
+When the `CallExpr` matcher comes across a `CallExpr`, it will invoke the
+`MetavarMatcher` on whatever is inside the `Fun` field of the `CallExpr`, which
+in turn will capture the contents and store them on `Data` object.
+
+```go
+d, ok = matcher.Fun.Match(callExpr.Fun, d)
+```
+
+Similarly, the Replacer for `f(100)` will look similar to the following.
+
+```
+CallExprReplacer{
+  Fun: MetavarReplacer{Name: "f"},
+  Args: []ExprReplacer{
+    BasicLitReplacer{
+      Kind: ValueReplacer{Value: token.INT},
+      Value: ValueReplacer{Value: "100"},
+    }
+  },
+}
+```
+
+The `CallExpr` replacer will invoke the `MetavarReplacer` with the Data it
+received, which will then produce the previously captured expression.
 
 # Appendix: Position Tracking
 

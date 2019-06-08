@@ -200,7 +200,7 @@ func TestGenericMatcher(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := newMatcherCompiler().compileGeneric(tt.give)
+			m := newMatcherCompiler(token.NewFileSet(), nil).compileGeneric(tt.give)
 			d := data.New()
 			for _, tc := range tt.cases {
 				t.Run(tc.desc, func(t *testing.T) {
