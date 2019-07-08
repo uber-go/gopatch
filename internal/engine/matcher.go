@@ -38,6 +38,9 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
 		// TODO: Other special cases go here.
+	case goast.PosType:
+		// Ignore positions for now.
+		return successMatcher
 	}
 	return c.compileGeneric(v)
 }
@@ -48,5 +51,10 @@ func (f matcherFunc) Match(v reflect.Value, d data.Data) (data.Data, bool) {
 	return d, f(v)
 }
 
-// nilMatcher is a Matcher that only matches nil values.
-var nilMatcher Matcher = matcherFunc(func(got reflect.Value) bool { return got.IsNil() })
+var (
+	// nilMatcher is a Matcher that only matches nil values.
+	nilMatcher Matcher = matcherFunc(func(got reflect.Value) bool { return got.IsNil() })
+
+	// successMatcher always return true.
+	successMatcher Matcher = matcherFunc(func(reflect.Value) bool { return true })
+)
