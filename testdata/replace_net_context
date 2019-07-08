@@ -1,0 +1,64 @@
+# TODO(abg): This is broken because of our current "uses import" detection
+# which treats the old context import as used, as it doesn't recognize that
+# the new one is meant to replace it.
+
+-- in.patch --
+@@
+@@
+-import "golang.org/x/net/context"
++import "context"
+
+# TODO: Delete the requirement of having at least one AST-level
+# match/replacement.
+ context
+
+-- top_level.in.go --
+package foo
+
+import "golang.org/x/net/context"
+
+func x() {
+	context.Background()
+}
+
+-- top_level.out.go --
+package foo
+
+import (
+	"context"
+	"golang.org/x/net/context"
+)
+
+func x() {
+	context.
+		Background()
+}
+
+-- import_group.in.go --
+package foo
+
+import (
+	"time"
+
+	"golang.org/x/net/context"
+)
+
+func x() {
+	context.WithTimeout(context.Background(), time.Second)
+}
+
+-- import_group.out.go --
+package foo
+
+import (
+	"context"
+	"time"
+
+	"golang.org/x/net/context"
+)
+
+func x() {
+	context.
+		WithTimeout(context.
+			Background(), time.Second)
+}

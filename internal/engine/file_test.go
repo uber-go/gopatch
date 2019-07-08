@@ -521,6 +521,93 @@ func TestFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "remove import",
+			// -import "foo"
+			//  bar
+			minus: &pgo.File{
+				Imports: []*ast.ImportSpec{
+					{
+						Path: &ast.BasicLit{Kind: token.STRING, Value: `"foo"`},
+					},
+				},
+				Node: &pgo.Expr{Expr: ast.NewIdent("bar")},
+			},
+			plus: &pgo.File{
+				Node: &pgo.Expr{Expr: ast.NewIdent("bar")},
+			},
+			cases: []testCase{
+				{
+					desc: "success",
+					giveSrc: text.Unlines(
+						"package x",
+						`import "foo"`,
+						"func bar() { bar() }",
+					),
+					wantSrc: text.Unlines(
+						"package x",
+						"func bar() { bar() }",
+					),
+				},
+				{
+					desc: "named import",
+					giveSrc: text.Unlines(
+						"package x",
+						`import baz "foo"`,
+						"func bar() { bar() }",
+					),
+					wantSrc: text.Unlines(
+						"package x",
+						"func bar() { bar() }",
+					),
+				},
+			},
+		},
+		{
+			desc: "replace import",
+			// -import "foo"
+			// -import "bar"
+			// -foo.Bar
+			// +bar.Bar
+			minus: &pgo.File{
+				Imports: []*ast.ImportSpec{
+					{
+						Path: &ast.BasicLit{Kind: token.STRING, Value: `"foo"`},
+					},
+				},
+				Node: &pgo.Expr{
+					Expr: &ast.SelectorExpr{X: ast.NewIdent("foo"), Sel: ast.NewIdent("Bar")},
+				},
+			},
+			plus: &pgo.File{
+				Imports: []*ast.ImportSpec{
+					{
+						Path: &ast.BasicLit{Kind: token.STRING, Value: `"bar"`},
+					},
+				},
+				Node: &pgo.Expr{
+					Expr: &ast.SelectorExpr{X: ast.NewIdent("bar"), Sel: ast.NewIdent("Bar")},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "success",
+					giveSrc: text.Unlines(
+						"package x",
+						`import "foo"`,
+						"func x() { foo.Bar() }",
+					),
+					wantSrc: text.Unlines(
+						"package x",
+						`import "bar"`,
+						"func x() { bar.Bar() }",
+					),
+				},
+				// TODO: If the patch had foo.Bar, and the
+				// user made a named import with baz, we need
+				// to match baz.Bar instead of foo.Bar.
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -581,7 +668,7 @@ func disconnectIdentObj(v reflect.Value) {
 		return
 	}
 
-	if v.Type() == goast.IdentPtrType {
+	if v.Type() == goast.IdentPtrType && !v.IsNil() {
 		ident := v.Interface().(*ast.Ident)
 		ident.Obj = nil
 	}
