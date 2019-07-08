@@ -8,18 +8,11 @@ import (
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGenericMatcher(t *testing.T) {
 	type emptyStruct struct{}
 	type someNode struct{ X string }
-
-	type matchCase struct {
-		desc string        // name of the test case
-		give reflect.Value // value to match
-		ok   bool          // expected result
-	}
 
 	tests := []struct {
 		name string        // name of the matcher
@@ -201,17 +194,7 @@ func TestGenericMatcher(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := newMatcherCompiler(token.NewFileSet(), nil).compileGeneric(tt.give)
-			d := data.New()
-			for _, tc := range tt.cases {
-				t.Run(tc.desc, func(t *testing.T) {
-					newd, ok := m.Match(tc.give, d)
-					if ok {
-						// Carry data over in case of successful matches.
-						d = newd
-					}
-					assert.Equal(t, tc.ok, ok)
-				})
-			}
+			assertMatchCases(t, m, data.New(), tt.cases)
 		})
 	}
 }
