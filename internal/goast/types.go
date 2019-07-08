@@ -12,6 +12,9 @@ var (
 	PosType = reflect.TypeOf(token.Pos(0))
 
 	// Structs
+	BlockStmtType    = reflect.TypeOf(ast.BlockStmt{})
+	CaseClauseType   = reflect.TypeOf(ast.CaseClause{})
+	CommClauseType   = reflect.TypeOf(ast.CommClause{})
 	CommentGroupType = reflect.TypeOf(ast.CommentGroup{})
 	IdentType        = reflect.TypeOf(ast.Ident{})
 	ObjectType       = reflect.TypeOf(ast.Object{})
