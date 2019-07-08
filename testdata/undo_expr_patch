@@ -1,0 +1,50 @@
+This makes a series of transformations that end up amounting to a no-op.
+
+-- add_argument.patch --
+@@
+var x expression
+@@
+ foo(x,
++    42,
+ )
+
+-- rename_func.patch --
+@@
+var x, y expression
+@@
+-foo(
++bar(
+  x, y)
+
+-- delete_argument.patch --
+@@
+var x, y expression
+@@
+ bar(x,
+-  y,
+ )
+
+-- reverse_rename.patch --
+@@
+var x expression
+@@
+-bar(
++foo(
+  x)
+
+-- a.in.go --
+package main
+
+func main() {
+	foo(1)
+}
+
+-- a.out.go --
+package main
+
+func main() {
+	foo(
+
+		1)
+
+}

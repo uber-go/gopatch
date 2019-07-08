@@ -1,0 +1,23 @@
+-- foo_bar.patch --
+@@
+var x expression
+@@
+-foo(x)
++bar(x)
+
+-- simple.in.go --
+package main
+
+func main() {
+	foo(42)
+}
+
+-- simple.out.go --
+package main
+
+func main() {
+	bar(
+
+		42)
+
+}
