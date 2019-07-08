@@ -1,0 +1,125 @@
+Inlines error variable declarations into if statements where possible.
+
+TODO: ... where applicable
+
+-- inline_errors.patch --
+@@
+var f expression
+var err identifier
+@@
+-   err := f
+-   if err != nil {
++   if err := f; err != nil {
+        return err
+    }
+
+-- match.in.go --
+package foo
+
+func foo() error {
+	err := baz()
+	if err != nil {
+		return err
+	}
+}
+
+-- match.out.go --
+package foo
+
+func foo() error {
+	if err :=
+
+		baz(); err !=
+		nil {
+		return
+
+			err
+	}
+
+}
+-- no_match.in.go --
+package foo
+
+func baz() error {
+	x, err := unchanged()
+	if err != nil {
+		return err
+	}
+	print(x)
+	return nil
+}
+-- no_match.out.go --
+package foo
+
+func baz() error {
+	x, err := unchanged()
+	if err != nil {
+		return err
+	}
+	print(x)
+	return nil
+}
+-- case.in.go --
+package foo
+
+func foo() error {
+	switch bar() {
+	case "x":
+		err := baz()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+-- case.out.go --
+package foo
+
+func foo() error {
+	switch bar() {
+	case "x":
+		if err :=
+
+			baz(); err !=
+			nil {
+			return
+
+				err
+		}
+
+	}
+	return nil
+}
+-- select.in.go --
+package foo
+
+func foo(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		err := ctx.Err()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+-- select.out.go --
+package foo
+
+func foo(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		if err :=
+
+			ctx.Err(); err !=
+			nil {
+			return
+
+				err
+		}
+
+	}
+	return nil
+}

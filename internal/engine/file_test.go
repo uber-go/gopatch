@@ -346,6 +346,111 @@ func TestFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "stmt list",
+			// -var foo string
+			//  foo = bar
+			// +foo := bar
+			minus: &pgo.File{
+				Node: &pgo.StmtList{
+					List: []ast.Stmt{
+						&ast.DeclStmt{
+							Decl: &ast.GenDecl{
+								Tok: token.VAR,
+								Specs: []ast.Spec{
+									&ast.ValueSpec{
+										Names: []*ast.Ident{ast.NewIdent("foo")},
+										Type:  ast.NewIdent("string"),
+									},
+								},
+							},
+						},
+						&ast.AssignStmt{
+							Lhs: []ast.Expr{ast.NewIdent("foo")},
+							Tok: token.ASSIGN,
+							Rhs: []ast.Expr{ast.NewIdent("bar")},
+						},
+					},
+				},
+			},
+			plus: &pgo.File{
+				Node: &pgo.StmtList{
+					List: []ast.Stmt{
+						&ast.AssignStmt{
+							Lhs: []ast.Expr{ast.NewIdent("foo")},
+							Tok: token.DEFINE,
+							Rhs: []ast.Expr{ast.NewIdent("bar")},
+						},
+					},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "block",
+					giveSrc: text.Unlines(
+						"package a",
+						"func x() {",
+						"	if y() {",
+						"		var foo string",
+						"		foo = bar",
+						"	}",
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func x() {",
+						"	if y() {",
+						"		foo := bar",
+						"	}",
+						"}",
+					),
+				},
+				{
+					desc: "switch",
+					giveSrc: text.Unlines(
+						"package a",
+						"func x() {",
+						"	switch y() {",
+						"	case z:",
+						"		var foo string",
+						"		foo = bar",
+						"	}",
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func x() {",
+						"	switch y() {",
+						"	case z:",
+						"		foo := bar",
+						"	}",
+						"}",
+					),
+				},
+				{
+					desc: "select",
+					giveSrc: text.Unlines(
+						"package a",
+						"func x(ctx context.Context) {",
+						"	select {",
+						"	case <-ctx.Done():",
+						"		var foo string",
+						"		foo = bar",
+						"	}",
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func x(ctx context.Context) {",
+						"	select {",
+						"	case <-ctx.Done():",
+						"		foo := bar",
+						"	}",
+						"}",
+					),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
