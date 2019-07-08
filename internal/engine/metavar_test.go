@@ -12,12 +12,6 @@ import (
 )
 
 func TestMetavar(t *testing.T) {
-	type matchCase struct {
-		desc string
-		give reflect.Value
-		ok   bool
-	}
-
 	tests := []struct {
 		desc string
 
@@ -150,15 +144,8 @@ func TestMetavar(t *testing.T) {
 
 			t.Run("Match", func(t *testing.T) {
 				m := newMatcherCompiler(fset, meta).compileIdent(ident)
-				for _, tc := range tt.matches {
-					t.Run(tc.desc, func(t *testing.T) {
-						newd, ok := m.Match(tc.give, d)
-						if ok {
-							// Carry data over in case of successful matches.
-							d = newd
-						}
-						assert.Equal(t, tc.ok, ok)
-					})
+				if newd, ok := assertMatchCases(t, m, d, tt.matches); ok {
+					d = newd
 				}
 			})
 
