@@ -11,3 +11,5 @@ require (
 	go.uber.org/multierr v1.1.0
 	golang.org/x/tools v0.0.0-20190820033707-85edb9ef3283
 )
+
+go 1.13

@@ -4,18 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/goast"
 	"github.com/uber-go/gopatch/internal/pgo"
 	"golang.org/x/tools/go/ast/astutil"
 )
 
 // FileMatcher matches Go files.
 type FileMatcher struct {
-	// TODO(abg): Imports
 	// Matches the package name, if any.
 	Package string
+
+	// Imports in the file.
+	Imports []*ast.ImportSpec
 
 	// Matches nodes in the file.
 	NodeMatcher Matcher
@@ -38,6 +42,7 @@ func (c *matcherCompiler) compileFile(file *pgo.File) FileMatcher {
 
 	return FileMatcher{
 		Package:     file.Package,
+		Imports:     file.Imports,
 		NodeMatcher: m,
 	}
 }
@@ -49,6 +54,22 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 	if m.Package != "" && m.Package != file.Name.Name {
 		// TODO(abg): Use an identMatcher with a constraint.
 		return d, false
+	}
+
+	// Match imports.
+	importPaths := make(map[string]string)
+	for _, want := range m.Imports {
+		wantPath := goast.ImportPath(want)
+
+		spec := goast.FindImportSpec(file, wantPath)
+		if spec == nil {
+			// Fail the match because the package wasn't imported.
+			return d, false
+		}
+
+		// TODO(abg): If the patch had named imports, automatically
+		// map foo.Bar in the patch to whatever the actual import was.
+		importPaths[wantPath] = goast.ImportName(spec)
 	}
 
 	// To match the body, we use astutil.Apply which traverses the AST and
@@ -86,16 +107,20 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 
 	return data.WithValue(d, fileMatchKey, fileMatchData{
 		File:    file,
+		Imports: importPaths,
 		Matches: matches,
 	}), true
 }
 
 // FileReplacer replaces an ast.File.
 type FileReplacer struct {
-	// TODO(abg): Imports
+	Fset *token.FileSet
 
 	// Package name to change to, if any.
 	Package string
+
+	// Imports in the file.
+	Imports []*ast.ImportSpec
 
 	// Replaces matched nodes in the file.
 	NodeReplacer Replacer
@@ -117,7 +142,9 @@ func (c *replacerCompiler) compileFile(file *pgo.File) FileReplacer {
 	}
 
 	return FileReplacer{
+		Fset:         c.fset,
 		Package:      file.Package,
+		Imports:      file.Imports,
 		NodeReplacer: r,
 	}
 }
@@ -132,6 +159,11 @@ func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
 	file := fd.File
 	if r.Package != "" {
 		file.Name.Name = r.Package
+	}
+
+	// Add replaced imports.
+	for _, imp := range r.Imports {
+		astutil.AddNamedImport(r.Fset, file, goast.ImportName(imp), goast.ImportPath(imp))
 	}
 
 	for _, m := range fd.Matches {
@@ -157,6 +189,21 @@ func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
 		if give.Type().AssignableTo(v.Type()) {
 			v.Set(give)
 		}
+	}
+
+	// Remove other imports if unused.
+	for imp, impName := range fd.Imports {
+		// TODO: UsesImport isn't great. We should use go/packages
+		// with NeedName LoadMode to determine if an identifier was
+		// used.
+		if !astutil.UsesImport(file, imp) {
+			astutil.DeleteNamedImport(r.Fset, file, impName, imp)
+		}
+	}
+
+	if len(file.Imports) == 0 {
+		// The AST prefers that the list be nil when empty.
+		file.Imports = nil
 	}
 
 	return file, nil
@@ -186,5 +233,6 @@ type searchResult struct {
 
 type fileMatchData struct {
 	File    *ast.File
+	Imports map[string]string // import path -> name (if any, or "" if unnamed)
 	Matches []*searchResult
 }
