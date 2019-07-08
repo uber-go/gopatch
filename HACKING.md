@@ -259,6 +259,24 @@ Matchers and Replacers share information using **Data** objects. Data is an
 immutable key-value store similar to `context.Context` with support for
 adding and looking up values.
 
+Roughly, the flow of information is similar to the following,
+
+
+     (input)                     Compile
+    .go files            .------ .patch -----.
+        |               /                     \
+        |        +-----|-----------------------|------+
+        |        |     |         ENGINE        |      |
+        |        |     v                       v      |
+        v        |+---------+             +----------+|
+     ast.File -->|| Matcher +--> Data --> | Replacer +|--> ast.File
+                 |+---------+             +----------+|      |
+                 |                                    |      |
+                 +------------------------------------+      v
+                                                          .go files
+                                                           (output)
+
+
 ## Metavariables
 
 Given a metavariable declaration,

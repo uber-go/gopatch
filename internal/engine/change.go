@@ -3,7 +3,6 @@ package engine
 import (
 	"go/ast"
 	"go/token"
-	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/parse"
@@ -15,35 +14,34 @@ type Change struct {
 	Meta *Meta
 
 	fset     *token.FileSet
-	matcher  Matcher
-	replacer Replacer
+	matcher  FileMatcher
+	replacer FileReplacer
 }
 
 func (c *compiler) compileChange(achange *parse.Change) *Change {
 	meta := c.compileMeta(achange.Meta)
 	mc := newMatcherCompiler(c.fset, meta)
 	rc := newReplacerCompiler(c.fset, meta)
+
+	matcher := mc.compileFile(achange.Patch.Minus)
+	replacer := rc.compileFile(achange.Patch.Plus)
 	return &Change{
 		Name:     achange.Name, // TODO(abg): validate name
 		Meta:     meta,
 		fset:     c.fset,
-		matcher:  mc.compile(reflect.ValueOf(achange.Patch.Minus)),
-		replacer: rc.compile(reflect.ValueOf(achange.Patch.Plus)),
+		matcher:  matcher,
+		replacer: replacer,
 	}
 }
 
 // Match matches this change in the given Go AST and returns captured match
-// information it a Data object.
+// information it a data.Data object.
 func (c *Change) Match(f *ast.File) (d data.Data, ok bool) {
-	return c.matcher.Match(reflect.ValueOf(f), data.New())
+	return c.matcher.Match(f, data.New())
 }
 
 // Replace generates a replacement File based on previously captured match
 // data.
 func (c *Change) Replace(d data.Data) (*ast.File, error) {
-	v, err := c.replacer.Replace(d)
-	if err != nil {
-		return nil, err
-	}
-	return v.Interface().(*ast.File), nil
+	return c.replacer.Replace(d)
 }
