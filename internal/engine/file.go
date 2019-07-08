@@ -13,8 +13,9 @@ import (
 
 // FileMatcher matches Go files.
 type FileMatcher struct {
-	// TODO(abg): Package name
 	// TODO(abg): Imports
+	// Matches the package name, if any.
+	Package string
 
 	// Matches nodes in the file.
 	NodeMatcher Matcher
@@ -36,6 +37,7 @@ func (c *matcherCompiler) compileFile(file *pgo.File) FileMatcher {
 	}
 
 	return FileMatcher{
+		Package:     file.Package,
 		NodeMatcher: m,
 	}
 }
@@ -43,6 +45,12 @@ func (c *matcherCompiler) compileFile(file *pgo.File) FileMatcher {
 // Match matches against the file, recording information about all matches
 // found in it.
 func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
+	// Match package name.
+	if m.Package != "" && m.Package != file.Name.Name {
+		// TODO(abg): Use an identMatcher with a constraint.
+		return d, false
+	}
+
 	// To match the body, we use astutil.Apply which traverses the AST and
 	// provides a replaceable pointer to each node so that we can rewrite
 	// the AST in-place.
@@ -84,8 +92,10 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 
 // FileReplacer replaces an ast.File.
 type FileReplacer struct {
-	// TODO(abg): Package name
 	// TODO(abg): Imports
+
+	// Package name to change to, if any.
+	Package string
 
 	// Replaces matched nodes in the file.
 	NodeReplacer Replacer
@@ -107,6 +117,7 @@ func (c *replacerCompiler) compileFile(file *pgo.File) FileReplacer {
 	}
 
 	return FileReplacer{
+		Package:      file.Package,
 		NodeReplacer: r,
 	}
 }
@@ -116,6 +127,11 @@ func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
 	var fd fileMatchData
 	if !data.Lookup(d, fileMatchKey, &fd) {
 		return nil, errors.New("no file match data found")
+	}
+
+	file := fd.File
+	if r.Package != "" {
+		file.Name.Name = r.Package
 	}
 
 	for _, m := range fd.Matches {
@@ -143,7 +159,7 @@ func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
 		}
 	}
 
-	return fd.File, nil
+	return file, nil
 }
 
 type _fileMatchKey struct{}

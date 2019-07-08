@@ -451,6 +451,76 @@ func TestFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "match package name",
+			//  package foo
+			//
+			// -FooClient
+			// +Client
+			minus: &pgo.File{
+				Package: "foo",
+				Node:    &pgo.Expr{Expr: ast.NewIdent("FooClient")},
+			},
+			plus: &pgo.File{
+				Package: "foo",
+				Node:    &pgo.Expr{Expr: ast.NewIdent("Client")},
+			},
+			cases: []testCase{
+				{
+					desc: "success",
+					giveSrc: text.Unlines(
+						"package foo",
+						"type FooClient struct{}",
+					),
+					wantSrc: text.Unlines(
+						"package foo",
+						"type Client struct{}",
+					),
+				},
+				{
+					desc: "package name mismatch",
+					giveSrc: text.Unlines(
+						"package fooclient",
+						"type FooClient struct{}",
+					),
+				},
+			},
+		},
+		{
+			desc: "change package name",
+			// -package foo
+			// -package bar
+			//
+			//  Client
+			minus: &pgo.File{
+				Package: "foo",
+				Node:    &pgo.Expr{Expr: ast.NewIdent("Client")},
+			},
+			plus: &pgo.File{
+				Package: "bar",
+				Node:    &pgo.Expr{Expr: ast.NewIdent("Client")},
+			},
+			cases: []testCase{
+				{
+					desc: "success",
+					giveSrc: text.Unlines(
+						"package foo",
+						"type Client struct{}",
+					),
+					wantSrc: text.Unlines(
+						"package bar",
+						"type Client struct{}",
+					),
+				},
+				{
+					desc: "body mismatch",
+					giveSrc: text.Unlines(
+						"package foo",
+						"type FooClient struct{}",
+					),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
