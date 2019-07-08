@@ -1,0 +1,28 @@
+TODO: Delete Foo() once we support pgo.File without Nodes.
+
+-- rename.patch --
+@@
+@@
+-package foo
++package bar
+
+ Foo()
+
+-- foo.in.go --
+package foo
+
+import "fmt"
+
+func main() {
+	Foo()
+}
+
+-- foo.out.go --
+package bar
+
+import "fmt"
+
+func main() {
+	Foo()
+
+}

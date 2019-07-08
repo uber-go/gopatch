@@ -221,6 +221,42 @@ var f expression
  }
 ```
 
+#### Package Names
+
+If needed, package names are specified in the patch before any other Go code.
+
+```diff
+@@
+@@
+ package foo
+
+-FooClient
++Client
+
+@@
+@@
+-foo.FooClient
++foo.Client
+```
+
+The patch above replaces all instances of `foo.FooClient` with `foo.Client` to
+reduce stuttering in its usage. The first portion of the patch only applies
+inside the `foo` package.
+
+Package names may also be changed with the diff.
+
+```diff
+@@
+@@
+-package foo
++package bar
+
+-Foo
++Bar
+```
+
+The patch above renames both, the package and the type declared in that package.
+
 ## Prior Art
 
 - [gofmt rewrite rules] support simple transformations on expressions.
