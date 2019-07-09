@@ -1,0 +1,21 @@
+-- err.patch --
+@@
+var f identifier
+@@
+-func f() {
++func f() error {
++  return nil
+ }
+
+-- foo.in.go --
+package foo
+
+func bar() {
+}
+
+-- foo.out.go --
+package foo
+
+func bar() error {
+	return nil
+}

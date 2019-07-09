@@ -12,12 +12,14 @@ var (
 	PosType = reflect.TypeOf(token.Pos(0))
 
 	// Structs
-	IdentType  = reflect.TypeOf(ast.Ident{})
-	ObjectType = reflect.TypeOf(ast.Object{})
+	CommentGroupType = reflect.TypeOf(ast.CommentGroup{})
+	IdentType        = reflect.TypeOf(ast.Ident{})
+	ObjectType       = reflect.TypeOf(ast.Object{})
 
 	// Struct Pointers
-	IdentPtrType  = reflect.PtrTo(IdentType)
-	ObjectPtrType = reflect.PtrTo(ObjectType)
+	CommentGroupPtrType = reflect.PtrTo(CommentGroupType)
+	IdentPtrType        = reflect.PtrTo(IdentType)
+	ObjectPtrType       = reflect.PtrTo(ObjectType)
 
 	// Interfaces
 	ExprType = reflect.TypeOf((*ast.Expr)(nil)).Elem()
