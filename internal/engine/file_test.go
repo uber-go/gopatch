@@ -159,6 +159,193 @@ func TestFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "var decl",
+			// -var foo string
+			// +var foo, bar UUID
+			minus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.VAR,
+						Specs: []ast.Spec{
+							&ast.ValueSpec{
+								Names: []*ast.Ident{ast.NewIdent("foo")},
+								Type:  ast.NewIdent("string"),
+							},
+						},
+					},
+				},
+			},
+			plus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.VAR,
+						Specs: []ast.Spec{
+							&ast.ValueSpec{
+								Names: []*ast.Ident{
+									ast.NewIdent("foo"),
+									ast.NewIdent("bar"),
+								},
+								Type: ast.NewIdent("UUID"),
+							},
+						},
+					},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "match",
+					giveSrc: text.Unlines(
+						"package a",
+						"func foo() {",
+						"	var foo string",
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func foo() {",
+						"	var foo, bar UUID",
+						"}",
+					),
+				},
+			},
+		},
+		{
+			desc: "const decl",
+			// -const x = "42"
+			// +const x = 42
+			minus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.CONST,
+						Specs: []ast.Spec{
+							&ast.ValueSpec{
+								Names: []*ast.Ident{ast.NewIdent("x")},
+								Values: []ast.Expr{
+									&ast.BasicLit{
+										Kind:  token.STRING,
+										Value: `"42"`,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			plus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.CONST,
+						Specs: []ast.Spec{
+							&ast.ValueSpec{
+								Names: []*ast.Ident{ast.NewIdent("x")},
+								Values: []ast.Expr{
+									&ast.BasicLit{
+										Kind:  token.INT,
+										Value: `42`,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "top level",
+					giveSrc: text.Unlines(
+						"package a",
+						`const x = "42"`,
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						`const x = 42`,
+					),
+				},
+				{
+					desc: "nested",
+					giveSrc: text.Unlines(
+						"package a",
+						"func b() {",
+						`	const x = "42"`,
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func b() {",
+						`	const x = 42`,
+						"}",
+					),
+				},
+			},
+		},
+		{
+			desc: "type decl",
+			// -type Foo struct{ Bar }
+			// +type Foo struct{}
+			minus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.TYPE,
+						Specs: []ast.Spec{
+							&ast.TypeSpec{
+								Name: ast.NewIdent("Foo"),
+								Type: &ast.StructType{
+									Fields: &ast.FieldList{
+										List: []*ast.Field{
+											{Type: ast.NewIdent("Bar")},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			plus: &pgo.File{
+				Node: &pgo.GenDecl{
+					GenDecl: &ast.GenDecl{
+						Tok: token.TYPE,
+						Specs: []ast.Spec{
+							&ast.TypeSpec{
+								Name: ast.NewIdent("Foo"),
+								Type: &ast.StructType{
+									Fields: &ast.FieldList{},
+								},
+							},
+						},
+					},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "top level",
+					giveSrc: text.Unlines(
+						"package a",
+						`type Foo struct{ Bar }`,
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						`type Foo struct{}`,
+					),
+				},
+				{
+					desc: "nested",
+					giveSrc: text.Unlines(
+						"package a",
+						"func b() {",
+						`	type Foo struct{ Bar }`,
+						"}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func b() {",
+						`	type Foo struct{}`,
+						"}",
+					),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

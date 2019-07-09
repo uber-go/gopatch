@@ -25,10 +25,11 @@ func (c *matcherCompiler) compileFile(file *pgo.File) FileMatcher {
 	switch n := file.Node.(type) {
 	case *pgo.Expr:
 		m = c.compile(reflect.ValueOf(n.Expr))
+	case *pgo.GenDecl:
+		m = c.compile(reflect.ValueOf(n.GenDecl))
 	case *pgo.FuncDecl:
 		m = c.compile(reflect.ValueOf(n.FuncDecl))
 	default:
-		// TODO(abg): GenDecl
 		// TODO(abg): StmtList
 		panic(fmt.Sprintf("unknown pgo node %T", file.Node))
 	}
@@ -94,10 +95,11 @@ func (c *replacerCompiler) compileFile(file *pgo.File) FileReplacer {
 	switch n := file.Node.(type) {
 	case *pgo.Expr:
 		r = c.compile(reflect.ValueOf(n.Expr))
+	case *pgo.GenDecl:
+		r = c.compile(reflect.ValueOf(n.GenDecl))
 	case *pgo.FuncDecl:
 		r = c.compile(reflect.ValueOf(n.FuncDecl))
 	default:
-		// TODO(abg): GenDecl
 		// TODO(abg): StmtList
 		panic(fmt.Sprintf("unknown pgo node %T", file.Node))
 	}

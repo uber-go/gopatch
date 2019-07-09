@@ -1,0 +1,41 @@
+-- apply.patch --
+@@
+var name identifier
+var value expression
+@@
+-const (
++var (
+   name = value
+ )
+
+-- top_level.in.go --
+package foo
+
+const (
+	Foo = "hello"
+)
+
+-- top_level.out.go --
+package foo
+
+var (
+	Foo = "hello"
+)
+-- nested.in.go --
+package foo
+
+func bar() {
+	const (
+		Foo = "world"
+	)
+}
+
+-- nested.out.go --
+package foo
+
+func bar() {
+	var (
+		Foo = "world"
+	)
+
+}

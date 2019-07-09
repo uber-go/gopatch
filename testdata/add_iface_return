@@ -1,0 +1,23 @@
+TODO: Add "..." where applicable and update implementations.
+
+-- add_err.patch --
+@@
+@@
+ type Foo interface {
+-  Do()
++  Do() error
+ }
+
+-- a.in.go --
+package a
+
+type Foo interface {
+	Do()
+}
+
+-- a.out.go --
+package a
+
+type Foo interface {
+	Do() error
+}
