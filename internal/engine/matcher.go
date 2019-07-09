@@ -38,6 +38,14 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
 		// TODO: Other special cases go here.
+	case goast.CommentGroupPtrType:
+		// Comments shouldn't affect match.
+		return successMatcher
+	case goast.ObjectPtrType:
+		// Ident.Obj forms a cycle. We'll consider Object pointers to always
+		// match because the entites they point to will be matched separately
+		// anyway.
+		return successMatcher
 	case goast.PosType:
 		// Ignore positions for now.
 		return successMatcher

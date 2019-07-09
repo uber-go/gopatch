@@ -4,12 +4,14 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"reflect"
 	"testing"
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
 	"github.com/uber-go/gopatch/internal/pgo"
 	"github.com/uber-go/gopatch/internal/text"
+	"github.com/kr/pretty"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -117,6 +119,46 @@ func TestFile(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "func decl",
+			// -foo() {}
+			// +bar() {}
+			minus: &pgo.File{
+				Node: &pgo.FuncDecl{
+					FuncDecl: &ast.FuncDecl{
+						Name: ast.NewIdent("foo"),
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{},
+						},
+						Body: &ast.BlockStmt{},
+					},
+				},
+			},
+			plus: &pgo.File{
+				Node: &pgo.FuncDecl{
+					FuncDecl: &ast.FuncDecl{
+						Name: ast.NewIdent("bar"),
+						Type: &ast.FuncType{
+							Params: &ast.FieldList{},
+						},
+						Body: &ast.BlockStmt{},
+					},
+				},
+			},
+			cases: []testCase{
+				{
+					desc: "match",
+					giveSrc: text.Unlines(
+						"package a",
+						"func foo() {}",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func bar() {}",
+					),
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -140,7 +182,11 @@ func TestFile(t *testing.T) {
 					wantFile := parseFile(t, fset, tc.wantSrc)
 					gotFile, err := replacer.Replace(d)
 					require.NoError(t, err)
-					assert.Equal(t, wantFile, gotFile, "files did not match")
+					if !assert.Equal(t, wantFile, gotFile, "files did not match") {
+						// Files didn't match so print
+						// a more readable diff.
+						pretty.Ldiff(t, wantFile, gotFile)
+					}
 				})
 			}
 		})
@@ -162,5 +208,32 @@ func parseFile(t *testing.T, fset *token.FileSet, src []byte) *ast.File {
 		return token.NoPos
 	})
 
+	disconnectIdentObj(reflect.ValueOf(file))
 	return file
+}
+
+// Looks for ast.Idents and disconnects them from their ast.Objects.
+// Otherwise we end up with a cyclic reference.
+func disconnectIdentObj(v reflect.Value) {
+	if !v.IsValid() {
+		return
+	}
+
+	if v.Type() == goast.IdentPtrType {
+		ident := v.Interface().(*ast.Ident)
+		ident.Obj = nil
+	}
+
+	switch v.Kind() {
+	case reflect.Array, reflect.Slice:
+		for i := 0; i < v.Len(); i++ {
+			disconnectIdentObj(v.Index(i))
+		}
+	case reflect.Interface, reflect.Ptr:
+		disconnectIdentObj(v.Elem())
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			disconnectIdentObj(v.Field(i))
+		}
+	}
 }
