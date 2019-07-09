@@ -1,0 +1,18 @@
+TODO: types nested inside functions
+
+-- foo.patch --
+@@
+var From, To identifier
+@@
+-type From To
++type From = To
+
+-- top_level.in.go --
+package x
+
+type UUID string
+
+-- top_level.out.go --
+package x
+
+type UUID = string

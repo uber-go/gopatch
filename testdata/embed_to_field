@@ -1,0 +1,24 @@
+TODO: "..." for the field
+
+-- struct.patch --
+@@
+var Type, Embed identifier
+@@
+ type Type struct {
+-  Embed
++  Embed Embed
+ }
+
+-- a.in.go --
+package a
+
+type User struct {
+	Person
+}
+
+-- a.out.go --
+package a
+
+type User struct {
+	Person Person
+}

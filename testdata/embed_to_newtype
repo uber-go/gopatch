@@ -1,0 +1,16 @@
+-- in.patch --
+@@
+var X, Y identifier
+@@
+-type X struct{ Y }
++type X Y
+
+-- foo.in.go --
+package foo
+
+type A struct{ B }
+
+-- foo.out.go --
+package foo
+
+type A B

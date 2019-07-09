@@ -128,14 +128,14 @@ func (f *finder) imports() {
 // Ensures that we have a valid top-level decl.
 func (f *finder) topLevelDecl() {
 	switch f.tok {
-	case token.FUNC, token.TYPE, token.CONST:
-		// We assume that func, type, and const declarations are meant to be
-		// package-level because they usually are.
+	case token.FUNC, token.TYPE, token.CONST, token.VAR:
+		// We can parse these as GenDecls. These transformations will
+		// apply to both, top-level GenDecls and GenDecls nested
+		// inside DeclStmts.
 		//
-		// If users want type/const declarations to be treated as
-		// statement-level, they can disambiguate this by adding { ... }
-		// around the code, which we treat as a list of statements or an
-		// expression.
+		// If users want to place multiple of these in the patch, they
+		// should use {} to ensure that the patch is interpreted as a
+		// list of statemetns.
 		f.next() // func/type/const
 	case token.LBRACE:
 		// Add a fake func()
