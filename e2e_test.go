@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -35,32 +34,39 @@ func TestIntegration(t *testing.T) {
 }
 
 func runIntegrationTest(t *testing.T, testFile string) {
-	tc, err := loadIntegrationTestCases(testFile)
+	ta, err := loadTestArchive(testFile)
 	require.NoError(t, err, "failed to load tests from txtar")
-	defer tc.Cleanup()
+
+	dir, err := ioutil.TempDir("", "gopatch-integration")
+	require.NoError(t, err, "failed to create temporary directory")
+	defer os.RemoveAll(dir)
+
+	require.NoErrorf(t, txtar.Write(ta.Archive, dir),
+		"could not write archive to %q", dir)
 
 	var (
 		args  []string // args for run()
 		stdin []byte
 	)
 	// If there's only one patch, use stdin. Otherwise, use "-p".
-	if len(tc.Patches) == 1 {
-		stdin, err = ioutil.ReadFile(tc.Patches[0])
-		require.NoError(t, err, "failed to read patch file %q", tc.Patches[0])
+	if ps := ta.Patches; len(ps) == 1 {
+		stdin, err = ioutil.ReadFile(filepath.Join(dir, ps[0]))
+		require.NoError(t, err, "failed to read patch file %q", ps)
 	} else {
-		for _, patch := range tc.Patches {
-			args = append(args, "-p", patch)
+		for _, patch := range ps {
+			args = append(args, "-p", filepath.Join(dir, patch))
 		}
 	}
 
-	for _, tt := range tc.Files {
+	for _, tt := range ta.Files {
 		t.Run(tt.Name, func(t *testing.T) {
-			args := append([]string{tt.Give}, args...)
+			filePath := filepath.Join(dir, tt.Give)
+			args := append([]string{filePath}, args...)
 			require.NoError(t, run(args, bytes.NewReader(stdin)),
 				"could not run patch")
 
-			got, err := ioutil.ReadFile(tt.Give)
-			require.NoErrorf(t, err, "failed to read %q", tt.Give)
+			got, err := ioutil.ReadFile(filePath)
+			require.NoErrorf(t, err, "failed to read %q", filePath)
 			assert.Equal(t, string(tt.Want), string(got))
 		})
 	}
@@ -70,183 +76,118 @@ const (
 	_patch = ".patch"
 	_in    = ".in.go"
 	_out   = ".out.go"
+	_go    = ".go"
 )
 
-type integrationTestCase struct {
-	// Paths to patch files containing the patches to be applied.
+type testArchive struct {
+	Archive *txtar.Archive
+
+	// Names of files in the archive that are patches.
 	Patches []string
 
-	// Go files that will be verified.
-	Files []*integrationTestFile
-
-	cleanup func()
+	// Integration test files found in the patch.
+	Files []*testFile
 }
 
-// Cleanup cleans up resources acquired by the test caes.
-func (tc *integrationTestCase) Cleanup() {
-	if tc.cleanup != nil {
-		tc.cleanup()
-	}
-}
-
-type integrationTestFile struct {
-	// Name of the test case. Specified in the name of the go file before
-	// the .in.go/.out.go.
+type testFile struct {
+	// Name of the test file.
+	//
+	// Specified in the name of the go file before the .in.go/.out.go.
 	Name string
 
-	// Path to the .in.go file.
+	// Path to the input Go file.
 	Give string
 
-	// Expected contents of the .out.go file.
+	// Expected contents of the Go file after the patches have been
+	// applied.
 	Want []byte
 }
 
-// Loads the integration test cases from a single txtar file.
-//
-// The cleanup function on the returned test case MUST be called regardless of
-// whether the test succeeeded.
-func loadIntegrationTestCases(testFile string) (tc integrationTestCase, err error) {
-	var es exitStack
-	defer func() {
-		es.ExitOnPanic()
-
-		// No panic if we get here. Clean up immediately if we saw an
-		// error. Otherwise, inform the test case how to cleanup.
-		if err != nil {
-			es.Exit()
-		} else {
-			tc.cleanup = es.Exit
-		}
-	}()
-
-	dir, err := ioutil.TempDir("", "gopatch-integration")
-	if err != nil {
-		return tc, fmt.Errorf("failed to create temporary directory")
-	}
-	es.Defer(func() { os.RemoveAll(dir) })
-
-	archive, err := txtar.ParseFile(testFile)
-	if err != nil {
-		return tc, fmt.Errorf("failed to open archive %q: %v", testFile, err)
-	}
-
-	if err := txtar.Write(archive, dir); err != nil {
-		return tc, fmt.Errorf("failed to write archive %q to directory %q: %v", testFile, dir, err)
-	}
-
+// Loads a test archive in-memory.
+func loadTestArchive(path string) (*testArchive, error) {
 	// test case name -> test case
-	index := make(map[string]*integrationTestFile)
+	index := make(map[string]*testFile)
 
 	// Retrieves test cases by name, adding to the map if needed.
-	getTestCase := func(name string) *integrationTestFile {
-		tc := index[name]
-		if tc == nil {
-			tc = &integrationTestFile{Name: name}
-			index[name] = tc
+	getTestFile := func(name string) *testFile {
+		tf := index[name]
+		if tf == nil {
+			tf = &testFile{Name: name}
+			index[name] = tf
 		}
-		return tc
+		return tf
 	}
 
+	archive, err := txtar.ParseFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %q: %v", path, err)
+	}
+
+	// Rather than reproducing the entire contents of the txtar, we only
+	// want the patches and input files. The contents of the output files
+	// are needed in-memory.
+
+	var patches []string // names of patch files
+
+	newFiles := archive.Files[:0] // zero-alloc filtering
 	for _, f := range archive.Files {
 		switch {
 		case strings.HasSuffix(f.Name, _patch):
-			tc.Patches = append(tc.Patches, filepath.Join(dir, f.Name))
+			patches = append(patches, f.Name)
+
 		case strings.HasSuffix(f.Name, _in):
-			name := strings.TrimSuffix(f.Name, _in)
-			getTestCase(name).Give = filepath.Join(dir, f.Name)
+			name := strings.TrimSuffix(f.Name, _in) // foo.in.go => foo
+
+			// Replace the .in.go suffix with just .go so that
+			// test cases have more control over the name of the
+			// file when it affects the behavior of `go list`
+			// (test files, for example).
+			f.Name = name + _go // foo.in.go => foo.go
+
+			getTestFile(name).Give = f.Name
 		case strings.HasSuffix(f.Name, _out):
-			name := strings.TrimSuffix(f.Name, _out)
-			getTestCase(name).Want = f.Data
+			name := strings.TrimSuffix(f.Name, _out) // foo.out.go => foo
+			getTestFile(name).Want = f.Data
+
+			// Don't include this file in the list of files
+			// reproduced by the archive.
+			continue
 		default:
-			err = multierr.Append(err, fmt.Errorf("unknown file %q found in %q", f.Name, testFile))
+			err = multierr.Append(err,
+				fmt.Errorf("unknown file %q found in %q", f.Name, path))
 		}
+
+		newFiles = append(newFiles, f)
+	}
+	archive.Files = newFiles
+
+	if len(patches) == 0 {
+		err = multierr.Append(err, fmt.Errorf("no patches found in %q", path))
 	}
 
-	if len(tc.Patches) == 0 {
-		err = multierr.Append(err, fmt.Errorf("no patches found in %q", testFile))
-	}
 	if len(index) == 0 {
-		err = multierr.Append(err, fmt.Errorf("no test cases found in %q", testFile))
+		err = multierr.Append(err, fmt.Errorf("no Go files found in %q", path))
 	}
 
-	tc.Files = make([]*integrationTestFile, 0, len(index))
+	files := make([]*testFile, 0, len(index))
 	for _, tt := range index {
 		if len(tt.Give) == 0 {
 			err = multierr.Append(err, fmt.Errorf(
-				"test %q of %q does not have an input file", tt.Name, testFile))
+				"test %q of %q does not have an input file", tt.Name, path))
 		}
 		if len(tt.Want) == 0 {
 			err = multierr.Append(err, fmt.Errorf(
-				"test %q of %q does not have an output file", tt.Name, testFile))
+				"test %q of %q does not have an output file", tt.Name, path))
 		}
-		tc.Files = append(tc.Files, tt)
+		files = append(files, tt)
 	}
-	sort.Slice(tc.Files, func(i, j int) bool {
-		return tc.Files[i].Name < tc.Files[j].Name
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Name < files[j].Name
 	})
 
-	return tc, err
-}
-
-// exitStack is a user-level implementation of Go's defer stack.
-//
-//   var es exitStack
-//   defer es.Exit()
-//
-//   es.Defer(file.Close)
-//   if foo {
-//     es.Defer(func() { os.Remove(file) })
-//   }
-//
-// The advantage of this structure is that we're able to decide whether
-// deferred operations should be executed or not. For example, the following
-// function runs cleaup in case of errors, but returns the cleanup function
-// otherwise for the caller to do it as needed.
-//
-//   func foo() (cleanup func(), err error) {
-//     var es exitStack
-//     func() {
-//       if err != nil { es.Exit() }
-//       else { cleanup = es.Exit }
-//     }()
-//
-//     ...
-//   }
-//
-// The zero-value of exitStack is valid.
-type exitStack struct{ funcs *list.List }
-
-// Defer requests that this function be executed when this stack exits.
-func (es *exitStack) Defer(f func()) {
-	if es.funcs == nil {
-		es.funcs = list.New()
-	}
-
-	es.funcs.PushFront(f)
-}
-
-// Exit runs all deferred functions in reverse order.
-func (es *exitStack) Exit() {
-	fs := es.funcs
-	if fs == nil {
-		return
-	}
-
-	for fs.Len() > 0 {
-		f := fs.Remove(fs.Front()).(func())
-		f()
-	}
-}
-
-// ExitOnPanic runs the deferred functions only if the caller of this function
-// panicked, and re-panics.
-//
-//   var es exitStack
-//   defer es.ExitOnPanic()
-//   ...
-func (es *exitStack) ExitOnPanic() {
-	if err := recover(); err != nil {
-		es.Exit()
-		panic(err)
-	}
+	return &testArchive{
+		Archive: archive,
+		Patches: patches,
+		Files:   files,
+	}, nil
 }

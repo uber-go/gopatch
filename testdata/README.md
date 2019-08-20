@@ -12,9 +12,9 @@ file pairs, also specified in the patch file.
 -   Output files must be specified with the ".out.go" suffix
 -   Each input file must have an output file and vice versa
 
-All patches in a test will be executed in-order upon the provided input files
-and their rewritten contents will be matched against the specified output
-files.
+Input files will be renamed from ".in.go" to ".go" and the patches will be
+executed on them in-order. Their new contents will be matched against the
+associated ".out.go" files, marking the test as failed if they don't.
 
 Test files will generally take the form,
 
