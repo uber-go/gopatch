@@ -11,6 +11,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/uber-go/gopatch/internal/engine"
 	"github.com/uber-go/gopatch/internal/parse"
@@ -99,6 +102,63 @@ func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine
 	return progs, nil
 }
 
+func findFiles(patterns []string) ([]string, error) {
+	pkgs, err := packages.Load(&packages.Config{
+		Mode: packages.NeedFiles,
+	}, patterns...)
+	if err != nil {
+		return nil, err
+	}
+
+	files := make(map[string]struct{})
+	for _, pkg := range pkgs {
+		dirs := make(map[string]struct{})
+		for _, f := range pkg.GoFiles {
+			dirs[filepath.Dir(f)] = struct{}{}
+			files[f] = struct{}{}
+		}
+
+		// We enumerate the test files manually. We need to do this
+		// because we can't use the Tests flag of packages.Config due
+		// to a limitation of `go list`: It doesn't accept `-test` and
+		// `-find` at the same time[1].
+		//
+		// [1] https://github.com/golang/tools/blob/master/go/packages/golist.go#L837
+		//
+		// Without the `-find` flag, `go list` requires that all code
+		// compile, or at least all imports be present on the GOPATH.
+		// This is a problem for gopatch because one of our
+		// requirements is being able to operate on code that doesn't
+		// compile.
+		//
+		// So we'll enumerate the test files in each directory
+		// explicitly.
+		for dir := range dirs {
+			infos, err := ioutil.ReadDir(dir)
+			if err != nil {
+				return nil, fmt.Errorf("could not ls %q: %v", dir, err)
+			}
+			for _, i := range infos {
+				if i.IsDir() {
+					continue
+				}
+				name := i.Name()
+				if !strings.HasSuffix(name, "_test.go") {
+					continue
+				}
+				files[filepath.Join(dir, name)] = struct{}{}
+			}
+		}
+	}
+
+	sortedFiles := make([]string, 0, len(files))
+	for f := range files {
+		sortedFiles = append(sortedFiles, f)
+	}
+	sort.Strings(sortedFiles)
+	return sortedFiles, nil
+}
+
 func run(args []string, stdin io.Reader) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
@@ -113,20 +173,9 @@ func run(args []string, stdin io.Reader) error {
 
 	patchRunner := newPatchRunner(fset, progs)
 
-	// We use packages.Load only to find the .go files. We parse them
-	// separately to prevent having the ASTs of all files in memory at the
-	// same time.
-	pkgs, err := packages.Load(&packages.Config{
-		Mode: packages.LoadFiles,
-	}, opts.Args.Patterns...)
-	// TODO(abg): This should probably consider test files too.
+	files, err := findFiles(opts.Args.Patterns)
 	if err != nil {
 		return err
-	}
-
-	var files []string
-	for _, pkg := range pkgs {
-		files = append(files, pkg.GoFiles...)
 	}
 
 	var errors []error

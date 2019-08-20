@@ -1,0 +1,39 @@
+Verifies that we match on and transform _test files.
+
+-- simple.patch --
+@@
+@@
+-foo
++bar
+
+-- foo.in.go --
+package x
+
+func y() {
+	foo()
+}
+
+-- foo.out.go --
+package x
+
+func y() {
+	bar()
+}
+
+-- foo_test.in.go --
+package x
+
+import "testing"
+
+func TestThing(t *testing.T) {
+	foo()
+}
+
+-- foo_test.out.go --
+package x
+
+import "testing"
+
+func TestThing(t *testing.T) {
+	bar()
+}

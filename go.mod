@@ -9,5 +9,5 @@ require (
 	github.com/stretchr/testify v1.2.2
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0
-	golang.org/x/tools v0.0.0-20181221235234-d00ac6d27372
+	golang.org/x/tools v0.0.0-20190820033707-85edb9ef3283
 )
