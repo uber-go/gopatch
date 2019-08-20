@@ -143,11 +143,12 @@ func loadTestArchive(path string) (*testArchive, error) {
 			// file when it affects the behavior of `go list`
 			// (test files, for example).
 			f.Name = name + _go // foo.in.go => foo.go
+			f.Data = singleTrailingNewline(f.Data)
 
 			getTestFile(name).Give = f.Name
 		case strings.HasSuffix(f.Name, _out):
 			name := strings.TrimSuffix(f.Name, _out) // foo.out.go => foo
-			getTestFile(name).Want = f.Data
+			getTestFile(name).Want = singleTrailingNewline(f.Data)
 
 			// Don't include this file in the list of files
 			// reproduced by the archive.
@@ -190,4 +191,15 @@ func loadTestArchive(path string) (*testArchive, error) {
 		Patches: patches,
 		Files:   files,
 	}, nil
+}
+
+// Removes all but the last trailing newline from a slice.
+//
+// Makes for easier to read test cases.
+func singleTrailingNewline(bs []byte) []byte {
+	i := len(bs) - 1
+	for i > 0 && bs[i] == '\n' && bs[i-1] == '\n' {
+		i--
+	}
+	return bs[:i+1]
 }
