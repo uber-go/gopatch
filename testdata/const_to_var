@@ -21,6 +21,7 @@ package foo
 var (
 	Foo = "hello"
 )
+
 -- nested.in.go --
 package foo
 
