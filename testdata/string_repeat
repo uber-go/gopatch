@@ -1,0 +1,36 @@
+-- in.patch --
+@@
+var i, s identifier
+var n expression
+@@
++import "strings"
+
+{
+-var s string
+-for i := 0; i < n; i++ {
+-  s += "x"
+-}
++s := strings.Repeat("x", n)
+}
+
+-- buffer.in.go --
+package foo
+
+func do() {
+	var s string
+	for n := 0; n < getCount(); n++ {
+		s += "x"
+	}
+}
+
+-- buffer.out.go --
+package foo
+
+import "strings"
+
+func do() {
+	s := strings.Repeat("x",
+		getCount())
+
+}
+
