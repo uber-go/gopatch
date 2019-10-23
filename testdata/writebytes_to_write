@@ -1,0 +1,34 @@
+-- in.patch --
+@@
+var b identifier
+var out, bs expression
+@@
+{
+ var out *bytes.Buffer
+-for _, b := range bs {
+-  out.WriteByte(b)
++  out.Write(bs)
+-}
+}
+
+-- buffer.in.go --
+package foo
+
+func do() {
+	var buff *bytes.Buffer
+	for _, c := range results() {
+		buff.WriteByte(c)
+	}
+}
+
+-- buffer.out.go --
+package foo
+
+func do() {
+	var buff *bytes.Buffer
+
+	buff.Write(
+
+		results())
+
+}

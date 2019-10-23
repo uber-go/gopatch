@@ -37,7 +37,9 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 	switch v.Type() {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
-		// TODO: Other special cases go here.
+	case goast.ForStmtPtrType:
+		return c.compileForStmt(v)
+
 	case goast.CommentGroupPtrType:
 		// Comments shouldn't affect match.
 		return successMatcher

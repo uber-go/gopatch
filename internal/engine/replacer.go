@@ -33,6 +33,9 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 	switch v.Type() {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
+	case goast.ForStmtPtrType:
+		return c.compileForStmt(v)
+
 	case goast.ObjectPtrType:
 		// Ident.Obj forms a cycle, and it doesn't affect the output
 		// of the formatter. We'll replace it with a nil pointer.

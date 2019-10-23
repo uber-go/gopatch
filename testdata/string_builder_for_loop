@@ -1,0 +1,176 @@
+-- in.patch --
+@@
+var s identifier
+var x expression
+# TODO: freshIdentifier for "sb" when supported.
+@@
++import "strings"
+
+{
+-var s string
++var sb strings.Builder
+ for ... {
+-  s += x
++  sb.WriteString(x)
+ }
++s := sb.String()
+}
+
+-- for_loop_three_clauses.in.go --
+package foo
+
+func foo() string {
+	var x string
+	for s := next(); s != ""; s = next() {
+		x += s
+	}
+	// TODO: return string; unsupported right now.
+}
+
+-- for_loop_three_clauses.out.go --
+package foo
+
+import "strings"
+
+func foo() string {
+	var sb strings.Builder
+	for s := next(); s != ""; s = next() {
+		sb.WriteString(s)
+	}
+	x := sb.String()
+
+	// TODO: return string; unsupported right now.
+}
+
+-- for_loop_one_clause.in.go --
+package bar
+
+func bar() {
+	var x string
+	for condition() {
+		x += next()
+	}
+}
+
+-- for_loop_one_clause.out.go --
+package bar
+
+import "strings"
+
+func bar() {
+	var sb strings.Builder
+	for condition() {
+		sb.WriteString(next())
+	}
+	x := sb.String()
+}
+
+-- range_one_result.in.go --
+package baz
+
+import "fmt"
+
+func baz() {
+	var a string
+	for x := range y() {
+		a += fmt.Sprintf("<%q>", x)
+	}
+}
+
+-- range_one_result.out.go --
+package baz
+
+import (
+	"fmt"
+	"strings"
+)
+
+func baz() {
+	var sb strings.Builder
+
+	for x := range y() {
+		sb.WriteString(
+
+			fmt.Sprintf("<%q>", x))
+	}
+	a := sb.String()
+
+}
+
+-- range_two_results.in.go --
+package qux
+
+func qux() {
+	var a string
+	for k, v := range something() {
+		a += k + ": " + v
+	}
+}
+
+-- range_two_results.out.go --
+package qux
+
+import "strings"
+
+func qux() {
+	var sb strings.Builder
+	for k, v := range something() {
+		sb.WriteString(k + ": " + v)
+	}
+	a := sb.String()
+}
+
+-- range_no_results.in.go --
+package quux
+
+import "time"
+
+func quux() {
+	var infinity string
+	for range time.Tick(time.Millisecond) {
+		infinity += "∞"
+	}
+}
+
+-- range_no_results.out.go --
+package quux
+
+import (
+	"strings"
+	"time"
+)
+
+func quux() {
+	var sb strings.Builder
+
+	for range time.Tick(time.Millisecond) {
+		sb.WriteString(
+
+			"∞")
+	}
+	infinity := sb.String()
+
+}
+
+-- range_assign.in.go --
+package quuz
+
+func quuz() {
+	var a string
+	for x = range y() {
+		a += x
+	}
+}
+
+-- range_assign.out.go --
+package quuz
+
+import "strings"
+
+func quuz() {
+	var sb strings.Builder
+	for x = range y() {
+		sb.WriteString(x)
+	}
+	a := sb.String()
+}
