@@ -22,6 +22,11 @@ func TestIntegration(t *testing.T) {
 	infos, err := ioutil.ReadDir(testdata)
 	require.NoErrorf(t, err, "failed to ls %q", testdata)
 
+	// Disable Go modules so that we don't try to fetch against tests.
+	oldModule := os.Getenv("GO111MODULE")
+	os.Setenv("GO111MODULE", "off")
+	defer os.Setenv("GO111MODULE", oldModule)
+
 	for _, info := range infos {
 		if info.IsDir() || info.Name() == "README.md" {
 			continue
