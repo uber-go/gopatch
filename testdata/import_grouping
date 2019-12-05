@@ -1,0 +1,39 @@
+-- apply.patch --
+@@
+var s expression
+@@
+-import "fmt"
++import "errors"
+
+-fmt.Errorf(s)
++errors.New(s)
+
+-- foo.in.go --
+package foo
+
+import (
+	"context"
+	"fmt"
+
+	"code.mycompany.com/foo"
+)
+
+// Foo does stuff.
+func Foo(context.Context) error {
+	return fmt.Errorf("foo")
+}
+
+-- foo.out.go --
+package foo
+
+import (
+	"context"
+	"errors"
+
+	"code.mycompany.com/foo"
+)
+
+// Foo does stuff.
+func Foo(context.Context) error {
+	return errors.New("foo")
+}

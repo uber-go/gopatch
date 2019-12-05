@@ -7,7 +7,6 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"golang.org/x/tools/go/packages"
 	"io"
 	"io/ioutil"
 	"log"
@@ -21,6 +20,8 @@ import (
 	"github.com/uber-go/gopatch/internal/parse"
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/multierr"
+	"golang.org/x/tools/go/packages"
+	"golang.org/x/tools/imports"
 )
 
 func main() {
@@ -200,7 +201,18 @@ func run(args []string, stdin io.Reader) error {
 			continue
 		}
 
-		if err := ioutil.WriteFile(filename, out.Bytes(), 0644); err != nil {
+		bs, err := imports.Process(filename, out.Bytes(), &imports.Options{
+			Comments:   true,
+			TabIndent:  true,
+			TabWidth:   8,
+			FormatOnly: true,
+		})
+		if err != nil {
+			errors = append(errors, fmt.Errorf("reformat %q: %v", filename, err))
+			continue
+		}
+
+		if err := ioutil.WriteFile(filename, bs, 0644); err != nil {
 			errors = append(errors, err)
 			continue
 		}
