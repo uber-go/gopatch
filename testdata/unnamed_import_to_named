@@ -1,0 +1,28 @@
+-- in.patch --
+@@
+var X identifier
+@@
+-import "foo/bar.git"
++import bar "foo/bar.git"
+
+ bar.X
+
+-- match.in.go --
+package a
+
+import "foo/bar.git"
+
+func foo() {
+	var x bar.Baz
+	x.Do(bar.Option())
+}
+
+-- match.out.go --
+package a
+
+import bar "foo/bar.git"
+
+func foo() {
+	var x bar.Baz
+	x.Do(bar.Option())
+}

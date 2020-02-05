@@ -1,0 +1,38 @@
+Based on a user example of a panic.
+
+-- in.patch --
+@@
+@@
+-import fooclient "example.com/foo/client"
++import "example.com/foo-client/compat"
+
+-fooclient.SetParams
++compat.SetParams
+
+@@
+@@
+-import fooclient "example.com/foo/client"
++import "example.com/foo-client/compat"
+
+-fooclient.GetClient()
++compat.GetClient()
+
+-- a.in.go --
+package main
+
+import fooclient "example.com/foo/client"
+
+func Example() {
+	fooclient.SetParams("myservice")
+	client, err := fooclient.GetClient()
+}
+
+-- a.out.go --
+package main
+
+import "example.com/foo-client/compat"
+
+func Example() {
+	compat.SetParams("myservice")
+	client, err := compat.GetClient()
+}

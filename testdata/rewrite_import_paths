@@ -1,0 +1,68 @@
+-- foo.patch --
+@@
+var fooclient, X identifier
+@@
+-import fooclient "foo-go/client"
++import fooclient "foo-client"
+
+ fooclient.X
+
+-- has_same_named_import.in.go --
+package bar
+
+import fooclient "foo-go/client"
+
+func x() {
+	var client fooclient.Interface
+	client = fooclient.New()
+	client.SendRequest(fooclient.NewRequest())
+}
+
+-- has_same_named_import.out.go --
+package bar
+
+import fooclient "foo-client"
+
+func x() {
+	var client fooclient.Interface
+	client = fooclient.New()
+	client.SendRequest(fooclient.NewRequest())
+}
+
+-- has_different_named_import.in.go --
+package baz
+
+import client "foo-go/client"
+
+func y() {
+	c := client.New()
+	c.SendRequest(client.NewRequest())
+}
+
+-- has_different_named_import.out.go --
+package baz
+
+import client "foo-client"
+
+func y() {
+	c := client.New()
+	c.SendRequest(client.NewRequest())
+}
+
+-- no_named_import.in.go --
+package baz
+
+import "foo-go/client"
+
+func z() {
+	fooclient.NewRequest()
+}
+
+-- no_named_import.out.go --
+package baz
+
+import fooclient "foo-client"
+
+func z() {
+	fooclient.NewRequest()
+}

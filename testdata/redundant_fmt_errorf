@@ -24,9 +24,7 @@ func Do() error {
 -- replace.out.go --
 package foo
 
-import (
-	"errors"
-)
+import "errors"
 
 func Do() error {
 	return errors.New("great sadness")
