@@ -1,0 +1,29 @@
+-- foo.patch --
+@@
+var X identifier
+@@
+-import foo "bar"
++import baz "bar"
+
+-foo.X
++baz.X
+
+-- a.in.go --
+package a
+
+import foo "bar"
+
+func stuff() {
+	var a foo.Bar
+	foo.Init(&a)
+}
+
+-- a.out.go --
+package a
+
+import baz "bar"
+
+func stuff() {
+	var a baz.Bar
+	baz.Init(&a)
+}

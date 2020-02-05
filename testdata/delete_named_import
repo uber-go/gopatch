@@ -1,0 +1,27 @@
+-- in.patch --
+@@
+var fooclient identifier
+@@
+-import fooclient "example.com/foo/client"
++import "example.com/foo-client/compat"
+
+-fooclient.Init()
++compat.Init()
+
+-- from_unnamed.in.go --
+package main
+
+import "example.com/foo/client"
+
+func main() {
+	fooclient.Init()
+}
+
+-- from_unnamed.out.go --
+package main
+
+import "example.com/foo-client/compat"
+
+func main() {
+	compat.Init()
+}

@@ -1,0 +1,22 @@
+-- in.patch --
+@@
+@@
+-import "foo"
+
+  bar
+
+-- a.in.go --
+package x
+
+import foo "foo"
+
+func x() {
+	bar()
+}
+
+-- a.out.go --
+package x
+
+func x() {
+	bar()
+}

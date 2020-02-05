@@ -9,7 +9,8 @@ import (
 // Reflected types of various AST nodes.
 var (
 	// Primitives
-	PosType = reflect.TypeOf(token.Pos(0))
+	PosType    = reflect.TypeOf(token.Pos(0))
+	StringType = reflect.TypeOf("")
 
 	// Structs
 	BlockStmtType    = reflect.TypeOf(ast.BlockStmt{})
