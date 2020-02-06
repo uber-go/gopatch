@@ -1,0 +1,19 @@
+-- foo.patch --
+@@
+@@
+-x := foo()
++bar()
+
+-- a.in.go --
+package a
+
+func b() {
+	x := foo()
+}
+
+-- a.out.go --
+package a
+
+func b() {
+	bar()
+}

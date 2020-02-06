@@ -3,6 +3,7 @@ package parse
 import (
 	"bytes"
 	"fmt"
+	goast "go/ast"
 	"io"
 
 	"github.com/uber-go/gopatch/internal/parse/section"
@@ -38,6 +39,28 @@ func (p *parser) parsePatch(i int, c *section.Change) (*Patch, error) {
 	patch.Plus, err = p.parsePatchVersion(filename+".plus", plus)
 	if err != nil {
 		return nil, err
+	}
+
+	// FIXME: Hack: If one of minus and plus believes their side is an
+	// statement and the other believes it's an expression, make them both
+	// expresisons.
+	switch m := patch.Minus.Node.(type) {
+	case *pgo.Expr:
+		if _, ok := patch.Plus.Node.(*pgo.StmtList); ok {
+			patch.Minus.Node = &pgo.StmtList{
+				List: []goast.Stmt{
+					&goast.ExprStmt{X: m.Expr},
+				},
+			}
+		}
+	case *pgo.StmtList:
+		if p, ok := patch.Plus.Node.(*pgo.Expr); ok {
+			patch.Plus.Node = &pgo.StmtList{
+				List: []goast.Stmt{
+					&goast.ExprStmt{X: p.Expr},
+				},
+			}
+		}
 	}
 
 	return &patch, nil
