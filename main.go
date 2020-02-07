@@ -20,7 +20,6 @@ import (
 	"github.com/uber-go/gopatch/internal/parse"
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/multierr"
-	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
 
@@ -53,11 +52,9 @@ func newArgParser() (*flags.Parser, *options) {
 			"If the flag is omitted, a patch will be read from stdin."
 
 	parser.Args()[0].Description =
-		"One or more Go package patterns to run the transformation against. " +
-			"Patterns are absolute or relative import paths to specific packages " +
-			"or import paths ending with ./... to transform a package and all its " +
-			"descendants. Patterns can be paths to Go files to transform only those " +
-			"files."
+		"One or more files or directores containing Go code. " +
+			"When directories are provided, all Go files in them and their " +
+			"descendants will be transformed."
 
 	return parser, &opts
 }
@@ -105,52 +102,56 @@ func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine
 	return progs, nil
 }
 
-func findFiles(patterns []string) ([]string, error) {
-	pkgs, err := packages.Load(&packages.Config{
-		Mode: packages.NeedFiles,
-	}, patterns...)
+func findGoFiles(path string) ([]string, error) {
+	// Users may expect "./..."-stlye patterns to work.
+	path = strings.TrimSuffix(path, "...")
+	path, err := filepath.Abs(path)
 	if err != nil {
 		return nil, err
 	}
 
-	files := make(map[string]struct{})
-	for _, pkg := range pkgs {
-		dirs := make(map[string]struct{})
-		for _, f := range pkg.GoFiles {
-			dirs[filepath.Dir(f)] = struct{}{}
-			files[f] = struct{}{}
+	var files []string
+	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
 
-		// We enumerate the test files manually. We need to do this
-		// because we can't use the Tests flag of packages.Config due
-		// to a limitation of `go list`: It doesn't accept `-test` and
-		// `-find` at the same time[1].
-		//
-		// [1] https://github.com/golang/tools/blob/master/go/packages/golist.go#L837
-		//
-		// Without the `-find` flag, `go list` requires that all code
-		// compile, or at least all imports be present on the GOPATH.
-		// This is a problem for gopatch because one of our
-		// requirements is being able to operate on code that doesn't
-		// compile.
-		//
-		// So we'll enumerate the test files in each directory
-		// explicitly.
-		for dir := range dirs {
-			infos, err := ioutil.ReadDir(dir)
-			if err != nil {
-				return nil, fmt.Errorf("could not ls %q: %v", dir, err)
+		mode := info.Mode()
+		switch {
+		case mode.IsRegular():
+			if strings.HasSuffix(path, ".go") {
+				files = append(files, path)
 			}
-			for _, i := range infos {
-				if i.IsDir() {
-					continue
-				}
-				name := i.Name()
-				if !strings.HasSuffix(name, "_test.go") {
-					continue
-				}
-				files[filepath.Join(dir, name)] = struct{}{}
+
+		case mode.IsDir():
+			base := filepath.Base(path)
+			switch {
+			case len(base) == 0,
+				base[0] == '.',
+				base[0] == '_',
+				base == "testdata",
+				base == "vendor":
+				return filepath.SkipDir
 			}
+		}
+
+		return nil
+	})
+
+	return files, err
+}
+
+func findFiles(patterns []string) (_ []string, err error) {
+	files := make(map[string]struct{})
+	for _, pat := range patterns {
+		fs, findErr := findGoFiles(pat)
+		if findErr != nil {
+			err = multierr.Append(err, fmt.Errorf("enumerating Go files in %q: %v", pat, err))
+			continue
+		}
+
+		for _, f := range fs {
+			files[f] = struct{}{}
 		}
 	}
 
@@ -159,7 +160,8 @@ func findFiles(patterns []string) ([]string, error) {
 		sortedFiles = append(sortedFiles, f)
 	}
 	sort.Strings(sortedFiles)
-	return sortedFiles, nil
+
+	return sortedFiles, err
 }
 
 func run(args []string, stdin io.Reader) error {
