@@ -67,7 +67,7 @@ func runIntegrationTest(t *testing.T, testFile string) {
 		t.Run(tt.Name, func(t *testing.T) {
 			filePath := filepath.Join(dir, tt.Give)
 			args := append([]string{filePath}, args...)
-			require.NoError(t, run(args, bytes.NewReader(stdin)),
+			require.NoError(t, run(args, bytes.NewReader(stdin), new(bytes.Buffer)),
 				"could not run patch")
 
 			got, err := ioutil.ReadFile(filePath)
