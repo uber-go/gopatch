@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/format"
@@ -26,15 +27,16 @@ import (
 func main() {
 	log.SetFlags(0)
 	// TODO: proper CLI parsing
-	if err := run(os.Args[1:], os.Stdin); err != nil {
+	if err := run(os.Args[1:], os.Stdin, os.Stderr); err != nil {
 		log.Fatal(err)
 	}
 }
 
 type options struct {
-	Patches []string `short:"p" long:"patch" value-name:"file"`
-	Args    struct {
-		Patterns []string `positional-arg-name:"pattern" required:"1"`
+	Patches        []string `short:"p" long:"patch" value-name:"file"`
+	DisplayVersion bool     `short:"v" long:"version"`
+	Args           struct {
+		Patterns []string `positional-arg-name:"pattern"`
 	} `positional-args:"yes"`
 }
 
@@ -45,6 +47,9 @@ func newArgParser() (*flags.Parser, *options) {
 
 	// The following is more readable than long descriptions in struct
 	// tags.
+
+	parser.FindOptionByLongName("version").Description =
+		"Display the version of gopatch."
 
 	parser.FindOptionByLongName("patch").Description =
 		"Path to a patch file specifying the code transformation. " +
@@ -164,10 +169,22 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
-func run(args []string, stdin io.Reader) error {
+func run(args []string, stdin io.Reader, stderr io.Writer) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
 		return err
+	}
+
+	if opts.DisplayVersion {
+		fmt.Fprintln(stderr, "gopatch v"+Version)
+		return nil
+	}
+
+	if len(opts.Args.Patterns) == 0 {
+		argParser.WriteHelp(stderr)
+		fmt.Fprintln(stderr)
+
+		return errors.New("please provide at least one pattern")
 	}
 
 	fset := token.NewFileSet()
