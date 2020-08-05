@@ -65,17 +65,23 @@ func (f *finder) find() []Augmentation {
 	f.topLevelDecl()
 
 	for f.tok != token.EOF {
-		switch f.tok {
-		case token.IDENT:
-			f.ident()
-		case token.ELLIPSIS:
-			f.ellipsis()
-		default:
-			f.next()
-		}
+		f.process()
 	}
 
 	return f.augs
+}
+
+func (f *finder) process() {
+	switch f.tok {
+	case token.IDENT:
+		f.ident()
+	case token.ELLIPSIS:
+		f.ellipsis()
+	case token.FUNC:
+		f.function()
+	default:
+		f.next()
+	}
 }
 
 // Ensures that we have a package clause, recording the need for one if not.
@@ -128,7 +134,7 @@ func (f *finder) imports() {
 // Ensures that we have a valid top-level decl.
 func (f *finder) topLevelDecl() {
 	switch f.tok {
-	case token.FUNC, token.TYPE, token.CONST, token.VAR:
+	case token.TYPE, token.CONST, token.VAR:
 		// We can parse these as GenDecls. These transformations will
 		// apply to both, top-level GenDecls and GenDecls nested
 		// inside DeclStmts.
@@ -136,7 +142,9 @@ func (f *finder) topLevelDecl() {
 		// If users want to place multiple of these in the patch, they
 		// should use {} to ensure that the patch is interpreted as a
 		// list of statemetns.
-		f.next() // func/type/const
+		f.next() // type/const/var
+	case token.FUNC:
+		f.funcDecl()
 	case token.LBRACE:
 		// Add a fake func()
 		f.append(&FakeFunc{FuncStart: f.offset})
@@ -187,4 +195,96 @@ func (f *finder) ellipsis() {
 
 	// ...
 	f.append(&Dots{DotsStart: off, DotsEnd: off + 3})
+}
+
+// Processes a top-level function or method declaration.
+func (f *finder) funcDecl() {
+	f.next() // func
+
+	// handle receiver if present
+	if f.tok == token.LPAREN {
+		f.next() // (
+
+		for f.tok != token.RPAREN {
+			f.process()
+		}
+		f.next() // )
+	}
+
+	f.next() // func name
+
+	f.params()
+	f.results()
+}
+
+// Processes a function literal.
+func (f *finder) function() {
+	f.next() // func
+	f.params()
+	f.results()
+}
+
+func (f *finder) params() {
+	f.fieldList()
+}
+
+func (f *finder) results() {
+	if f.tok == token.LPAREN {
+		f.fieldList()
+	}
+	// return to process loop for unwrapped results
+}
+
+// Processes a argument or results lists.
+func (f *finder) fieldList() {
+	f.next() // (
+	var (
+		ellipses []int // list of offsets at which ellipses were found
+		named    bool
+	)
+
+	for f.tok != token.RPAREN {
+		switch f.tok {
+		case token.FUNC:
+			f.function()
+		case token.IDENT:
+			f.next() // ident
+			if f.tok == token.PERIOD {
+				// ident was beginning of selector expression; pop off
+				// the "." and next ident before checking if named.
+				f.next() // .
+				f.next() // ident
+			}
+
+			// For the next token,
+			//
+			// - comma indicates that a new parameter is beginning
+			// - rparen indicates the end of the parameter list
+			//
+			// If either token appears after a single identifier, this was an unnamed
+			// parameter. So anything else as the next token indicates a named
+			// parameter.
+			if f.tok != token.COMMA && f.tok != token.RPAREN {
+				named = true
+			}
+		case token.ELLIPSIS:
+			off := f.offset
+			f.next() // ...
+			if f.tok == token.IDENT {
+				// ellipsis was variadic operator, continue without
+				// augmenting this ellipsis.
+				continue
+			}
+
+			ellipses = append(ellipses, off)
+		default:
+			// * or , e.g.
+			f.next()
+		}
+	}
+	f.next() // )
+
+	for _, off := range ellipses {
+		f.append(&Dots{DotsStart: off, DotsEnd: off + 3, Named: named})
+	}
 }

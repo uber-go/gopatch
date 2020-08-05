@@ -24,6 +24,10 @@ type Augmentation interface {
 // allowed by the Go syntax.
 type Dots struct {
 	DotsStart, DotsEnd int
+
+	// Named indicates whether the dots replace a named entity — such
+	// as the named arguments or results of a function.
+	Named bool
 }
 
 func (*Dots) augmentation() {}

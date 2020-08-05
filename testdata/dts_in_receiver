@@ -1,0 +1,21 @@
+-- dts_in_receiver.patch --
+@@
+@@
+-func (...) name(foo string) string {
++func (...) name(bar string) string {
+ ...
+ }
+
+-- dts_in_receiver.in.go --
+package a
+
+func (r *Receiver) name(foo string) string {
+	return "very valid go"
+}
+
+-- dts_in_receiver.out.go --
+package a
+
+func (r *Receiver) name(bar string) string {
+	return "very valid go"
+}

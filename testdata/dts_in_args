@@ -1,0 +1,21 @@
+-- dts_in_args.patch --
+@@
+@@
+-func name(foo string, bar int, ...) string {
++func name(foo string, ..., bar int) string {
+ ...
+ }
+
+-- dts_in_args.in.go --
+package a
+
+func name(foo string, bar int, thingOne string, thingTwo func(...string) string) string {
+	return "very valid go"
+}
+
+-- dts_in_args.out.go --
+package a
+
+func name(foo string, thingOne string, thingTwo func(...string) string, bar int) string {
+	return "very valid go"
+}

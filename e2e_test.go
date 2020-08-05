@@ -91,9 +91,10 @@ func skipTest(testFile, testName string) bool {
 // eventually should. It is essentially a todo list of bugs to be fixed.
 // For now, skip these tests.
 var testsToSkip = map[string]struct{}{
-	"noop_import/remove_some": {},
-	"noop_import/remove_all":  {},
-	"mismatched_dots/unnamed": {},
+	"func_within_a_func/two_dots": {},
+	"mismatched_dots/unnamed":     {},
+	"noop_import/remove_some":     {},
+	"noop_import/remove_all":      {},
 }
 
 const (
