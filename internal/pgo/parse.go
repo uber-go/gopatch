@@ -22,7 +22,7 @@ func Parse(fset *token.FileSet, filename string, src []byte) (*File, error) {
 	// "func _fake() { []T }" is not valid Go code.
 	//
 	// One option is to use parser.ParseExpr for top-level expressions, in
-	// which case augmentatinos, imports, etc. have to be handled separately.
+	// which case augmentations, imports, etc. have to be handled separately.
 	// So augment should probably return a File object with package name
 	// already parsed, text for the unparsed imports, and the source. We can
 	// then try ParseExpr on the source.
