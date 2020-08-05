@@ -1,0 +1,71 @@
+-- one_dots.patch --
+@@
+@@
+-func foo(close func(...)) string {
++func foo(close func(...) error) string {
+ ...
+}
+
+-- one_dots.in.go --
+package a
+
+import (
+	"log"
+	"os"
+)
+
+func foo(close func(*log.Logger)) string {
+	logger := log.New(os.Stdout, name, 0)
+	defer close(logger)
+	return "very valid go"
+}
+
+-- one_dots.out.go --
+package a
+
+import (
+	"log"
+	"os"
+)
+
+func foo(close func(*log.Logger) error) string {
+	logger := log.New(os.Stdout, name, 0)
+	defer close(logger)
+	return "very valid go"
+}
+
+-- two_dots.patch --
+@@
+@@
+-func foo(..., close func(...)) string {
++func foo(..., close func(...) error) string {
+ ...
+}
+
+-- two_dots.in.go --
+package a
+
+import (
+	"log"
+	"os"
+)
+
+func foo(name string, close func(*log.Logger)) string {
+	logger := log.New(os.Stdout, name, 0)
+	defer close(logger)
+	return "very valid go"
+}
+
+-- two_dots.out.go --
+package a
+
+import (
+	"log"
+	"os"
+)
+
+func foo(..., close func(*log.Logger) error) string {
+	logger := log.New(os.Stdout, name, 0)
+	defer close(logger)
+	return "very valid go"
+}

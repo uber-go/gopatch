@@ -142,7 +142,7 @@ func TestAugment(t *testing.T) {
 			},
 		},
 		{
-			desc: "dots in statements",
+			desc: "dots/statements",
 			give: text.Unlines(
 				"foo()",
 				"...",
@@ -167,7 +167,7 @@ func TestAugment(t *testing.T) {
 			},
 		},
 		{
-			desc: "dots in parameters",
+			desc: "dots/parameters",
 			give: text.Unlines(
 				"foo(bar, ..., baz)",
 			),
@@ -185,6 +185,74 @@ func TestAugment(t *testing.T) {
 			wantAdjs: []PosAdjustment{
 				{Offset: 0, ReduceBy: 10},
 				{Offset: 10, ReduceBy: 21},
+			},
+		},
+		{
+			desc: "dots/named arguments",
+			give: text.Unlines(
+				"func foo(bar int, ..., baz bool) {}",
+			),
+			wantSrc: text.Unlines(
+				"package _",
+				"func foo(bar int, _ d, baz bool) {}",
+			),
+			wantAugs: []Augmentation{
+				&FakePackage{PackageStart: 0},
+				&Dots{DotsStart: 28, DotsEnd: 31, Named: true},
+			},
+			wantAdjs: []PosAdjustment{
+				{Offset: 0, ReduceBy: 10},
+			},
+		},
+		{
+			desc: "dots/results",
+			give: text.Unlines(
+				"func foo(bar int, baz bool) (string, ...) {}",
+			),
+			wantSrc: text.Unlines(
+				"package _",
+				"func foo(bar int, baz bool) (string, dts) {}",
+			),
+			wantAugs: []Augmentation{
+				&FakePackage{PackageStart: 0},
+				&Dots{DotsStart: 47, DotsEnd: 50},
+			},
+			wantAdjs: []PosAdjustment{
+				{Offset: 0, ReduceBy: 10},
+			},
+		},
+		{
+			desc: "dots/named results",
+			give: text.Unlines(
+				"func foo(bar int, baz bool) (..., err error) {}",
+			),
+			wantSrc: text.Unlines(
+				"package _",
+				"func foo(bar int, baz bool) (_ d, err error) {}",
+			),
+			wantAugs: []Augmentation{
+				&FakePackage{PackageStart: 0},
+				&Dots{DotsStart: 39, DotsEnd: 42, Named: true},
+			},
+			wantAdjs: []PosAdjustment{
+				{Offset: 0, ReduceBy: 10},
+			},
+		},
+		{
+			desc: "dots/single result",
+			give: text.Unlines(
+				"func foo(bar int, baz bool) ... {}",
+			),
+			wantSrc: text.Unlines(
+				"package _",
+				"func foo(bar int, baz bool) dts {}",
+			),
+			wantAugs: []Augmentation{
+				&FakePackage{PackageStart: 0},
+				&Dots{DotsStart: 38, DotsEnd: 41},
+			},
+			wantAdjs: []PosAdjustment{
+				{Offset: 0, ReduceBy: 10},
 			},
 		},
 		{

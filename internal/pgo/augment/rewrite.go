@@ -3,6 +3,7 @@ package augment
 import (
 	"bytes"
 	"fmt"
+	"sort"
 )
 
 const (
@@ -37,6 +38,10 @@ func rewrite(src []byte, augs []Augmentation) ([]byte, []PosAdjustment) {
 	// That is, FakePackage and/or FakeFunc MAY be present at the front of the
 	// list in that order. This tells us to generate the fake package and func
 	// clauses. Other augmentations MAY be present after that.
+	//
+	// Sort all augs by Start offset to retain the above ordering while ensuring
+	// that augmentations get written to the `dst` Buffer in order.
+	sort.Slice(augs, func(i, j int) bool { return augs[i].Start() < augs[j].Start() })
 	for _, aug := range augs {
 		start, end := aug.Start(), aug.End()
 		dst.Write(src[pos:start])
@@ -64,8 +69,13 @@ func rewrite(src []byte, augs []Augmentation) ([]byte, []PosAdjustment) {
 			})
 		case *Dots:
 			a.DotsStart = dst.Len()
-			// no PosAdjustment: len(dts) == len(...)
-			dst.WriteString("dts")
+			if a.Named {
+				// no PosAdjustment: len(_ d) == len(...)
+				dst.WriteString("_ d")
+			} else {
+				// no PosAdjustment: len(dts) == len(...)
+				dst.WriteString("dts")
+			}
 			a.DotsEnd = dst.Len()
 		default:
 			panic(fmt.Sprintf("unknown augmentation type %T", a))
@@ -74,6 +84,5 @@ func rewrite(src []byte, augs []Augmentation) ([]byte, []PosAdjustment) {
 	}
 	dst.Write(src[pos:])
 	dst.Write(tail.Bytes())
-
 	return dst.Bytes(), adjustments
 }

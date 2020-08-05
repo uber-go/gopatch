@@ -1,0 +1,45 @@
+-- unnamed.patch --
+@@
+@@
+-func name(foo string, bar int) (error, ...) {
++func name(foo string, bar int) (..., error) {
+- return nil, ...
++ return ..., nil
+}
+
+-- unnamed.in.go --
+package a
+
+func name(foo string, bar int) (error, string) {
+	return nil, "very valid go"
+}
+
+-- unnamed.out.go --
+package a
+
+func name(foo string, bar int) (string, error) {
+	return "very valid go", nil
+}
+
+-- named.patch --
+@@
+@@
+-func name(foo string, bar int) (err error, ...) {
++func name(foo string, bar int) (..., err error) {
+- return nil, ...
++ return ..., nil
+}
+
+-- named.in.go --
+package a
+
+func name(foo string, bar int) (err error, val string) {
+	return nil, "very valid go"
+}
+
+-- named.out.go --
+package a
+
+func name(foo string, bar int) (val string, err error) {
+	return "very valid go", nil
+}
