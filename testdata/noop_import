@@ -1,0 +1,89 @@
+-- in.patch --
+@@
+var to identifier
+@@
+import(
+-	to "conversion/to.git"
++	"go.uber.org/thriftrw/ptr"
+)
+
+-	to.StrPtr(...)
++	ptr.String(...)
+
+@@
+var to identifier
+@@
+import(
+-	to "conversion/to.git"
++	"go.uber.org/thriftrw/ptr"
+)
+
+-	to.BoolPtr(...)
++	ptr.Bool(...)
+
+-- remove_all.in.go --
+package main
+
+import (
+	"conversion/to.git"
+)
+
+func foo(s string) *bool {
+	if to.StrPtr(s) == nil {
+		return to.BoolPtr(false)
+	}
+
+	return to.BoolPtr(true)
+}
+
+-- remove_all.out.go --
+package main
+
+import "go.uber.org/thriftrw/ptr"
+
+func foo(s string) *bool {
+	if ptr.String(s) == nil {
+		return ptr.Bool(false)
+	}
+
+	return ptr.Bool(true)
+}
+
+-- remove_some.in.go --
+package main
+
+import (
+	"conversion/to.git"
+)
+
+func foo(s string) *bool {
+	if to.StrPtr(s) == nil {
+		return to.BoolPtr(false)
+	}
+
+	if to.DecimalPtr(s) == nil {
+		return to.BoolPtr(false)
+	}
+
+	return to.BoolPtr(true)
+}
+
+-- remove_some.out.go --
+package main
+
+import (
+	"conversion/to.git"
+	"go.uber.org/thriftrw/ptr"
+)
+
+func foo(s string) *bool {
+	if ptr.String(s) == nil {
+		return ptr.Bool(false)
+	}
+
+	if to.DecimalPtr(s) == nil {
+		return ptr.Bool(false)
+	}
+
+	return ptr.Bool(true)
+}

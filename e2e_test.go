@@ -65,6 +65,10 @@ func runIntegrationTest(t *testing.T, testFile string) {
 
 	for _, tt := range ta.Files {
 		t.Run(tt.Name, func(t *testing.T) {
+			if skipTest(testFile, tt.Name) {
+				t.Skip(fmt.Sprintf("skipping unfixed test case %v/%v", testFile, tt.Name))
+			}
+
 			filePath := filepath.Join(dir, tt.Give)
 			args := append([]string{filePath}, args...)
 			require.NoError(t, run(args, bytes.NewReader(stdin), new(bytes.Buffer)),
@@ -75,6 +79,20 @@ func runIntegrationTest(t *testing.T, testFile string) {
 			assert.Equal(t, string(tt.Want), string(got))
 		})
 	}
+}
+
+func skipTest(testFile, testName string) bool {
+	fullName := filepath.Join(filepath.Base(testFile), testName)
+	_, skip := testsToSkip[fullName]
+	return skip
+}
+
+// testsToSkip is a set of integration tests that do not yet pass, but
+// eventually should. It is essentially a todo list of bugs to be fixed.
+// For now, skip these tests.
+var testsToSkip = map[string]struct{}{
+	"noop_import/remove_some": {},
+	"noop_import/remove_all":  {},
 }
 
 const (
