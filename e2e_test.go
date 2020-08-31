@@ -93,6 +93,7 @@ func skipTest(testFile, testName string) bool {
 var testsToSkip = map[string]struct{}{
 	"noop_import/remove_some": {},
 	"noop_import/remove_all":  {},
+	"mismatched_dots/unnamed": {},
 }
 
 const (

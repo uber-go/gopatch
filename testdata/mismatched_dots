@@ -1,0 +1,22 @@
+-- unnamed.patch --
+@@
+@@
+-func name(...) (error, ...) {
++func name(...) (..., error) {
+- return nil, ...
++ return ..., nil
+}
+
+-- unnamed.in.go --
+package a
+
+func name(foo string, bar int) (error, string) {
+	return nil, "very valid go"
+}
+
+-- unnamed.out.go --
+package a
+
+func name(foo string, bar int) (string, error) {
+	return "very valid go", nil
+}
