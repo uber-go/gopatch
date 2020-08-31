@@ -259,8 +259,6 @@ func TestParse(t *testing.T) {
 	}
 }
 
-var identType = reflect.TypeOf((*ast.Ident)(nil))
-
 // Looks for ast.Idents and disconnects them from their ast.Objects.
 // Otherwise we end up with a cyclic reference.
 func disconnectIdentObj(v reflect.Value) {
@@ -268,7 +266,7 @@ func disconnectIdentObj(v reflect.Value) {
 		return
 	}
 
-	if v.Type() == identType {
+	if v.Type() == goast.IdentPtrType {
 		ident := v.Interface().(*ast.Ident)
 		ident.Obj = nil
 	}

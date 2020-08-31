@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"reflect"
 
+	"github.com/uber-go/gopatch/internal/goast"
 	"github.com/uber-go/gopatch/internal/pgo/augment"
 	"go.uber.org/multierr"
 	"golang.org/x/tools/go/ast/astutil"
@@ -18,12 +19,6 @@ func augmentAST(file *token.File, n ast.Node, augs []augment.Augmentation, adj *
 	n = astutil.Apply(n, a.Apply, nil)
 	return n, a.Err()
 }
-
-var (
-	astExprType  = reflect.TypeOf((*ast.Expr)(nil)).Elem()
-	astStmtType  = reflect.TypeOf((*ast.Stmt)(nil)).Elem()
-	astFieldType = reflect.TypeOf((*ast.Field)(nil))
-)
 
 // Augmenter is used to traverse the Go AST and replace sections of it.
 type augmenter struct {
@@ -121,11 +116,11 @@ func (a *augmenter) Apply(cursor *astutil.Cursor) bool {
 	case *augment.Dots:
 		dots := &Dots{Dots: n.Pos()}
 		switch fieldType {
-		case astStmtType:
+		case goast.StmtType:
 			cursor.Replace(&ast.ExprStmt{X: dots})
-		case astFieldType:
+		case goast.FieldPtrType:
 			cursor.Replace(&ast.Field{Type: dots})
-		case astExprType:
+		case goast.ExprType:
 			cursor.Replace(dots)
 		default:
 			a.errf(n.Pos(), `found unexpected "..." inside %T`, n)
