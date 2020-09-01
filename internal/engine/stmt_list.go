@@ -108,7 +108,7 @@ func (c *replacerCompiler) compilePGoStmtList(slist *pgo.StmtList) Replacer {
 	}
 }
 
-func (r stmtSliceContainerReplacer) Replace(d data.Data) (reflect.Value, error) {
+func (r stmtSliceContainerReplacer) Replace(d data.Data, cl Changelog, pos token.Pos) (reflect.Value, error) {
 	var sd stmtListData
 	if !data.Lookup(d, stmtListKey, &sd) {
 		return reflect.Value{}, errors.New("no statement matches found")
@@ -120,12 +120,13 @@ func (r stmtSliceContainerReplacer) Replace(d data.Data) (reflect.Value, error) 
 		node.Field(f.FieldIdx).Set(f.Value)
 	}
 
-	stmts, err := r.Stmts.Replace(d)
+	stmts, err := r.Stmts.Replace(d, cl, sd.UnchangedRegion.End)
 	if err != nil {
 		return reflect.Value{}, err
 	}
 	node.Field(sd.StmtFieldIdx).Set(stmts)
 
+	cl.Unchanged(sd.UnchangedRegion.Pos, sd.UnchangedRegion.End)
 	return node.Addr(), nil
 }
 

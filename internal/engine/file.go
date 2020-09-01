@@ -151,7 +151,7 @@ func (c *replacerCompiler) compileFile(file *pgo.File) FileReplacer {
 }
 
 // Replace replaces a file using the provided Match data.
-func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
+func (r FileReplacer) Replace(d data.Data, cl Changelog) (*ast.File, error) {
 	var fd fileMatchData
 	if !data.Lookup(d, fileMatchKey, &fd) {
 		return nil, errors.New("no file match data found")
@@ -178,7 +178,7 @@ func (r FileReplacer) Replace(d data.Data) (*ast.File, error) {
 			v = v.Index(m.index)
 		}
 
-		give, err := r.NodeReplacer.Replace(m.data)
+		give, err := r.NodeReplacer.Replace(m.data, cl, m.region.Pos)
 		if err != nil {
 			return nil, err
 		}

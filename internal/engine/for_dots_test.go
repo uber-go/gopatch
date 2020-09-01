@@ -113,12 +113,12 @@ func TestForNoDots(t *testing.T) {
 			fset := token.NewFileSet()
 
 			m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
-			r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
+			r := newReplacerCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(plus))
 
 			d, ok := m.Match(reflect.ValueOf(minus), data.New(), Region{})
 			require.True(t, ok, "must match self")
 
-			got, err := r.Replace(d)
+			got, err := r.Replace(d, NewChangelog(), 0)
 			require.NoError(t, err, "replace must succeed")
 
 			assert.Equal(t, plus, got.Interface())
@@ -250,7 +250,7 @@ func TestForDots(t *testing.T) {
 			fset := token.NewFileSet()
 
 			m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
-			r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
+			r := newReplacerCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(plus))
 
 			d, ok := m.Match(tt.give, data.New(), Region{})
 			if !tt.want.IsValid() {
@@ -260,7 +260,7 @@ func TestForDots(t *testing.T) {
 
 			require.True(t, ok, "expected match success")
 
-			got, err := r.Replace(d)
+			got, err := r.Replace(d, NewChangelog(), 0)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.Interface(), got.Interface())
@@ -286,12 +286,12 @@ func TestForDotsNoMatchData(t *testing.T) {
 	// in the patch so they won't be matched.
 
 	m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
-	r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
+	r := newReplacerCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(plus))
 
 	d, ok := m.Match(reflect.ValueOf(forStmtWith(true, true, true, callFuncBlock("f"))), data.New(), Region{})
 	require.True(t, ok, "must match")
 
-	_, err := r.Replace(d)
+	_, err := r.Replace(d, NewChangelog(), 0)
 	require.Error(t, err, "must fail")
 	assert.Contains(t, err.Error(), "match data not found")
 }

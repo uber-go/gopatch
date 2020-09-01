@@ -150,9 +150,9 @@ func TestMetavar(t *testing.T) {
 			})
 
 			t.Run("Replace", func(t *testing.T) {
-				r := newReplacerCompiler(fset, meta).compileIdent(ident)
+				r := newReplacerCompiler(fset, meta, 0, 0).compileIdent(ident)
 
-				got, err := r.Replace(d)
+				got, err := r.Replace(d, NewChangelog(), 0)
 				require.NoError(t, err)
 				assert.Equal(t, tt.replace.Interface(), got.Interface())
 			})
@@ -181,8 +181,8 @@ func TestMetavarErrors(t *testing.T) {
 		require.True(t, ok)
 
 		// Attempt to replace bar.
-		r := newReplacerCompiler(fset, meta).compileIdent(bar)
-		_, err := r.Replace(d)
+		r := newReplacerCompiler(fset, meta, 0, 0).compileIdent(bar)
+		_, err := r.Replace(d, NewChangelog(), 0)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), `could not find value for metavariable "bar"`)
 	})

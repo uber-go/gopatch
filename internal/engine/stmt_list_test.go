@@ -166,7 +166,7 @@ func TestStmtSliceContainer(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			fset := token.NewFileSet()
 			matcher := newMatcherCompiler(fset, nil, 0, 0).compilePGoStmtList(tt.minus)
-			replacer := newReplacerCompiler(fset, nil).compilePGoStmtList(tt.plus)
+			replacer := newReplacerCompiler(fset, nil, 0, 0).compilePGoStmtList(tt.plus)
 
 			for _, tc := range tt.cases {
 				t.Run(tc.desc, func(t *testing.T) {
@@ -182,7 +182,7 @@ func TestStmtSliceContainer(t *testing.T) {
 						return
 					}
 
-					got, err := replacer.Replace(d)
+					got, err := replacer.Replace(d, NewChangelog(), 0)
 					require.NoError(t, err)
 					assert.Equal(t, tc.want.Interface(), got.Interface(),
 						"replaced value did not match")
@@ -193,11 +193,11 @@ func TestStmtSliceContainer(t *testing.T) {
 }
 
 func TestStmtSliceContainerReplacerNoData(t *testing.T) {
-	repl := newReplacerCompiler(token.NewFileSet(), nil).compilePGoStmtList(&pgo.StmtList{
+	repl := newReplacerCompiler(token.NewFileSet(), nil, 0, 0).compilePGoStmtList(&pgo.StmtList{
 		List: []ast.Stmt{
 			&ast.ExprStmt{X: ast.NewIdent("baz")},
 		},
 	})
-	_, err := repl.Replace(data.New())
+	_, err := repl.Replace(data.New(), NewChangelog(), 0)
 	require.Error(t, err)
 }

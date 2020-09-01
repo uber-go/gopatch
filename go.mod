@@ -2,6 +2,7 @@ module github.com/uber-go/gopatch
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/google/go-intervals v0.0.0-20171120085516-250c62ad245e
 	github.com/jessevdk/go-flags v1.4.0
 	github.com/kr/pretty v0.1.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect

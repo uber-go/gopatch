@@ -22,7 +22,7 @@ func (c *compiler) compileChange(achange *parse.Change) *Change {
 	meta := c.compileMeta(achange.Meta)
 
 	mc := newMatcherCompiler(c.fset, meta, achange.Patch.Pos(), achange.Patch.End())
-	rc := newReplacerCompiler(c.fset, meta)
+	rc := newReplacerCompiler(c.fset, meta, achange.Patch.Pos(), achange.Patch.End())
 
 	matcher := mc.compileFile(achange.Patch.Minus)
 	replacer := rc.compileFile(achange.Patch.Plus)
@@ -43,6 +43,6 @@ func (c *Change) Match(f *ast.File) (d data.Data, ok bool) {
 
 // Replace generates a replacement File based on previously captured match
 // data.
-func (c *Change) Replace(d data.Data) (*ast.File, error) {
-	return c.replacer.Replace(d)
+func (c *Change) Replace(d data.Data, cl Changelog) (*ast.File, error) {
+	return c.replacer.Replace(d, cl)
 }

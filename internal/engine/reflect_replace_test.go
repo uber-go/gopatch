@@ -49,10 +49,10 @@ func TestGenericReplacer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			r := newReplacerCompiler(token.NewFileSet(), nil).compileGeneric(tt.value)
+			r := newReplacerCompiler(token.NewFileSet(), nil, 0, 0).compileGeneric(tt.value)
 
 			t.Run("equality", func(t *testing.T) {
-				got, err := r.Replace(data.New())
+				got, err := r.Replace(data.New(), NewChangelog(), token.NoPos)
 				require.NoError(t, err)
 				assert.Equal(t, tt.value.Interface(), got.Interface())
 			})
@@ -62,7 +62,7 @@ func TestGenericReplacer(t *testing.T) {
 			t.Run("matches self", func(t *testing.T) {
 				m := newMatcherCompiler(token.NewFileSet(), nil, 0, 0).compileGeneric(tt.value)
 
-				got, err := r.Replace(data.New())
+				got, err := r.Replace(data.New(), NewChangelog(), token.NoPos)
 				require.NoError(t, err)
 
 				_, ok := m.Match(got, data.New(), Region{})
