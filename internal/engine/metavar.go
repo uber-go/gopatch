@@ -76,7 +76,7 @@ func (m MetavarMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Da
 	// replacer so we can match and reproduce it later.
 	return data.WithValue(d, key, metavarData{
 		Matcher:  newMatcherCompiler(m.Fset, nil, r.Pos, r.End).compile(got),
-		Replacer: newReplacerCompiler(m.Fset, nil).compile(got),
+		Replacer: newReplacerCompiler(m.Fset, nil, r.Pos, r.End).compile(got),
 	}), true
 }
 
@@ -129,7 +129,7 @@ func (c *replacerCompiler) compileIdent(v reflect.Value) Replacer {
 }
 
 // Replace reproduces the value of a matched metavariable.
-func (m MetavarReplacer) Replace(d data.Data) (reflect.Value, error) {
+func (m MetavarReplacer) Replace(d data.Data, cl Changelog, pos token.Pos) (reflect.Value, error) {
 	key := metavarKey(m.Name)
 
 	var md metavarData
@@ -140,5 +140,5 @@ func (m MetavarReplacer) Replace(d data.Data) (reflect.Value, error) {
 		return reflect.Value{}, fmt.Errorf("could not find value for metavariable %q", m.Name)
 	}
 
-	return md.Replace(data.New())
+	return md.Replace(data.New(), cl, pos)
 }

@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"go/ast"
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
@@ -111,12 +112,14 @@ func (c *replacerCompiler) compileForStmt(v reflect.Value) Replacer {
 
 // Replace rebuilds a For or Range statement from the originally captured
 // fields.
-func (r ForDotsReplacer) Replace(d data.Data) (reflect.Value, error) {
+func (r ForDotsReplacer) Replace(d data.Data, cl Changelog, pos token.Pos) (reflect.Value, error) {
 	var fd forDotsData
 	if !data.Lookup(d, forDotsKey{Line: r.DotsLine, Column: r.DotsColumn}, &fd) {
 		return reflect.Value{}, errors.New("match data not found for 'for ...': " +
 			"are you sure that the line appears on a context line without a preceding '-' or '+'?")
 	}
+
+	cl.Unchanged(fd.Region.Pos, fd.Region.End)
 
 	stmt := reflect.New(fd.Type).Elem()
 
@@ -125,7 +128,7 @@ func (r ForDotsReplacer) Replace(d data.Data) (reflect.Value, error) {
 		stmt.Field(f.Idx).Set(f.Value)
 	}
 
-	body, err := r.Body.Replace(d)
+	body, err := r.Body.Replace(d, cl, pos)
 	if err != nil {
 		return reflect.Value{}, err
 	}

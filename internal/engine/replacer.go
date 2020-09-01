@@ -12,20 +12,25 @@ import (
 // by a Matcher. A Replacer is built from the "+" portion of a patch.
 type Replacer interface {
 	// Replace generates values for a Go AST provided prior match data.
-	Replace(d data.Data) (v reflect.Value, err error)
+	Replace(d data.Data, cl Changelog, pos token.Pos) (v reflect.Value, err error)
 }
 
 // replacerCompiler compiles the "+" portion of a patch into a Replacer which
 // will generate the portions to fill in the original AST.
 type replacerCompiler struct {
 	fset *token.FileSet
-	meta *Meta // declared metavariables, if any
+	meta *Meta
+	dots []token.Pos
+
+	patchStart, patchEnd token.Pos
 }
 
-func newReplacerCompiler(fset *token.FileSet, meta *Meta) *replacerCompiler {
+func newReplacerCompiler(fset *token.FileSet, meta *Meta, patchStart, patchEnd token.Pos) *replacerCompiler {
 	return &replacerCompiler{
-		fset: fset,
-		meta: meta,
+		fset:       fset,
+		meta:       meta,
+		patchStart: patchStart,
+		patchEnd:   patchEnd,
 	}
 }
 
@@ -48,6 +53,6 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 type ZeroReplacer struct{ Type reflect.Type }
 
 // Replace replaces with a zero value.
-func (r ZeroReplacer) Replace(data.Data) (reflect.Value, error) {
+func (r ZeroReplacer) Replace(data.Data, Changelog, token.Pos) (reflect.Value, error) {
 	return reflect.Zero(r.Type), nil
 }

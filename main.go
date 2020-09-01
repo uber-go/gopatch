@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"golang.org/x/tools/go/packages"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,7 +20,6 @@ import (
 	"github.com/uber-go/gopatch/internal/parse"
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/multierr"
-	"golang.org/x/tools/go/packages"
 )
 
 func main() {
@@ -233,8 +233,10 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
 
 			matched = true
 
+			cl := engine.NewChangelog()
+
 			var err error
-			f, err = c.Replace(d)
+			f, err = c.Replace(d, cl)
 			if err != nil {
 				r.errors = append(r.errors, fmt.Errorf("could not update %q: %v", filename, err))
 				return nil, false

@@ -615,7 +615,7 @@ func TestFile(t *testing.T) {
 			fset := token.NewFileSet()
 
 			matcher := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileFile(tt.minus)
-			replacer := newReplacerCompiler(fset, nil /* meta */).compileFile(tt.plus)
+			replacer := newReplacerCompiler(fset, nil /* meta */, 0, 0).compileFile(tt.plus)
 
 			for _, tc := range tt.cases {
 				t.Run(tc.desc, func(t *testing.T) {
@@ -629,7 +629,7 @@ func TestFile(t *testing.T) {
 					require.True(t, ok, "expected a match")
 
 					wantFile := parseFile(t, fset, tc.wantSrc)
-					gotFile, err := replacer.Replace(d)
+					gotFile, err := replacer.Replace(d, NewChangelog())
 					require.NoError(t, err)
 					if !assert.Equal(t, wantFile, gotFile, "files did not match") {
 						// Files didn't match so print
