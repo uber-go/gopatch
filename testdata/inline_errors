@@ -31,9 +31,7 @@ func foo() error {
 
 		baz(); err !=
 		nil {
-		return
-
-			err
+		return err
 	}
 
 }
@@ -86,9 +84,7 @@ func foo() error {
 
 			baz(); err !=
 			nil {
-			return
-
-				err
+			return err
 		}
 
 	}
@@ -119,9 +115,7 @@ func foo(ctx context.Context) error {
 
 			ctx.Err(); err !=
 			nil {
-			return
-
-				err
+			return err
 		}
 
 	}
