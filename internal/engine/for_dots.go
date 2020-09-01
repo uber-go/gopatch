@@ -41,10 +41,11 @@ func (c *matcherCompiler) compileForStmt(v reflect.Value) Matcher {
 }
 
 // Match matches either a for statement or a range statement.
-func (m ForDotsMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m ForDotsMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	var (
-		bodyField   forDotsField
-		otherFields []forDotsField
+		bodyField       forDotsField
+		bodyFieldRegion Region
+		otherFields     []forDotsField
 	)
 
 	var t reflect.Type
@@ -61,6 +62,12 @@ func (m ForDotsMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) 
 		// The BlockStmt is named Body on both types.
 		if t.Field(i).Name == "Body" {
 			bodyField = f
+			body := f.Value.Interface().(ast.Node)
+
+			// r tracks the unchanged region. In this case, it
+			// ends when the body starts.
+			r.End = body.Pos()
+			bodyFieldRegion = nodeRegion(body)
 		} else {
 			otherFields = append(otherFields, f)
 		}
@@ -73,10 +80,11 @@ func (m ForDotsMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) 
 			Type:         t,
 			BodyFieldIdx: bodyField.Idx,
 			OtherFields:  otherFields,
+			Region:       r,
 		},
 	)
 
-	return m.Body.Match(bodyField.Value, d)
+	return m.Body.Match(bodyField.Value, d, bodyFieldRegion)
 }
 
 // ForDotsReplacer replaces a "for ...".
@@ -139,6 +147,8 @@ type forDotsData struct {
 	BodyFieldIdx int
 
 	OtherFields []forDotsField
+
+	Region Region
 }
 
 type forDotsField struct {

@@ -57,7 +57,7 @@ func (c *matcherCompiler) compileIdent(v reflect.Value) Matcher {
 }
 
 // Match matches a metavariable from the patch in the AST.
-func (m MetavarMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m MetavarMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if !m.TypeMatches(got.Type()) {
 		return d, false
 	}
@@ -68,14 +68,14 @@ func (m MetavarMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) 
 	if data.Lookup(d, key, &md) {
 		// We've already seen this metavariable. Match the value without
 		// altering captured data.
-		_, ok := md.Match(got, data.New())
+		_, ok := md.Match(got, data.New(), r)
 		return d, ok
 	}
 
 	// We're seeing this for the first time. Capture it into a compiler and
 	// replacer so we can match and reproduce it later.
 	return data.WithValue(d, key, metavarData{
-		Matcher:  newMatcherCompiler(m.Fset, nil).compile(got),
+		Matcher:  newMatcherCompiler(m.Fset, nil, r.Pos, r.End).compile(got),
 		Replacer: newReplacerCompiler(m.Fset, nil).compile(got),
 	}), true
 }

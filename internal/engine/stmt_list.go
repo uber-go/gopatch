@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
@@ -27,7 +28,7 @@ func (c *matcherCompiler) compilePGoStmtList(slist *pgo.StmtList) Matcher {
 	}
 }
 
-func (m stmtSliceContainerMatcher) Match(v reflect.Value, d data.Data) (data.Data, bool) {
+func (m stmtSliceContainerMatcher) Match(v reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	t := v.Type()
 	if t.Kind() != reflect.Ptr {
 		return d, false
@@ -40,12 +41,21 @@ func (m stmtSliceContainerMatcher) Match(v reflect.Value, d data.Data) (data.Dat
 	// replicated in the Replacer.
 
 	v, t = v.Elem(), t.Elem()
-	var stmtField string
+	var (
+		stmtField string
+
+		// Position of the end of the text right before statements
+		// start. For block statements, this will be the position of
+		// "{", for case clauses, it will be the position of ":".
+		stmtPreludeEnd token.Pos
+	)
 	switch t {
 	case goast.BlockStmtType:
 		stmtField = "List"
+		stmtPreludeEnd = r.Pos
 	case goast.CaseClauseType, goast.CommClauseType:
 		stmtField = "Body"
+		stmtPreludeEnd = token.Pos(v.FieldByName("Colon").Int())
 	default:
 		return d, false
 	}
@@ -66,11 +76,16 @@ func (m stmtSliceContainerMatcher) Match(v reflect.Value, d data.Data) (data.Dat
 		}
 	}
 
+	r.Pos = stmtPreludeEnd + 1
 	return m.Stmts.Match(stmtsField.Value, data.WithValue(d, stmtListKey, stmtListData{
 		Type:         t,
 		StmtFieldIdx: stmtsField.FieldIdx,
 		OtherFields:  fields,
-	}))
+		UnchangedRegion: Region{
+			Pos: r.Pos,
+			End: stmtPreludeEnd,
+		},
+	}), r)
 }
 
 // stmtSliceContainerReplacer reproduces an AST node for which a statement
@@ -131,6 +146,13 @@ type stmtListData struct {
 
 	// Indexes and values of the other fields in the type.
 	OtherFields []stmtListField
+
+	// Region of the original statement (block, case, or comm) that was
+	// unmodified.
+	//
+	// For block, it's up to the "{", for case and comm, it's up to the
+	// ":" after the label.
+	UnchangedRegion Region
 }
 
 type stmtListField struct {

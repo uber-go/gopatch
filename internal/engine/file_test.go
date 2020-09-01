@@ -614,7 +614,7 @@ func TestFile(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			fset := token.NewFileSet()
 
-			matcher := newMatcherCompiler(fset, nil /* meta */).compileFile(tt.minus)
+			matcher := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileFile(tt.minus)
 			replacer := newReplacerCompiler(fset, nil /* meta */).compileFile(tt.plus)
 
 			for _, tc := range tt.cases {

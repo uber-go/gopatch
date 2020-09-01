@@ -37,11 +37,11 @@ func (c *matcherCompiler) compilePtr(v reflect.Value) Matcher {
 }
 
 // Match matches a non-nil pointer.
-func (m PtrMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m PtrMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if got.Kind() != reflect.Ptr || got.IsNil() {
 		return d, false
 	}
-	return m.Matcher.Match(got.Elem(), d)
+	return m.Matcher.Match(got.Elem(), d, r)
 }
 
 // SliceMatcher matches a slice of values exactly.
@@ -64,14 +64,14 @@ func (c *matcherCompiler) compileSlice(v reflect.Value) Matcher {
 }
 
 // Match mathces a slice of values.
-func (m SliceMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m SliceMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if got.Kind() != reflect.Slice || len(m.Items) != got.Len() {
 		return d, false
 	}
 
 	for i, im := range m.Items {
 		var ok bool
-		d, ok = im.Match(got.Index(i), d)
+		d, ok = im.Match(got.Index(i), d, r)
 		if !ok {
 			return d, false
 		}
@@ -103,13 +103,13 @@ func (c *matcherCompiler) compileStruct(v reflect.Value) Matcher {
 }
 
 // Match matches a struct.
-func (m StructMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m StructMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if m.Type != got.Type() {
 		return d, false
 	}
 	for i, f := range m.Fields {
 		var ok bool
-		d, ok = f.Match(got.Field(i), d)
+		d, ok = f.Match(got.Field(i), d, r)
 		if !ok {
 			return d, false
 		}
@@ -130,11 +130,11 @@ func (c *matcherCompiler) compileInterface(v reflect.Value) Matcher {
 }
 
 // Match matches non-nil interface nalues.
-func (m InterfaceMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m InterfaceMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if got.Kind() != reflect.Interface || got.IsNil() {
 		return d, false
 	}
-	return m.Matcher.Match(got.Elem(), d)
+	return m.Matcher.Match(got.Elem(), d, r)
 }
 
 // ValueMatcher matches a value as-is.
@@ -144,7 +144,7 @@ type ValueMatcher struct {
 }
 
 // Match matches a value as-is.
-func (m ValueMatcher) Match(got reflect.Value, d data.Data) (data.Data, bool) {
+func (m ValueMatcher) Match(got reflect.Value, d data.Data, _ Region) (data.Data, bool) {
 	if m.Type != got.Type() {
 		return d, false
 	}

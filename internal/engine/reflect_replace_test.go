@@ -60,12 +60,12 @@ func TestGenericReplacer(t *testing.T) {
 			// A Matcher constructed from this value matches the output of a
 			// replacer built with it.
 			t.Run("matches self", func(t *testing.T) {
-				m := newMatcherCompiler(token.NewFileSet(), nil).compileGeneric(tt.value)
+				m := newMatcherCompiler(token.NewFileSet(), nil, 0, 0).compileGeneric(tt.value)
 
 				got, err := r.Replace(data.New())
 				require.NoError(t, err)
 
-				_, ok := m.Match(got, data.New())
+				_, ok := m.Match(got, data.New(), Region{})
 				assert.True(t, ok)
 			})
 		})

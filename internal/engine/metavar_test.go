@@ -143,7 +143,7 @@ func TestMetavar(t *testing.T) {
 			d := data.New()
 
 			t.Run("Match", func(t *testing.T) {
-				m := newMatcherCompiler(fset, meta).compileIdent(ident)
+				m := newMatcherCompiler(fset, meta, 0, 0).compileIdent(ident)
 				if newd, ok := assertMatchCases(t, m, d, tt.matches); ok {
 					d = newd
 				}
@@ -176,8 +176,8 @@ func TestMetavarErrors(t *testing.T) {
 		d := data.New()
 
 		// Match foo with x
-		m := newMatcherCompiler(fset, meta).compileIdent(foo)
-		d, ok := m.Match(refl(&ast.Ident{Name: "x"}), d)
+		m := newMatcherCompiler(fset, meta, 0, 0).compileIdent(foo)
+		d, ok := m.Match(refl(&ast.Ident{Name: "x"}), d, Region{})
 		require.True(t, ok)
 
 		// Attempt to replace bar.
