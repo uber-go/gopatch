@@ -1,12 +1,19 @@
 export GO111MODULE=on
 
-.PHONY:
+.PHONY: all
 all: build test
 
-.PHONY:
+.PHONY: build
 build:
 	go build ./...
 
-.PHONY:
+.PHONY: test
 test:
 	go test -v ./...
+
+.PHONY: docker-ci
+docker-ci:
+	docker run "$$(docker build -q .)"
+
+.PHONY: ci
+ci: build test
