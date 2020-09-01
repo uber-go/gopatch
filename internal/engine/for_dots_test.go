@@ -112,10 +112,10 @@ func TestForNoDots(t *testing.T) {
 
 			fset := token.NewFileSet()
 
-			m := newMatcherCompiler(fset, nil).compileForStmt(reflect.ValueOf(minus))
+			m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
 			r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
 
-			d, ok := m.Match(reflect.ValueOf(minus), data.New())
+			d, ok := m.Match(reflect.ValueOf(minus), data.New(), Region{})
 			require.True(t, ok, "must match self")
 
 			got, err := r.Replace(d)
@@ -249,10 +249,10 @@ func TestForDots(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			fset := token.NewFileSet()
 
-			m := newMatcherCompiler(fset, nil).compileForStmt(reflect.ValueOf(minus))
+			m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
 			r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
 
-			d, ok := m.Match(tt.give, data.New())
+			d, ok := m.Match(tt.give, data.New(), Region{})
 			if !tt.want.IsValid() {
 				require.False(t, ok, "did not expect a match")
 				return
@@ -285,10 +285,10 @@ func TestForDotsNoMatchData(t *testing.T) {
 	// We've told the FileSet that the two "..."s are on different lines
 	// in the patch so they won't be matched.
 
-	m := newMatcherCompiler(fset, nil).compileForStmt(reflect.ValueOf(minus))
+	m := newMatcherCompiler(fset, nil /* meta */, 0, 0).compileForStmt(reflect.ValueOf(minus))
 	r := newReplacerCompiler(fset, nil).compileForStmt(reflect.ValueOf(plus))
 
-	d, ok := m.Match(reflect.ValueOf(forStmtWith(true, true, true, callFuncBlock("f"))), data.New())
+	d, ok := m.Match(reflect.ValueOf(forStmtWith(true, true, true, callFuncBlock("f"))), data.New(), Region{})
 	require.True(t, ok, "must match")
 
 	_, err := r.Replace(d)

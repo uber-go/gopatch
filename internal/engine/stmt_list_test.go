@@ -165,7 +165,7 @@ func TestStmtSliceContainer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			fset := token.NewFileSet()
-			matcher := newMatcherCompiler(fset, nil).compilePGoStmtList(tt.minus)
+			matcher := newMatcherCompiler(fset, nil, 0, 0).compilePGoStmtList(tt.minus)
 			replacer := newReplacerCompiler(fset, nil).compilePGoStmtList(tt.plus)
 
 			for _, tc := range tt.cases {
@@ -175,7 +175,7 @@ func TestStmtSliceContainer(t *testing.T) {
 					wantMatch := tc.want.IsValid()
 
 					var ok bool
-					d, ok = matcher.Match(tc.give, d)
+					d, ok = matcher.Match(tc.give, d, Region{})
 					assert.Equal(t, wantMatch, ok, "unexpected match status")
 
 					if !wantMatch {

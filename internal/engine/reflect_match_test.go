@@ -193,7 +193,7 @@ func TestGenericMatcher(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := newMatcherCompiler(token.NewFileSet(), nil).compileGeneric(tt.give)
+			m := newMatcherCompiler(token.NewFileSet(), nil, 0, 0).compileGeneric(tt.give)
 			assertMatchCases(t, m, data.New(), tt.cases)
 		})
 	}

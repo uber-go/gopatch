@@ -1,12 +1,22 @@
 package engine
 
 import (
+	"go/ast"
 	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
 )
+
+// Region denotes the portion of the code being matched, i.e. the start and end
+// position of the given Node.
+type Region struct{ Pos, End token.Pos }
+
+// nodeRegion returns the Region occupied by a given node.
+func nodeRegion(n ast.Node) Region {
+	return Region{Pos: n.Pos(), End: n.End()}
+}
 
 // Matcher matches values in a Go AST. It is built from the "-" portion of a
 // patch.
@@ -16,20 +26,24 @@ type Matcher interface {
 	//
 	// Match reports whether the match succeeded and if so, returns the
 	// original or a different Data object containing additional match data.
-	Match(reflect.Value, data.Data) (_ data.Data, ok bool)
+	Match(reflect.Value, data.Data, Region) (_ data.Data, ok bool)
 }
 
 // matcherCompiler compiles the "-" portion of a patch into a Matcher which
 // will report whether another Go AST matches it.
 type matcherCompiler struct {
 	fset *token.FileSet
-	meta *Meta // declared metavariables, if any
+	meta *Meta
+
+	patchStart, patchEnd token.Pos
 }
 
-func newMatcherCompiler(fset *token.FileSet, meta *Meta) *matcherCompiler {
+func newMatcherCompiler(fset *token.FileSet, meta *Meta, patchStart, patchEnd token.Pos) *matcherCompiler {
 	return &matcherCompiler{
-		fset: fset,
-		meta: meta,
+		fset:       fset,
+		meta:       meta,
+		patchStart: patchStart,
+		patchEnd:   patchEnd,
 	}
 }
 
@@ -57,7 +71,7 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 
 type matcherFunc func(reflect.Value) bool
 
-func (f matcherFunc) Match(v reflect.Value, d data.Data) (data.Data, bool) {
+func (f matcherFunc) Match(v reflect.Value, d data.Data, _ Region) (data.Data, bool) {
 	return d, f(v)
 }
 

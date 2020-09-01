@@ -20,7 +20,8 @@ type Change struct {
 
 func (c *compiler) compileChange(achange *parse.Change) *Change {
 	meta := c.compileMeta(achange.Meta)
-	mc := newMatcherCompiler(c.fset, meta)
+
+	mc := newMatcherCompiler(c.fset, meta, achange.Patch.Pos(), achange.Patch.End())
 	rc := newReplacerCompiler(c.fset, meta)
 
 	matcher := mc.compileFile(achange.Patch.Minus)

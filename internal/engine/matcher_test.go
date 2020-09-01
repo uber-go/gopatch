@@ -24,7 +24,7 @@ func assertMatchCases(t *testing.T, m Matcher, d data.Data, tests []matchCase) (
 	valid := true
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			newd, ok := m.Match(tt.give, d)
+			newd, ok := m.Match(tt.give, d, Region{})
 			if ok {
 				// Carry data over in case of successful matches.
 				d = newd

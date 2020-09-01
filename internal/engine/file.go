@@ -86,7 +86,7 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 			return false
 		}
 
-		d, ok := m.NodeMatcher.Match(reflect.ValueOf(n), d)
+		d, ok := m.NodeMatcher.Match(reflect.ValueOf(n), d, nodeRegion(n))
 		if !ok {
 			return true
 		}
@@ -96,6 +96,7 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 			name:   cursor.Name(),
 			index:  cursor.Index(),
 			data:   data.Index(d),
+			region: nodeRegion(cursor.Node()),
 		})
 
 		return true // keep looking
@@ -229,6 +230,8 @@ type searchResult struct {
 
 	// Captured match data. This is needed by Replacers.
 	data data.Data
+
+	region Region
 }
 
 type fileMatchData struct {
