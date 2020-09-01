@@ -36,8 +36,12 @@ type MetavarMatcher struct {
 }
 
 func (c *matcherCompiler) compileIdent(v reflect.Value) Matcher {
-	name := v.Interface().(*ast.Ident).Name
+	ident := v.Interface().(*ast.Ident)
+	if ident == nil {
+		return nilMatcher
+	}
 
+	name := ident.Name
 	var matchType func(reflect.Type) bool
 	switch c.meta.LookupVar(name) {
 	case ExprMetavarType:
