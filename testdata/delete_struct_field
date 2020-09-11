@@ -1,0 +1,39 @@
+Deletes a deprecated field from a struct.
+
+-- delete_struct_field.patch --
+@@
+var T, D identifier
+@@
+ type T struct {
+    ...
+-   D *Deprecated
+    ...
+ }
+
+-- delete.in.go --
+package something
+
+type Foo struct {
+	A string
+	B *Deprecated
+
+	// C does stuff.
+	C int
+}
+
+type Bar struct {
+	d *Deprecated
+}
+
+-- delete.out.go --
+package something
+
+type Foo struct {
+	A string
+
+	// C does stuff.
+	C int
+}
+
+type Bar struct {
+}

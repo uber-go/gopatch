@@ -1,0 +1,33 @@
+Test adding a context parameter to a function.
+
+TODO: Collateral changes to callers of this function.
+TODO: Handle named and unnamed parameters automatically.
+
+-- add_ctx_param.patch --
+@@
+var f identifier
+@@
+-func f(...) (*Response, error) {
++func f(context.Context, ...) (*Response, error) {
+   ...
+ }
+
+-- send.in.go --
+package sender
+
+// Send does stuff.
+func Send(string) (*Response, error) {
+	fmt.Println("Sending request")
+	// Here's a comment.
+	return &Response{}, nil
+}
+
+-- send.out.go --
+package sender
+
+// Send does stuff.
+func Send(context.Context, string) (*Response, error) {
+	fmt.Println("Sending request")
+	// Here's a comment.
+	return &Response{}, nil
+}

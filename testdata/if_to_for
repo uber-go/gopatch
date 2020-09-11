@@ -1,0 +1,28 @@
+-- if_to_for.patch --
+@@
+var c expression
+@@
+-if c {
++for c {
+   ...
+ }
+
+-- x.in.go --
+package foo
+
+func x() {
+	if true {
+		foo() // baz
+		bar() // qux
+	}
+}
+
+-- x.out.go --
+package foo
+
+func x() {
+	for true {
+		foo()
+		bar()
+	}
+}

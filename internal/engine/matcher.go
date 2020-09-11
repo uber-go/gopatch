@@ -7,6 +7,7 @@ import (
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
+	"github.com/uber-go/gopatch/internal/pgo"
 )
 
 // Region denotes the portion of the code being matched, i.e. the start and end
@@ -54,9 +55,32 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 	switch v.Type() {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
+	case goast.StmtSliceType:
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			es, ok := n.(*ast.ExprStmt)
+			if ok {
+				_, ok = es.X.(*pgo.Dots)
+			}
+			return ok
+		})
+	case goast.ExprSliceType:
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			_, ok := n.(*pgo.Dots)
+			return ok
+		})
+	case goast.FieldPtrSliceType:
+		// TODO(abg): pgo.Parse should probably replace this with a DotsField.
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			f, ok := n.(*ast.Field)
+			if ok {
+				_, ok = f.Type.(*pgo.Dots)
+			}
+			return ok
+		})
 	case goast.ForStmtPtrType:
 		return c.compileForStmt(v)
 
+		// TODO: Dedupe
 	case goast.CommentGroupPtrType:
 		// Comments shouldn't affect match.
 		return successMatcher

@@ -1,0 +1,36 @@
+Replaces "defer and return" with an explicit call to the deferred function
+before returning.
+
+This patch is less valuable than before as
+https://go-review.googlesource.com/c/go/+/171758/ has been merged.
+
+TODO: freshIdentifier to make r unique.
+
+-- defer_return.patch --
+@@
+var x, y expression
+@@
+-defer x(...)
+-return y
++r := y
++x(...)
++return r
+
+-- mutex.in.go --
+package a
+
+func X() {
+	mutex.Lock()
+	defer mutex.Unlock()
+	return calculate()
+}
+
+-- mutex.out.go --
+package a
+
+func X() {
+	mutex.Lock()
+	r := calculate()
+	mutex.Unlock()
+	return r
+}

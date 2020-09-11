@@ -1,0 +1,53 @@
+Optimizes string appends.
+
+TODO: Use freshIdentifier to make sb unique.
+TODO: Use <... ...> instead of just optimizing for loops.
+
+-- sb.patch --
+@@
+var str identifier
+var s expression
+@@
++import "strings"
+{
+-   var str string
++   var sb strings.Builder
+    ...
+    for ... {
+        ...
+-       str += s
++       sb.WriteString(s)
+        ...
+    }
++   str := sb.String()
+}
+
+-- loop.in.go --
+package foo
+
+func run() string {
+	var s string
+	for i := range foo(true /* bar */) {
+		x := foo()
+		s += x
+		log(x)
+	}
+	return s
+}
+
+-- loop.out.go --
+package foo
+
+import "strings"
+
+func run() string {
+	var sb strings.Builder
+	for i := range foo(true /* bar */) {
+		x := foo()
+		sb.WriteString(x)
+		log(x)
+	}
+	s := sb.String()
+
+	return s
+}

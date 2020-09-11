@@ -1,0 +1,50 @@
+-- delete_dots.patch --
+@@
+@@
+-foo()
+-...
+ bar()
+ ...
+ baz()
+-...
+ qux()
+
+-- stuff.in.go --
+package stuff
+
+func zzz() {
+	foo()
+
+	if err := x(); err != nil {
+		panic(err)
+	}
+
+	bar()
+
+	if err := y(); err != nil {
+		panic(err)
+	}
+
+	baz()
+
+	if err := y(); err != nil {
+		// This should be deleted.
+		panic(err)
+	}
+
+	qux()
+}
+
+-- stuff.out.go --
+package stuff
+
+func zzz() {
+	bar()
+
+	if err := y(); err != nil {
+		panic(err)
+	}
+
+	baz()
+	qux()
+}
