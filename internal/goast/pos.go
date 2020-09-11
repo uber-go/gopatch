@@ -1,10 +1,23 @@
 package goast
 
 import (
-	"go/ast"
 	"go/token"
 	"reflect"
 )
+
+type transformOptions struct {
+	SkipTypes []reflect.Type
+}
+
+// TransformOption customizes the behavior of TransformPos.
+type TransformOption func(*transformOptions)
+
+// SkipTypes specifies types which shold not be transformed by TransformPos.
+func SkipTypes(types ...reflect.Type) TransformOption {
+	return func(opts *transformOptions) {
+		opts.SkipTypes = append(opts.SkipTypes, types...)
+	}
+}
 
 // TransformPos runs the given function on all token.Pos values found in the
 // given object and its descendants, replacing them in-place with the value
@@ -12,8 +25,18 @@ import (
 //
 // Caveat: Free-floating comments on File objects are not handled by
 // TransformPos.
-func TransformPos(n interface{}, transform func(token.Pos) token.Pos) {
-	transformPos(reflect.ValueOf(n), transform)
+func TransformPos(n interface{}, transform func(token.Pos) token.Pos, opts ...TransformOption) {
+	v, ok := n.(reflect.Value)
+	if !ok {
+		v = reflect.ValueOf(n)
+	}
+
+	var options transformOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	transformPos(v, transform, &options)
 }
 
 // OffsetPos offsets all token.Pos values found in the given object and its
@@ -21,29 +44,37 @@ func TransformPos(n interface{}, transform func(token.Pos) token.Pos) {
 //
 // Caveat: Free-floating comments on File objects are not handled by
 // OffsetPos.
-func OffsetPos(n interface{}, offset int) {
-	TransformPos(n, func(pos token.Pos) token.Pos { return pos + token.Pos(offset) })
+func OffsetPos(n interface{}, offset int, opts ...TransformOption) {
+	TransformPos(n, func(pos token.Pos) token.Pos {
+		return pos + token.Pos(offset)
+	}, opts...)
 }
 
-var (
-	posType       = reflect.TypeOf(token.Pos(0))
-	objectPtrType = reflect.TypeOf((*ast.Object)(nil))
-	fileType      = reflect.TypeOf(ast.File{})
-)
-
-func transformPos(v reflect.Value, transformFn func(token.Pos) token.Pos) {
+func transformPos(v reflect.Value, transformFn func(token.Pos) token.Pos, opts *transformOptions) {
 	if !v.IsValid() {
 		return
 	}
 
-	switch v.Type() {
-	case fileType:
+	vt := v.Type()
+	for _, t := range opts.SkipTypes {
+		if t == vt {
+			return
+		}
+	}
+
+	switch vt {
+	case FilePtrType:
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+
 		// ast.File maintains a bunch of internal references. Only the
 		// following fields are unique references.
-		transformPos(v.FieldByName("Doc"), transformFn)
-		transformPos(v.FieldByName("Package"), transformFn)
-		transformPos(v.FieldByName("Name"), transformFn)
-		transformPos(v.FieldByName("Decls"), transformFn)
+		transformPos(v.FieldByName("Doc"), transformFn, opts)
+		transformPos(v.FieldByName("Package"), transformFn, opts)
+		transformPos(v.FieldByName("Name"), transformFn, opts)
+		transformPos(v.FieldByName("Decls"), transformFn, opts)
 
 		// NOTE: File.Comments contains both, comments that document
 		// objects (also referenced by those nodes' Doc fields), and
@@ -51,11 +82,11 @@ func transformPos(v reflect.Value, transformFn func(token.Pos) token.Pos) {
 		// whether a comment has already been processed, we're just
 		// not going to handle free-floating comments until it becomes
 		// necessary.
-	case objectPtrType:
+	case ObjectPtrType:
 		// ast.Object has a reference to the target object, causing
 		// cyclic references. Since the underlying object isn't
 		// changing, we don't need to do anything here.
-	case posType:
+	case PosType:
 		pos := token.Pos(v.Int())
 		if pos.IsValid() {
 			// We want to change Pos only if it's valid, as in
@@ -77,13 +108,13 @@ func transformPos(v reflect.Value, transformFn func(token.Pos) token.Pos) {
 		switch v.Kind() {
 		case reflect.Array, reflect.Slice:
 			for i := 0; i < v.Len(); i++ {
-				transformPos(v.Index(i), transformFn)
+				transformPos(v.Index(i), transformFn, opts)
 			}
 		case reflect.Interface, reflect.Ptr:
-			transformPos(v.Elem(), transformFn)
+			transformPos(v.Elem(), transformFn, opts)
 		case reflect.Struct:
 			for i := 0; i < v.NumField(); i++ {
-				transformPos(v.Field(i), transformFn)
+				transformPos(v.Field(i), transformFn, opts)
 			}
 		case reflect.Map:
 			// go/ast does not use maps in the AST besides Scope objects
