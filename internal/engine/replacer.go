@@ -18,9 +18,10 @@ type Replacer interface {
 // replacerCompiler compiles the "+" portion of a patch into a Replacer which
 // will generate the portions to fill in the original AST.
 type replacerCompiler struct {
-	fset *token.FileSet
-	meta *Meta
-	dots []token.Pos
+	fset     *token.FileSet
+	meta     *Meta
+	dots     []token.Pos
+	dotAssoc map[token.Pos]token.Pos
 
 	patchStart, patchEnd token.Pos
 }
@@ -29,6 +30,7 @@ func newReplacerCompiler(fset *token.FileSet, meta *Meta, patchStart, patchEnd t
 	return &replacerCompiler{
 		fset:       fset,
 		meta:       meta,
+		dotAssoc:   make(map[token.Pos]token.Pos),
 		patchStart: patchStart,
 		patchEnd:   patchEnd,
 	}

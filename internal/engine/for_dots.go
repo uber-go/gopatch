@@ -16,28 +16,22 @@ import (
 
 // ForDotsMatcher represents a "for ..." stmt, matching both, for and range
 // statements.
-//
-// The position of the "..." must be the same between the matcher and the
-// compiler. This means that the "for ..." must occur on a context line, not
-// one that has a leading "-" or "+'.
 type ForDotsMatcher struct {
-	DotsLine, DotsColumn int // line and column on which dots appear
-	Body                 Matcher
+	Dots token.Pos
+	Body Matcher
 }
 
 func (c *matcherCompiler) compileForStmt(v reflect.Value) Matcher {
 	stmt := v.Interface().(*ast.ForStmt)
-
 	if _, isDots := stmt.Cond.(*pgo.Dots); !isDots || stmt.Init != nil || stmt.Post != nil {
 		// Not a "for ...". Fall back to the usual logic.
 		return c.compileGeneric(v)
 	}
-
-	dpos := c.fset.Position(stmt.Cond.Pos())
+	dotPos := stmt.Cond.Pos()
+	c.dots = append(c.dots, dotPos)
 	return ForDotsMatcher{
-		DotsLine:   dpos.Line,
-		DotsColumn: dpos.Column,
-		Body:       c.compile(reflect.ValueOf(stmt.Body)),
+		Dots: dotPos,
+		Body: c.compile(reflect.ValueOf(stmt.Body)),
 	}
 }
 
@@ -76,7 +70,7 @@ func (m ForDotsMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Da
 
 	d = data.WithValue(
 		d,
-		forDotsKey{Line: m.DotsLine, Column: m.DotsColumn},
+		forDotsKey(m.Dots),
 		forDotsData{
 			Type:         t,
 			BodyFieldIdx: bodyField.Idx,
@@ -90,23 +84,24 @@ func (m ForDotsMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Da
 
 // ForDotsReplacer replaces a "for ...".
 type ForDotsReplacer struct {
-	DotsLine, DotsColumn int // line and column on which dots appear
-	Body                 Replacer
+	Dots token.Pos
+	Body Replacer
+
+	dotAssoc map[token.Pos]token.Pos
 }
 
 func (c *replacerCompiler) compileForStmt(v reflect.Value) Replacer {
 	stmt := v.Interface().(*ast.ForStmt)
-
 	if _, isDots := stmt.Cond.(*pgo.Dots); !isDots || stmt.Init != nil || stmt.Post != nil {
 		// Not a "for ...". Fall back to the usual logic.
 		return c.compileGeneric(v)
 	}
-
-	dpos := c.fset.Position(stmt.Cond.Pos())
+	dotPos := stmt.Cond.Pos()
+	c.dots = append(c.dots, dotPos)
 	return ForDotsReplacer{
-		DotsLine:   dpos.Line,
-		DotsColumn: dpos.Column,
-		Body:       c.compile(reflect.ValueOf(stmt.Body)),
+		Dots:     dotPos,
+		Body:     c.compile(reflect.ValueOf(stmt.Body)),
+		dotAssoc: c.dotAssoc,
 	}
 }
 
@@ -114,7 +109,7 @@ func (c *replacerCompiler) compileForStmt(v reflect.Value) Replacer {
 // fields.
 func (r ForDotsReplacer) Replace(d data.Data, cl Changelog, pos token.Pos) (reflect.Value, error) {
 	var fd forDotsData
-	if !data.Lookup(d, forDotsKey{Line: r.DotsLine, Column: r.DotsColumn}, &fd) {
+	if !data.Lookup(d, forDotsKey(r.dotAssoc[r.Dots]), &fd) {
 		return reflect.Value{}, errors.New("match data not found for 'for ...': " +
 			"are you sure that the line appears on a context line without a preceding '-' or '+'?")
 	}
@@ -137,7 +132,12 @@ func (r ForDotsReplacer) Replace(d data.Data, cl Changelog, pos token.Pos) (refl
 	return stmt.Addr(), nil
 }
 
-type forDotsKey struct{ Line, Column int }
+type forDotsKey token.Pos
+
+type forDotsField struct {
+	Idx   int           // index of the field in Type
+	Value reflect.Value // captured value of the field
+}
 
 type forDotsData struct {
 	// Type of statement that we matched.
@@ -152,9 +152,4 @@ type forDotsData struct {
 	OtherFields []forDotsField
 
 	Region Region
-}
-
-type forDotsField struct {
-	Idx   int           // index of the field in Type
-	Value reflect.Value // captured value of the field
 }
