@@ -77,6 +77,8 @@ func (f *finder) process() {
 		f.ident()
 	case token.ELLIPSIS:
 		f.ellipsis()
+	case token.LSS:
+		f.lss()
 	case token.FUNC:
 		f.function()
 	default:
@@ -193,6 +195,16 @@ func (f *finder) ellipsis() {
 		return
 	}
 
+	// ...>
+	if f.tok == token.GTR && f.pos == pos+3 && sameLine {
+		f.append(&RDots{
+			RDotsStart: off,
+			RDotsEnd:   off + 4,
+		})
+		f.next() // >
+		return
+	}
+
 	// ...
 	f.append(&Dots{DotsStart: off, DotsEnd: off + 3})
 }
@@ -286,5 +298,23 @@ func (f *finder) fieldList() {
 
 	for _, off := range ellipses {
 		f.append(&Dots{DotsStart: off, DotsEnd: off + 3, Named: named})
+	}
+}
+
+func (f *finder) lss() {
+	pos := f.pos
+	off := f.offset
+	f.next() // <
+
+	sameLine := f.line(pos) == f.line(f.pos)
+
+	// <...
+	if f.tok == token.ELLIPSIS && f.pos == pos+1 && sameLine {
+		f.append(&LDots{
+			LDotsStart: off,
+			LDotsEnd:   off + 4,
+		})
+		f.next() // ...
+		return
 	}
 }

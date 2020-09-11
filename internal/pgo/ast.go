@@ -31,6 +31,7 @@ type Node interface {
 }
 
 var (
+	_ Node = (*AngleDots)(nil)
 	_ Node = (*Dots)(nil)
 	_ Node = (*Expr)(nil)
 	_ Node = (*FuncDecl)(nil)
@@ -88,3 +89,23 @@ func (d *Dots) Pos() token.Pos { return d.Dots }
 
 // End returns the position after "...".
 func (d *Dots) End() token.Pos { return d.Dots + 3 }
+
+// AngleDots is a <... ...> block used as an expression.
+//
+// If used as a statement, Dots will be inside an ExprStmt.
+type AngleDots struct {
+	ast.Expr
+
+	LT   token.Pos  // position of <...
+	List []ast.Node // TODO: what goes here
+	GT   token.Pos  // position of ...>
+
+}
+
+func (*AngleDots) pgoNode() {}
+
+// Pos returns the start position of "<...".
+func (d *AngleDots) Pos() token.Pos { return d.LT }
+
+// End returns the position after "...>".
+func (d *AngleDots) End() token.Pos { return d.GT + 4 }

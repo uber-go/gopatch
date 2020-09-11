@@ -31,6 +31,13 @@ type augmenter struct {
 	// augmentations are indexed by position so that we can match them to
 	// nodes as we traverse.
 	augs map[augPos]augment.Augmentation
+
+	// TODO: Dots should be allowed inside slices only. When a LDots is found,
+	// the remaining items in the slice until RDots must be nested inside a
+	// Matcher object of some kind. If no RDots was found, that's an error.
+	insideAngle bool
+	angleNodes  []ast.Node
+	// angleStart  token.Pos
 }
 
 // augPos is the position of an augmentation in the file.
@@ -114,6 +121,11 @@ func (a *augmenter) Apply(cursor *astutil.Cursor) bool {
 
 	switch aug := aug.(type) {
 	case *augment.Dots:
+		if a.insideAngle {
+			// TODO: this is probably fine
+			a.errf(n.Pos(), `found "..." inside "<..."`)
+		}
+
 		dots := &Dots{Dots: n.Pos()}
 		switch fieldType {
 		case goast.StmtType:
@@ -126,6 +138,29 @@ func (a *augmenter) Apply(cursor *astutil.Cursor) bool {
 			a.errf(n.Pos(), `found unexpected "..." inside %T`, n)
 			return false
 		}
+
+	case *augment.LDots:
+		if a.insideAngle {
+			// TODO: this is probably fine
+			a.errf(n.Pos(), `found "<..." inside "<..."`)
+		}
+		a.insideAngle = true
+		// angleStart = n.Pos()
+		cursor.Delete()
+	case *augment.RDots:
+		a.insideAngle = false
+		// TODO: angle nodes parsing. Need to convert inner sections into
+		// Node objects.
+		// switch n.(type) {
+		// case ast.Stmt:
+		// 	cursor.Replace(&AngleDots{
+		// 		LT:   angleStart,
+		// 		List: angleNodes,
+		// 		GT:   n.Pos() + 4,
+		// 	})
+		// }
+		a.angleNodes = nil
+		panic("TODO")
 	default:
 		panic(fmt.Sprintf("unknown augmentation %T", aug))
 	}

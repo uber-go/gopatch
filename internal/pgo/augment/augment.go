@@ -38,6 +38,32 @@ func (d *Dots) Start() int { return d.DotsStart }
 // End offset of Dots.
 func (d *Dots) End() int { return d.DotsEnd }
 
+// LDots is a "<..." operator.
+type LDots struct {
+	LDotsStart, LDotsEnd int
+}
+
+func (*LDots) augmentation() {}
+
+// Start offset of LDots.
+func (d *LDots) Start() int { return d.LDotsStart }
+
+// End offset of LDots.
+func (d *LDots) End() int { return d.LDotsEnd }
+
+// RDots is a "...>" operator.
+type RDots struct {
+	RDotsStart, RDotsEnd int
+}
+
+func (*RDots) augmentation() {}
+
+// Start offset of RDots.
+func (d *RDots) Start() int { return d.RDotsStart }
+
+// End offset of RDots.
+func (d *RDots) End() int { return d.RDotsEnd }
+
 // FakePackage is a fake package clause included in the code. This is needed
 // if the source didn't contain a package clause.
 type FakePackage struct {

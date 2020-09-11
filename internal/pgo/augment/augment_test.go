@@ -288,6 +288,34 @@ func TestAugment(t *testing.T) {
 				"type Foo func(...string)",
 			),
 		},
+		{
+			desc: "ldots, rdots",
+			give: text.Unlines(
+				"foo()",
+				"<...",
+				"  err",
+				"...>",
+			),
+			wantSrc: text.Unlines(
+				"package _",
+				"func _() {",
+				"foo()",
+				"ldts",
+				"  err",
+				"rdts",
+				"}",
+			),
+			wantAugs: []Augmentation{
+				&FakePackage{PackageStart: 0},
+				&FakeFunc{FuncStart: 10, Braces: true},
+				&LDots{LDotsStart: 27, LDotsEnd: 31},
+				&RDots{RDotsStart: 38, RDotsEnd: 42},
+			},
+			wantAdjs: []PosAdjustment{
+				{Offset: 0, ReduceBy: 10},
+				{Offset: 10, ReduceBy: 21},
+			},
+		},
 	}
 
 	for _, tt := range tests {

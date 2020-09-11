@@ -77,6 +77,16 @@ func rewrite(src []byte, augs []Augmentation) ([]byte, []PosAdjustment) {
 				dst.WriteString("dts")
 			}
 			a.DotsEnd = dst.Len()
+		case *LDots:
+			a.LDotsStart = dst.Len()
+			// no PosAdjustment: len(ldts) == len(<...)
+			dst.WriteString("ldts")
+			a.LDotsEnd = dst.Len()
+		case *RDots:
+			a.RDotsStart = dst.Len()
+			// no PosAdjustment: len(rdts) == len(...>)
+			dst.WriteString("rdts")
+			a.RDotsEnd = dst.Len()
 		default:
 			panic(fmt.Sprintf("unknown augmentation type %T", a))
 		}
