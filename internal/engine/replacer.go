@@ -39,6 +39,10 @@ func newReplacerCompiler(fset *token.FileSet, meta *Meta, patchStart, patchEnd t
 }
 
 func (c *replacerCompiler) compile(v reflect.Value) Replacer {
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return ZeroReplacer{Type: v.Type()}
+	}
+
 	switch v.Type() {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
@@ -66,11 +70,20 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 		})
 	case goast.ForStmtPtrType:
 		return c.compileForStmt(v)
+	case goast.CommentGroupPtrType:
+		// TODO: We're currently ignoring comments in the replacement patch.
+		// We should probably record them and report them in the top-level
+		// file.
+		return ValueReplacer{
+			Value: reflect.ValueOf((*ast.CommentGroup)(nil)),
+		}
 
 	case goast.ObjectPtrType:
-		// Ident.Obj forms a cycle, and it doesn't affect the output
-		// of the formatter. We'll replace it with a nil pointer.
-		return ZeroReplacer{Type: goast.ObjectPtrType}
+		// Ident.Obj forms a cycle so we'll replace it with a nil pointer.
+		return ValueReplacer{
+			Value: reflect.ValueOf((*ast.Object)(nil)),
+		}
+
 	case goast.PosType:
 		return c.compilePosReplacer(v)
 	}
@@ -78,7 +91,7 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 	return c.compileGeneric(v)
 }
 
-// ZeroReplacer replaces with the zero value of a type.
+// ZeroReplacer replaces with a zero value.
 type ZeroReplacer struct{ Type reflect.Type }
 
 // Replace replaces with a zero value.
