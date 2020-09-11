@@ -1,13 +1,27 @@
 package engine
 
 import (
+	"go/ast"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/goast"
 )
+
+// GenericNodeMatcher is the top-level matcher for ast.Node objects.
+type GenericNodeMatcher struct {
+	Matcher // underlying matcher
+}
 
 // compileGeneric compiles a Matcher for arbitrary values inside a Go AST.
 func (c *matcherCompiler) compileGeneric(v reflect.Value) (m Matcher) {
+	defer func() {
+		// Wrap with GenericNodeMatcher only if the type is a Go AST node.
+		if v.Type().Implements(goast.NodeType) {
+			m = GenericNodeMatcher{Matcher: m}
+		}
+	}()
+
 	switch v.Kind() {
 	case reflect.Ptr:
 		return c.compilePtr(v)
@@ -20,6 +34,16 @@ func (c *matcherCompiler) compileGeneric(v reflect.Value) (m Matcher) {
 	default:
 		return ValueMatcher{Type: v.Type(), Value: v.Interface()}
 	}
+}
+
+// Match matches an ast.Node.
+func (m GenericNodeMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
+	// Collapse the region under consideration down to the region covered by
+	// this node.
+	if !got.IsNil() {
+		r = nodeRegion(got.Interface().(ast.Node))
+	}
+	return m.Matcher.Match(got, d, r)
 }
 
 // PtrMatcher matches a non-nil pointer in the AST.

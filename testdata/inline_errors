@@ -1,7 +1,5 @@
 Inlines error variable declarations into if statements where possible.
 
-TODO: ... where applicable
-
 -- inline_errors.patch --
 @@
 var f expression
@@ -10,33 +8,55 @@ var err identifier
 -   err := f
 -   if err != nil {
 +   if err := f; err != nil {
-        return err
+        ...
+        return ...
+    }
+
+@@
+var f expression
+var err identifier
+@@
+-   err := f
+-   if err != nil {
++   if err := f; err != nil {
+        ...
+        return ...
+    } else {
+        ...
     }
 
 -- match.in.go --
 package foo
 
-func foo() error {
+func bar() (Result, error) {
+	// Test.
 	err := baz()
 	if err != nil {
-		return err
+		// Hello.
+		log()
+		return nil, err
 	}
+	return Result{}, nil
 }
 
 -- match.out.go --
 package foo
 
-func foo() error {
+func bar() (Result, error) {
+	// Test.
 	if err := baz(); err != nil {
-		return err
-
+		// Hello.
+		log()
+		return nil, err
 	}
+	return Result{}, nil
 }
 
 -- no_match.in.go --
 package foo
 
 func baz() error {
+	// This should remain unchanged.
 	x, err := unchanged()
 	if err != nil {
 		return err
@@ -49,12 +69,41 @@ func baz() error {
 package foo
 
 func baz() error {
+	// This should remain unchanged.
 	x, err := unchanged()
 	if err != nil {
 		return err
 	}
 	print(x)
 	return nil
+}
+
+-- else.in.go --
+package foo
+
+func qux() {
+	err := foo()
+	if err != nil {
+		return
+	} else {
+		err2 := quux()
+		if err2 != nil {
+			return
+		}
+	}
+}
+
+-- else.out.go --
+package foo
+
+func qux() {
+	if err := foo(); err != nil {
+		return
+	} else {
+		if err2 := quux(); err2 != nil {
+			return
+		}
+	}
 }
 
 -- case.in.go --
@@ -79,7 +128,6 @@ func foo() error {
 	case "x":
 		if err := baz(); err != nil {
 			return err
-
 		}
 	}
 	return nil
@@ -107,7 +155,6 @@ func foo(ctx context.Context) error {
 	case <-ctx.Done():
 		if err := ctx.Err(); err != nil {
 			return err
-
 		}
 	}
 	return nil
