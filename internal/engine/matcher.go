@@ -35,6 +35,9 @@ type matcherCompiler struct {
 	fset *token.FileSet
 	meta *Meta
 
+	// All dots found during match compilation.
+	dots []token.Pos
+
 	patchStart, patchEnd token.Pos
 }
 
