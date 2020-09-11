@@ -38,5 +38,4 @@ func bar() {
 	var (
 		Foo = "world"
 	)
-
 }

@@ -29,8 +29,7 @@ package foo
 import "strings"
 
 func do() {
-	s := strings.Repeat("x",
-		getCount())
+	s := strings.Repeat("x", getCount())
 
 }
 

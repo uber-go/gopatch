@@ -45,7 +45,10 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 		// Ident.Obj forms a cycle, and it doesn't affect the output
 		// of the formatter. We'll replace it with a nil pointer.
 		return ZeroReplacer{Type: goast.ObjectPtrType}
+	case goast.PosType:
+		return c.compilePosReplacer(v)
 	}
+
 	return c.compileGeneric(v)
 }
 

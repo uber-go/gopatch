@@ -27,13 +27,11 @@ func foo() error {
 package foo
 
 func foo() error {
-	if err :=
+	if err := baz(); err != nil {
 
-		baz(); err !=
-		nil {
 		return err
-	}
 
+	}
 }
 
 -- no_match.in.go --
@@ -80,13 +78,11 @@ package foo
 func foo() error {
 	switch bar() {
 	case "x":
-		if err :=
+		if err := baz(); err != nil {
 
-			baz(); err !=
-			nil {
 			return err
-		}
 
+		}
 	}
 	return nil
 }
@@ -111,13 +107,11 @@ package foo
 func foo(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
-		if err :=
+		if err := ctx.Err(); err != nil {
 
-			ctx.Err(); err !=
-			nil {
 			return err
-		}
 
+		}
 	}
 	return nil
 }

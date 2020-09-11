@@ -63,9 +63,9 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 		// anyway.
 		return successMatcher
 	case goast.PosType:
-		// Ignore positions for now.
-		return successMatcher
+		return c.compilePosMatcher(v)
 	}
+
 	return c.compileGeneric(v)
 }
 
