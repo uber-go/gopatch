@@ -117,6 +117,17 @@ func TestFile(t *testing.T) {
 						"func b() { foo.Bar() }",
 					),
 				},
+				{
+					desc: "type name left alone",
+					giveSrc: text.Unlines(
+						"package a",
+						"func b() { var foo int }",
+					),
+					wantSrc: text.Unlines(
+						"package a",
+						"func b() { var foo int }",
+					),
+				},
 			},
 		},
 		{
