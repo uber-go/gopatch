@@ -22,7 +22,7 @@ package foo
 
 func x() {
 	for true {
-		foo()
-		bar()
+		foo() // baz
+		bar() // qux
 	}
 }
