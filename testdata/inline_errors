@@ -28,7 +28,6 @@ package foo
 
 func foo() error {
 	if err := baz(); err != nil {
-
 		return err
 
 	}
@@ -79,7 +78,6 @@ func foo() error {
 	switch bar() {
 	case "x":
 		if err := baz(); err != nil {
-
 			return err
 
 		}
@@ -108,7 +106,6 @@ func foo(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		if err := ctx.Err(); err != nil {
-
 			return err
 
 		}
