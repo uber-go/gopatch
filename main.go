@@ -16,6 +16,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
 	"github.com/uber-go/gopatch/internal/parse"
 	"github.com/jessevdk/go-flags"
@@ -187,6 +188,7 @@ func run(args []string, stdin io.Reader) error {
 		}
 
 		f, ok := patchRunner.Apply(filename, f)
+
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
 			continue
@@ -222,6 +224,8 @@ func newPatchRunner(fset *token.FileSet, patches []*engine.Program) *patchRunner
 }
 
 func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
+	snap := astdiff.Before(f, ast.NewCommentMap(r.fset, f, f.Comments))
+
 	matched := false
 	for _, prog := range r.patches {
 		for _, c := range prog.Changes {
@@ -241,8 +245,43 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
 				r.errors = append(r.errors, fmt.Errorf("could not update %q: %v", filename, err))
 				return nil, false
 			}
+
+			snap = snap.Diff(f, cl)
+			cleanupFilePos(r.fset.File(f.Pos()), cl, f.Comments)
 		}
 	}
 
 	return f, matched
+}
+
+func cleanupFilePos(tfile *token.File, cl engine.Changelog, comments []*ast.CommentGroup) {
+	linesToDelete := make(map[int]struct{})
+	for _, dr := range cl.ChangedIntervals() {
+		for i := tfile.Line(dr.Start); i < tfile.Line(dr.End); i++ {
+			if i > 0 {
+				linesToDelete[i] = struct{}{}
+			}
+		}
+
+		// Remove comments in the changed sections of the code.
+		for _, cg := range comments {
+			var list []*ast.Comment
+			for _, c := range cg.List {
+				if c.Pos() >= dr.Start && c.End() <= dr.End {
+					continue
+				}
+				list = append(list, c)
+			}
+			cg.List = list
+		}
+	}
+
+	lines := make([]int, 0, len(linesToDelete))
+	for i := range linesToDelete {
+		lines = append(lines, i)
+	}
+	sort.Ints(lines)
+	for i := len(lines) - 1; i >= 0; i-- {
+		tfile.MergeLine(lines[i])
+	}
 }

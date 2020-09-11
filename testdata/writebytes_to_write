@@ -27,5 +27,4 @@ package foo
 func do() {
 	var buff *bytes.Buffer
 	buff.Write(results())
-
 }
