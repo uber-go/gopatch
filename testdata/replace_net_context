@@ -30,8 +30,7 @@ import (
 )
 
 func x() {
-	context.
-		Background()
+	context.Background()
 }
 
 -- import_group.in.go --
@@ -58,7 +57,5 @@ import (
 )
 
 func x() {
-	context.
-		WithTimeout(context.
-			Background(), time.Second)
+	context.WithTimeout(context.Background(), time.Second)
 }

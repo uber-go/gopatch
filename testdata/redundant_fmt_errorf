@@ -1,0 +1,58 @@
+Replaces redundant use of fmt.Errorf with errors.New.
+
+// TODO(abg): Collapse Sprintf into Errorf.
+
+-- errorf.patch --
+@@
+var s expression
+@@
+-import "fmt"
++import "errors"
+
+-fmt.Errorf(s)
++errors.New(s)
+
+-- replace.in.go --
+package foo
+
+import "fmt"
+
+func Do() error {
+	return fmt.Errorf("great sadness")
+}
+
+-- replace.out.go --
+package foo
+
+import (
+	"errors"
+)
+
+func Do() error {
+	return errors.New("great sadness")
+}
+
+-- leave_sprintf.in.go --
+package bar
+
+import "fmt"
+
+const _thing = "thing"
+
+func Do() error {
+	return fmt.Errorf(fmt.Sprintf("%v failed", _thing))
+}
+
+-- leave_sprintf.out.go --
+package bar
+
+import (
+	"errors"
+	"fmt"
+)
+
+const _thing = "thing"
+
+func Do() error {
+	return errors.New(fmt.Sprintf("%v failed", _thing))
+}

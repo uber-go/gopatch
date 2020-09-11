@@ -34,8 +34,10 @@ import "strings"
 
 func foo() string {
 	var sb strings.Builder
+
 	for s := next(); s != ""; s = next() {
 		sb.WriteString(s)
+
 	}
 	x := sb.String()
 
@@ -59,10 +61,13 @@ import "strings"
 
 func bar() {
 	var sb strings.Builder
+
 	for condition() {
 		sb.WriteString(next())
+
 	}
 	x := sb.String()
+
 }
 
 -- range_one_result.in.go --
@@ -89,9 +94,8 @@ func baz() {
 	var sb strings.Builder
 
 	for x := range y() {
-		sb.WriteString(
+		sb.WriteString(fmt.Sprintf("<%q>", x))
 
-			fmt.Sprintf("<%q>", x))
 	}
 	a := sb.String()
 
@@ -114,10 +118,13 @@ import "strings"
 
 func qux() {
 	var sb strings.Builder
+
 	for k, v := range something() {
 		sb.WriteString(k + ": " + v)
+
 	}
 	a := sb.String()
+
 }
 
 -- range_no_results.in.go --
@@ -144,9 +151,8 @@ func quux() {
 	var sb strings.Builder
 
 	for range time.Tick(time.Millisecond) {
-		sb.WriteString(
+		sb.WriteString("∞")
 
-			"∞")
 	}
 	infinity := sb.String()
 
@@ -169,8 +175,11 @@ import "strings"
 
 func quuz() {
 	var sb strings.Builder
+
 	for x = range y() {
 		sb.WriteString(x)
+
 	}
 	a := sb.String()
+
 }

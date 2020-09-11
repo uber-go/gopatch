@@ -16,8 +16,5 @@ func main() {
 package main
 
 func main() {
-	bar(
-
-		42)
-
+	bar(42)
 }
