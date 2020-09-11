@@ -4,8 +4,18 @@ TODO: Add "..." where applicable and update implementations.
 @@
 @@
  type Foo interface {
+   ...
 -  Do()
 +  Do() error
+   ...
+ }
+
+@@
+@@
+-func (...) Do() {
++func (...) Do() error {
+   ...
++  return nil
  }
 
 -- a.in.go --
@@ -13,6 +23,13 @@ package a
 
 type Foo interface {
 	Do()
+	String() string
+}
+
+type bar struct{}
+
+func (*bar) Do() {
+	fmt.Println("hello")
 }
 
 -- a.out.go --
@@ -20,4 +37,12 @@ package a
 
 type Foo interface {
 	Do() error
+	String() string
+}
+
+type bar struct{}
+
+func (*bar) Do() error {
+	fmt.Println("hello")
+	return nil
 }

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"go/ast"
 	"go/token"
 	"reflect"
 
@@ -23,8 +24,14 @@ type stmtSliceContainerMatcher struct {
 // match anywhere in the AST where a []ast.Stmt can be present. We'll use
 // stmtSliceContainerMatcher for this.
 func (c *matcherCompiler) compilePGoStmtList(slist *pgo.StmtList) Matcher {
+	var list []ast.Stmt
+	if len(slist.List) > 0 {
+		list = append(list, dotsStmt(c.patchStart))
+		list = append(list, slist.List...)
+		list = append(list, dotsStmt(c.patchEnd))
+	}
 	return stmtSliceContainerMatcher{
-		Stmts: c.compile(reflect.ValueOf(slist.List)),
+		Stmts: c.compile(reflect.ValueOf(list)),
 	}
 }
 
@@ -103,8 +110,14 @@ type stmtSliceContainerReplacer struct {
 // able to reproduce the original container for these statements (BlockStmt,
 // CaseClause, CommClause) as-is with only the statement list modified.
 func (c *replacerCompiler) compilePGoStmtList(slist *pgo.StmtList) Replacer {
+	var list []ast.Stmt
+	if len(slist.List) > 0 {
+		list = append(list, dotsStmt(c.patchStart))
+		list = append(list, slist.List...)
+		list = append(list, dotsStmt(c.patchEnd))
+	}
 	return stmtSliceContainerReplacer{
-		Stmts: c.compile(reflect.ValueOf(slist.List)),
+		Stmts: c.compile(reflect.ValueOf(list)),
 	}
 }
 
@@ -162,4 +175,8 @@ type stmtListField struct {
 
 	// Captured value of the field.
 	Value reflect.Value
+}
+
+func dotsStmt(pos token.Pos) ast.Stmt {
+	return &ast.ExprStmt{X: &pgo.Dots{Dots: pos}}
 }

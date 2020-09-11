@@ -1,11 +1,13 @@
 package engine
 
 import (
+	"go/ast"
 	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
 	"github.com/uber-go/gopatch/internal/goast"
+	"github.com/uber-go/gopatch/internal/pgo"
 )
 
 // Replacer generates portions of the Go AST meant to replace sections matched
@@ -40,6 +42,28 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 	switch v.Type() {
 	case goast.IdentPtrType:
 		return c.compileIdent(v)
+	case goast.StmtSliceType:
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			es, ok := n.(*ast.ExprStmt)
+			if ok {
+				_, ok = es.X.(*pgo.Dots)
+			}
+			return ok
+		})
+	case goast.ExprSliceType:
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			_, ok := n.(*pgo.Dots)
+			return ok
+		})
+	case goast.FieldPtrSliceType:
+		// TODO(abg): pgo.Parse should probably replace this with a DotsField.
+		return c.compileSliceDots(v, func(n ast.Node) bool {
+			f, ok := n.(*ast.Field)
+			if ok {
+				_, ok = f.Type.(*pgo.Dots)
+			}
+			return ok
+		})
 	case goast.ForStmtPtrType:
 		return c.compileForStmt(v)
 
