@@ -1,0 +1,64 @@
+-- foo.patch --
+@@
+var foo identifier
+var y expression
+@@
+ import foo "example.com/foo.git"
+
+ foo.Params{
+   ...,
+-  Foo: y,
+   ...,
+ }
+
+-- named.in.go --
+package a
+
+import foogit "example.com/foo.git"
+
+func bar() {
+	foogit.Initialize(foogit.Params{
+		Name: "name",
+		Foo: foogit.GetClient(),
+		Value: "bar",
+	})
+}
+
+-- named.out.go --
+package a
+
+import foogit "example.com/foo.git"
+
+func bar() {
+	foogit.Initialize(foogit.Params{
+		Name: "name",
+
+		Value: "bar",
+	})
+}
+
+-- unnamed.in.go --
+package a
+
+import "example.com/foo.git"
+
+func bar() {
+	foo.Initialize(foo.Params{
+		Name: "name",
+		Foo: foo.GetClient(),
+		Value: "bar",
+	})
+}
+
+-- unnamed.out.go --
+package a
+
+import foo "example.com/foo.git"
+
+func bar() {
+	foo.Initialize(foo.Params{
+		Name: "name",
+
+		Value: "bar",
+	})
+}

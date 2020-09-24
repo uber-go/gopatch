@@ -149,7 +149,9 @@ func (r ImportReplacer) Replace(d data.Data, cl Changelog, f *ast.File) (string,
 		name = namev.Interface().(*ast.Ident).Name
 	}
 
-	astutil.AddNamedImport(r.Fset, f, name, r.Path)
+	if !astutil.AddNamedImport(r.Fset, f, name, r.Path) {
+		return "", nil
+	}
 	return name, nil
 }
 
