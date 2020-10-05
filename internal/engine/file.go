@@ -75,7 +75,7 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 	// To match the body, we use astutil.Apply which traverses the AST and
 	// provides a replaceable pointer to each node so that we can rewrite
 	// the AST in-place.
-	var matches []*searchResult
+	var matches []*SearchResult
 	// TODO(abg): Support nil NodeMatcher for when a patch is matching on
 	// just the package name or import paths.
 	astutil.Apply(file, func(cursor *astutil.Cursor) bool {
@@ -91,7 +91,7 @@ func (m FileMatcher) Match(file *ast.File, d data.Data) (data.Data, bool) {
 			return true
 		}
 
-		matches = append(matches, &searchResult{
+		matches = append(matches, &SearchResult{
 			parent: cursor.Parent(),
 			name:   cursor.Name(),
 			index:  cursor.Index(),
@@ -214,28 +214,8 @@ type _fileMatchKey struct{}
 
 var fileMatchKey _fileMatchKey
 
-// searchResult is a pointer to a replaceable node in a Go AST. This is a copy
-// of the information contained in an astutil.Cursor. We need this type
-// because astutil.Cursor becomes invalida after the astutil.Apply call.
-type searchResult struct {
-	// Parent object containing the matched node.
-	parent ast.Node
-
-	// Name of the field of the parent node referring to the matched node.
-	name string
-
-	// If the field is a slice, this is a non-negative number specfiying
-	// the index of that slice that refers to the matched node.
-	index int
-
-	// Captured match data. This is needed by Replacers.
-	data data.Data
-
-	region Region
-}
-
 type fileMatchData struct {
 	File    *ast.File
 	Imports map[string]string // import path -> name (if any, or "" if unnamed)
-	Matches []*searchResult
+	Matches []*SearchResult
 }
