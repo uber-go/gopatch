@@ -1,0 +1,40 @@
+-- in.patch --
+@@
+var Ctx identifier
+@@
+ type Request struct {
+    ...
+-   Ctx context.Context
+    ...
+ }
+
+-- alone.in.go --
+package alone
+
+type Request struct {
+	Context context.Context
+}
+
+-- alone.out.go --
+package alone
+
+type Request struct {
+}
+
+-- triple.in.go --
+package triple
+
+type Request struct {
+	User string
+	Ctxt context.Context
+	Time time.Duration
+}
+
+-- triple.out.go --
+package triple
+
+type Request struct {
+	User string
+
+	Time time.Duration
+}

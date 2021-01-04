@@ -1,0 +1,29 @@
+-- in.patch --
+@@
+@@
+-case foo, ..., bar:
++case foo, ..., baz:
+
+-- a.in.go --
+package a
+
+func a() {
+	switch s {
+	case foo, bar:
+		first()
+	case foo, another, bar:
+		second()
+	}
+}
+
+-- a.out.go --
+package a
+
+func a() {
+	switch s {
+	case foo, baz:
+		first()
+	case foo, another, baz:
+		second()
+	}
+}

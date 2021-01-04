@@ -1,0 +1,36 @@
+-- in.patch --
+@@
+@@
+ type Request struct {
+-   FirstName, ..., LastName string
++   FirstName, ..., LastName Name
+ }
+
+-- zero.in.go --
+packager zero
+
+type Request struct {
+	FirstName, LastName string
+}
+
+
+-- zero.out.go --
+packager zero
+
+type Request struct {
+	FirstName, LastName Name
+}
+
+-- middle.in.go --
+packager middle
+
+type Request struct {
+	FirstName, MiddleName, LastName string
+}
+
+-- middle.out.go --
+packager middle
+
+type Request struct {
+	FirstName, MiddleName, LastName Name
+}

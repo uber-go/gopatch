@@ -1,0 +1,82 @@
+-- in.patch --
+@@
+var req, f identifier
+@@
+ import "net/http"
++import "context"
+
+ func f(
++   ctx context.Context,
+    ...,
+    req *http.Request,
+    ...,
+) (..., error) {
++   req = req.WithContext(ctx)
+    ...
+ }
+
+-- one_return.in.go --
+package main
+
+import "net/http"
+
+func printResponse(r *http.Request) error {
+	res, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if _, err := io.Copy(os.Stdout, res.Body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+-- one_return.out.go --
+package main
+
+import (
+	"context"
+	"net/http"
+)
+
+func printResponse(ctx context.Context, r *http.Request) error {
+	r = r.WithContext(ctx)
+	res, err := http.DefaultClient.Do(r)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	if _, err := io.Copy(os.Stdout, res.Body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+-- two_returns.in.go --
+package main
+
+import "net/http"
+
+func getResponse(req *http.Request) (*http.Response, error) {
+	res, err := http.DefaultClient.Do(req)
+	return res, err
+}
+
+-- two_returns.out.go --
+package main
+
+import (
+	"context"
+	"net/http"
+)
+
+func getResponse(ctx context.Context, req *http.Request) (*http.Response, error) {
+	req = req.WithContext(ctx)
+	res, err := http.DefaultClient.Do(req)
+	return res, err
+}

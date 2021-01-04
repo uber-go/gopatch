@@ -1,0 +1,27 @@
+-- in.patch --
+@@
+@@
++import "example.com/constants"
+
+ []string{
+   ...,
+-  "foo",
++  constants.Foo,
+   ...,
+ }
+
+-- foo.in.go --
+package foo
+
+func items() []string {
+	return []string{"a", "b", "foo", "bar", "d"}
+}
+
+-- foo.out.go --
+package foo
+
+import "example.com/constants"
+
+func items() []string {
+	return []string{"a", "b", constants.Foo, "bar", "d"}
+}

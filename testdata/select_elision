@@ -1,0 +1,33 @@
+-- in.patch --
+@@
+@@
+ select {
+ ...
+-case <-done:
++case <-ctx.Done():
+ ...
+ }
+
+-- example.in.go --
+package x
+
+func foo(ctx context.Context) {
+	select {
+	case <-foo:
+		fmt.Println("foo")
+	case <-done:
+		fmt.Println("done")
+	}
+}
+
+-- example.out.go --
+package x
+
+func foo(ctx context.Context) {
+	select {
+	case <-foo:
+		fmt.Println("foo")
+	case <-ctx.Done():
+		fmt.Println("done")
+	}
+}

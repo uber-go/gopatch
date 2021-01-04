@@ -1,0 +1,38 @@
+-- in.patch --
+@@
+var v expression
+@@
+ switch v {
+ ...
+-case MyItem:
++case NewItem:
+ ...
+ }
+
+-- body.in.go --
+package x
+
+func foo() {
+	switch something() {
+	case Foo:
+		fmt.Println("foo")
+	case MyItem:
+		fmt.Println("my item")
+	default:
+		fmt.Println("unknown")
+	}
+}
+
+-- body.out.go --
+package x
+
+func foo() {
+	switch something() {
+	case Foo:
+		fmt.Println("foo")
+	case NewItem:
+		fmt.Println("my item")
+	default:
+		fmt.Println("unknown")
+	}
+}

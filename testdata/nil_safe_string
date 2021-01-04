@@ -1,0 +1,38 @@
+TODO: Support a means of verifying that there isn't already a nil check.
+
+-- in.patch --
+@@
+var t identifier
+var T expression
+@@
+ func (t *T) String() string {
++  if t == nil {
++    return "<nil>"
++  }
+   ...
+ }
+
+-- foo.in.go --
+package foo
+
+type Bar struct {
+	Name string
+}
+
+func (b *Bar) String() string {
+	return b.Name
+}
+
+-- foo.out.go --
+package foo
+
+type Bar struct {
+	Name string
+}
+
+func (b *Bar) String() string {
+	if b == nil {
+		return "<nil>"
+	}
+	return b.Name
+}

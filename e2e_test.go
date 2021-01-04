@@ -119,10 +119,23 @@ func skipTest(testFile, testName string) bool {
 // eventually should. It is essentially a todo list of bugs to be fixed.
 // For now, skip these tests.
 var testsToSkip = map[string]struct{}{
-	"func_within_a_func/two_dots": {},
-	"mismatched_dots/unnamed":     {},
-	"noop_import/remove_some":     {},
-	"noop_import/remove_all":      {},
+	"add_error_param/a":              {}, // https://github.com/uber-go/gopatch/issues/6
+	"func_within_a_func/two_dots":    {},
+	"mismatched_dots/unnamed":        {}, // https://github.com/uber-go/gopatch/issues/9
+	"noop_import/remove_all":         {},
+	"noop_import/remove_some":        {},
+	"switch_elision/body":            {},
+	"select_elision/example":         {},
+	"case_elision/a":                 {},
+	"httpclient_use_ctx/one_return":  {},
+	"const_to_var/single_top_level":  {},
+	"struct_field_list/zero":         {},
+	"struct_field_list/middle":       {},
+	"value_group_elision/func":       {}, // https://github.com/uber-go/gopatch/issues/6
+	"value_list_elision/foo":         {}, // https://github.com/uber-go/gopatch/issues/6
+	"range_value_elision/no_params":  {},
+	"range_value_elision/one_param":  {},
+	"range_value_elision/two_params": {},
 }
 
 const (

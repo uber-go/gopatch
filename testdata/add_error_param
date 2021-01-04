@@ -1,0 +1,19 @@
+-- in.patch --
+@@
+@@
+-... := foo(...)
++..., err := foo(...)
+
+-- a.in.go --
+package x
+
+func do() {
+	x, y, z := foo(1, 2, 3)
+}
+
+-- a.out.go --
+package x
+
+func do() {
+	x, y, z, err := foo(1, 2, 3)
+}

@@ -1,0 +1,37 @@
+-- in.patch --
+@@
+var x expression
+@@
+-foo(x, x)
++v := x
++foo(v, v)
+
+-- foo.in.go --
+package foo
+
+func bar() {
+	foo(x + 1, x + 1)
+}
+
+-- foo.out.go --
+package foo
+
+func bar() {
+	v := x + 1
+	foo(v, v)
+}
+
+-- bar.in.go --
+package bar
+
+func baz() {
+	foo(getValue(), getValue())
+}
+
+-- bar.out.go --
+package bar
+
+func baz() {
+	v := getValue()
+	foo(v, v)
+}
