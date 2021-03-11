@@ -39,3 +39,12 @@ Test files will generally take the form,
     // output source
 
     <more files if needed>
+
+Patch files referenced inside test cases may optionally take the following
+form instead.
+
+    => path/to/another/file.patch
+
+Where the path is relative to the root of the directory. In this case, the
+patch will be read from the provided path. Use this to test examples in the
+examples/ directory.

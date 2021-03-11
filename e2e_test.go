@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -38,6 +39,31 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
+func resolvePatchPath(t *testing.T, path string) string {
+	// If a patch file takes the form,
+	//   => another/file.patch
+	// Replace its path with the provided path.
+	const linkPrefix = "=>"
+
+	f, err := os.Open(path)
+	require.NoError(t, err, "open patch %q", path)
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	if !scanner.Scan() {
+		return path
+	}
+	line := scanner.Text()
+
+	// Not a link to anothe rfile. Return the original path
+	// unchanged.
+	if !strings.HasPrefix(line, linkPrefix) {
+		return path
+	}
+
+	return strings.TrimSpace(strings.TrimPrefix(line, linkPrefix))
+}
+
 func runIntegrationTest(t *testing.T, testFile string) {
 	ta, err := loadTestArchive(testFile)
 	require.NoError(t, err, "failed to load tests from txtar")
@@ -55,11 +81,13 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	)
 	// If there's only one patch, use stdin. Otherwise, use "-p".
 	if ps := ta.Patches; len(ps) == 1 {
-		stdin, err = ioutil.ReadFile(filepath.Join(dir, ps[0]))
+		path := resolvePatchPath(t, filepath.Join(dir, ps[0]))
+		stdin, err = ioutil.ReadFile(path)
 		require.NoError(t, err, "failed to read patch file %q", ps)
 	} else {
-		for _, patch := range ps {
-			args = append(args, "-p", filepath.Join(dir, patch))
+		for _, path := range ps {
+			path = resolvePatchPath(t, filepath.Join(dir, path))
+			args = append(args, "-p", path)
 		}
 	}
 
