@@ -1,0 +1,25 @@
+Resolves https://staticcheck.io/docs/checks#S1028.
+
+-- s1028.patch --
+=> examples/s1028.patch
+
+-- foo.in.go --
+package foo
+
+import (
+	"fmt"
+	"errors"
+)
+
+func bar(i int) error {
+	return errors.New(fmt.Sprintf("great sadness: %d", i))
+}
+
+-- foo.out.go --
+package foo
+
+import "fmt"
+
+func bar(i int) error {
+	return fmt.Errorf("great sadness: %d", i)
+}

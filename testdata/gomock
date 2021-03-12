@@ -1,0 +1,66 @@
+-- gomock.patch --
+=> examples/gomock-v1.5.0.patch
+
+-- foo_test.in.go --
+package foo
+
+import (
+	"testing"
+
+	"github.com/golang/mock/gomock"
+)
+
+func TestFoo(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	run(NewFooMock(ctrl))
+}
+
+-- foo_test.out.go --
+package foo
+
+import (
+	"testing"
+
+	"github.com/golang/mock/gomock"
+)
+
+func TestFoo(t *testing.T) {
+	ctrl := gomock.NewController(t)
+
+	run(NewFooMock(ctrl))
+}
+
+-- bar_test.in.go --
+package bar
+
+import (
+	"testing"
+
+	"github.com/golang/mock/gomock"
+)
+
+func TestBar(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	dir := t.TempDir()
+	defer ctrl.Finish()
+
+	run(NewBarMock(ctrl))
+}
+
+-- bar_test.out.go --
+package bar
+
+import (
+	"testing"
+
+	"github.com/golang/mock/gomock"
+)
+
+func TestBar(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	dir := t.TempDir()
+
+	run(NewBarMock(ctrl))
+}

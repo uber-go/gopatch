@@ -1,0 +1,22 @@
+Resolves https://staticcheck.io/docs/checks#S1038.
+
+-- s1038.patch --
+=> examples/s1038.patch
+
+-- example.in.go --
+package thing
+
+import "fmt"
+
+func foo() {
+	fmt.Print(fmt.Sprintf("thing happend: %v", thing()))
+}
+
+-- example.out.go --
+package thing
+
+import "fmt"
+
+func foo() {
+	fmt.Printf("thing happend: %v", thing())
+}

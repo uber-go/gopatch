@@ -1,0 +1,21 @@
+@@
+@@
+ package http
+
+-HTTPClient
++Client
+
+@@
+@@
+ import "example.com/http"
+
+-http.HTTPClient
++http.Client
+
+@@
+var http identifier
+@@
+ import http "example.com/http"
+
+-http.HTTPClient
++http.Client

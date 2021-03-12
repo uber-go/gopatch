@@ -1,0 +1,5 @@
+@@
+var x identifier
+@@
+-time.Now().Sub(x)
++time.Since(x)

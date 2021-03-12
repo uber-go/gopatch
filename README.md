@@ -1588,6 +1588,17 @@ exceptions:
 - function declarations may be omitted
 - [elisions](#elision) may appear in several places
 
+# Examples
+
+This section lists various example patches you can try in your code.
+Note that some of these patches are not perfect and may have false positives.
+
+- [s1012.patch](examples/s1012.patch): Fix for staticcheck [S1012](https://staticcheck.io/docs/checks#S1012).
+- [s1028.patch](examples/s1028.patch): Fix for staticcheck [S1028](https://staticcheck.io/docs/checks#S1028).
+- [s1038.patch](examples/s1038.patch): Fix for staticcheck [S1038](https://staticcheck.io/docs/checks#S1038).
+- [gomock-v1.5.0.patch](examples/gomock-v1.5.0.patch): Drops unnecessary call to `Finish` method for users of gomock.
+- [destutter.patch](examples/destutter.patch): Demonstrates renaming a type and updating its consumers.
+
 # Similar Projects
 
 - [gofmt rewrite rules] support simple transformations on expressions

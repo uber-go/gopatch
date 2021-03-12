@@ -1,0 +1,12 @@
+# In gomock 1.50, the Controller.Finish method is called automatically when
+# the test finishes running. We no longer need to call mockCtrl.Finish
+# manually.
+@@
+var ctrl identifier
+var t expression
+@@
+ import "github.com/golang/mock/gomock"
+
+ ctrl := gomock.NewController(t)
+ ...
+-defer ctrl.Finish()
