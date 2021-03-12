@@ -558,6 +558,7 @@ transformation on **exactly one** of the following:
 - [Expressions](#expressions)
 - [Statements](#statements)
 - [Function declarations](#function-declarations)
+- [Type declarations](#type-declarations)
 
 > Support for multiple transformations in the same diff will be added in a
 > future version of gopatch. Meanwhile, you may specify multiple patches in
@@ -1037,6 +1038,36 @@ var T expression
 +    return "<nil>"
 +  }
    ...
+ }
+```
+
+### Type declarations
+
+gopatch can match and modify type declarations. These appear after the
+[package name](#package-names) and [imports](#imports) (if any).
+
+```diff
+@@
+@@
+ type User struct {
+-  UserName string
++  Name string
+ }
+```
+
+Transformations on type declarations can use `identifier` metavaribles to
+capture names of types and fields, and `expression` metavariables to capture
+field types.
+
+```diff
+@@
+var A, B identifier
+var Type expression
+@@
+ type Config struct {
+-   A Type
+-   B Type
++   A, B Type
  }
 ```
 
