@@ -333,6 +333,8 @@ if err := comment.Submit(ctx); err != nil {
 </td></tr>
 </tbody></table>
 
+For more on transforming statements, see [Statements](#statements).
+
 ## Introduction to elision
 
 Matching a single argument is still too selective and we may want to match a
@@ -554,6 +556,7 @@ Following the package name and imports, if any, the diff specifies a
 transformation on **exactly one** of the following:
 
 - [Expressions](#expressions)
+- [Statements](#statements)
 
 > Support for multiple transformations in the same diff will be added in a
 > future version of gopatch. Meanwhile, you may specify multiple patches in
@@ -973,6 +976,35 @@ var x identifier
 @@
 -fmt.Sprintf("%v", x)
 +fmt.Sprint(x)
+```
+
+### Statements
+
+gopatch can match and transform statements.
+These appear after the [package name](#package-names) and [imports](#imports) (if any).
+
+> **Unclear on the difference between expressions and statements?**
+>
+> Check [Identifiers vs expressions vs statements].
+
+```diff
+@@
+@@
+-var x string = y
++x := y
+```
+
+Statement transformations may use [metavariables](#metavariables).
+
+```diff
+@@
+var err identifier
+var log expression
+@@
+ if err != nil {
+-   log.Error(err)
+    return err
+ }
 ```
 
 # Similar Projects
