@@ -250,6 +250,8 @@ var x expression
 | `foo(answer)`      | `bar(answer + 3, true)`      |
 | `foo(getAnswer())` | `bar(getAnswer() + 3, true)` |
 
+For more on metavariables see [Metavariables](#metavariables).
+
 ## Introduction to statement transformations
 
 gopatch patches are not limited to transforming basic expressions. You can
@@ -399,6 +401,141 @@ if err := foo(); err != nil {
 
 </td></tr>
 </tbody></table>
+
+# Patches in depth
+
+This section covers the patch language in detail.
+
+Patch files contain one or more actual patches. Each patch starts with a
+metavariables section (opened and closed with `@@`) followed by a unified diff
+specifying the transformation.
+
+For example,
+
+```diff
+@@
+@@
+-foo(42)
++foo(45)
+
+@@
+@@
+-foo
++bar
+```
+
+The patch file above is comprised of two patches. The first one changes all
+calls of `foo` with the argument 42 to provide 45 instead. The second one
+renames all instances of the identifier `foo` to `bar`. These will be run
+in-order.
+
+## Metavariables
+
+Metavariables are specified at the top of a patch between the `@@` symbols.
+
+```diff
+@@
+# Metavariables go here
+@@
+-foo
++bar
+```
+
+Metavariables are declared like Go variables with `var` and can have one of the
+following types.
+
+- [**identifier**](#identifier-metavariables): match any Go identifier
+- [**expression**](#expression-metavariables): match any Go expression
+
+> **Unclear on the difference between expressions and identifiers?**
+>
+> Check [Identifiers vs expressions vs statements].
+
+  [Identifiers vs expressions vs statements]: #identifiers-vs-expressions-vs-statements
+
+Metavariables are matched in the `-` section and if referenced in the `+`
+section, the matched contents are reproduced.
+
+### Identifier metavariables
+
+Metavariables with the type `identifier` match and any Go identifier.
+Identifiers are singular names of entities in Go. For example, in
+`type Foo struct{ Bar int }`, `Foo` and `Bar` are both identifiers.
+
+You can use identifier metavariables to capture names in your patches.
+
+For example,
+
+```diff
+@@
+var x identifier
+@@
+-var x = value
++x := value
+```
+
+The metavariable `x` will capture the name of variables in matching
+assignments.
+
+| Input             | `x`   | Output         |
+|-------------------|-------|----------------|
+| `var x = 42`      | `x`   | `x := 42`      |
+| `var foo = bar()` | `foo` | `foo := bar()` |
+
+### Expression metavariables
+
+Metavariables with the type `expression` match any Go expression. Expressions
+refer to code that has value. This includes references to variables (`foo`),
+function calls (`foo()`), references to attributes of variables (`foo.Bar`),
+and more.
+
+You can use expression metavariables to capture arbitrary Go expressions.
+
+For example,
+
+```diff
+@@
+var x expression
+@@
+-foo(x)
++bar(x)
+```
+
+The metavariable `x` will capture any argument to a `foo` function call, no
+matter how complex.
+
+| Input             | `x`          | Output            |
+|-------------------|--------------|-------------------|
+| `foo(42)`         | `42`         | `bar(42)`         |
+| `foo(y)`          | `y`          | `bar(y)`          |
+| `foo(getValue())` | `getValue()` | `bar(getValue())` |
+| `foo(x.Value())`  | `x.Value()`  | `bar(x.Value())`  |
+
+### Metavariable repetition
+
+If the same metavariable appears multiple times in the `-` section of the
+patch, occurrences after the first are expected to match the previously
+recorded values.
+
+For example,
+
+```diff
+@@
+var x expression
+@@
+-foo(x, x)
++v := x
++foo(v, v)
+```
+
+The above will only match cases where both arguments to `foo` are *exactly*
+the same.
+
+| Input                         | Match |
+|-------------------------------|-------|
+| `foo(a, a)`                   | Yes   |
+| `foo(x, y)`                   | No    |
+| `foo(getValue(), getValue())` | Yes   |
 
 # Similar Projects
 
