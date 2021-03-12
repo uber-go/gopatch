@@ -404,6 +404,8 @@ if err := foo(); err != nil {
 </td></tr>
 </tbody></table>
 
+For more on elision, see [Elision](#elision).
+
 # Patches in depth
 
 This section covers the patch language in detail.
@@ -981,6 +983,106 @@ var x identifier
 +fmt.Sprint(x)
 ```
 
+#### Elision in expressions
+
+Expressions support [elision](#elision) on various components.
+
+- [Function call parameters](#function-call-parameters)
+- [Struct fields](#struct-fields)
+- [Slice elements](#slice-elements)
+- [Map items](#map-items)
+- [Anonymous functions](#anonymous-functions)
+
+##### Function call parameters
+
+```diff
+@@
+@@
+-f(...)
++g(...)
+
+@@
+@@
+-f(ctx, ...)
++g(ctx, ...)
+
+@@
+@@
+ f(
+  ...,
+- user,
++ user.Name,
+  ...,
+)
+```
+
+##### Struct fields
+
+```diff
+@@
+@@
+-Foo{...}
++Bar{...}
+
+@@
+@@
+ User{
+    ...,
+-   UserName: value,
++   Name: value,
+    ...,
+  }
+```
+
+##### Slice elements
+
+```diff
+@@
+@@
+-[]string{...}
++[]Email{...}
+
+@@
+@@
+ []string{
+   ...,
+-  "foo",
++  _foo,
+   ...,
+ }
+```
+
+##### Map items
+
+```diff
+@@
+@@
+-map[string][]string{...}
++http.Header{...}
+
+@@
+var v expression
+@@
+ map[string]string{
+   ...,
+-  "foo": "bar",
+   ...,
+ }
+```
+
+##### Anonymous functions
+
+```diff
+@@
+-func() {
++func(context.Context) {
+    ...
+ }
+```
+
+Anonymous functions are a special case of elision in
+[function declarations](#elision-in-function-declarations).
+
 ### Statements
 
 gopatch can match and transform statements.
@@ -1007,6 +1109,78 @@ var log expression
  if err != nil {
 -   log.Error(err)
     return err
+ }
+```
+
+#### Elision in statements
+
+A few different kinds of statements support [elision](#elision) with `...`.
+
+- [Statement blocks](#statement-blocks)
+- [For and range statements](#for-and-range-statements)
+- [Return statements](#return-statements)
+
+##### Statement blocks
+
+<a name="elision-statement-blocks"></a>
+
+```diff
+@@
+var t expression
+var ctrl identifier
+@@
+ ctrl := gomock.NewController(t)
+ ...
+-defer ctrl.Finish()
+```
+
+These may be inside other statements.
+
+```diff
+@@
+var err identifier
+var log expression
+@@
+  if err != nil {
+    ...
+-   log.Error(err)
+    return err
+  }
+```
+
+##### For and range statements
+
+```diff
+@@
+var s identifier
+var x expression
+@@
+-var s string
++var sb strings.Builder
+ for ... {
+-   s += x
++   sb.WriteString(x)
+ }
++s := sb.String()
+```
+
+This will match all of the following forms of `for` statements.
+
+```
+for cond { ... }
+for i := 0; i < N; i++ { ... }
+for x := range items { ... }
+for i, x := range items { ... }
+```
+
+##### Return statements
+
+```diff
+@@
+@@
+ if err != nil {
+-   return ..., nil
++   return ..., err
  }
 ```
 
@@ -1042,6 +1216,97 @@ var T expression
  }
 ```
 
+#### Elision in function declarations
+
+gopatch supports [elision](#elision) in function declarations with `...`.
+
+- [Function bodies](#function-bodies)
+- [Parameters](#parameters)
+- [Receivers](#receivers)
+- [Return values](#return-values)
+
+##### Function bodies
+
+This is the same as [elision of statement blocks](#elision-statement-blocks).
+
+```diff
+@@
+@@
+-func foo() {
++func foo(context.Context) {
+    ...
+ }
+```
+
+##### Parameters
+
+###### Anonymous parameters
+
+```diff
+@@
+var f identifier
+@@
+-func f(...) error {
++func f(context.Context, ...) error {
+   ...
+ }
+```
+
+###### Named parameters
+
+```diff
+@@
+var req, send identifier
+@@
+ func send(
++   ctx context.Context,
+    ...,
+    req *http.Request,
+    ...,
+) error {
++   req = req.WithContext(ctx)
+   ...
+ }
+```
+
+##### Receivers
+
+```diff
+@@
+var req identifier
+@@
+-func (...) Send(req *Request) error }
++func (...) SendRequest(req *Request) error {
+   ...
+ }
+```
+
+##### Return values
+
+###### Anonymous return values
+
+```diff
+@@
+var f identifier
+@@
+-func f() (error, ...) {
++func f() (..., error) {
+  ...
+ }
+```
+
+###### Named return values
+
+```diff
+@@
+var f identifier
+@@
+-func f() (err error, ...) {
++func f() (..., err error) {
+   ...
+ }
+```
+
 ### Type declarations
 
 gopatch can match and modify type declarations. These appear after the
@@ -1069,6 +1334,39 @@ var Type expression
 -   A Type
 -   B Type
 +   A, B Type
+ }
+```
+
+#### Elision in type declarations
+
+gopatch supports [elision](#elision) in typedeclarations with `...`.
+
+- [Struct fields](#struct-fields)
+- [Interface methods](#interface-methods)
+
+##### Struct fields
+
+```diff
+@@
+var Ctx identifier
+@@
+ type Request struct {
+    ...
+-   Ctx context.Context
+    ...
+ }
+```
+
+##### Interface methods
+
+```diff
+@@
+@@
+ type Doer interface {
+   ...
+-  Do()
++  Do() error
+   ...
  }
 ```
 
@@ -1135,6 +1433,57 @@ var value expression
 -const name = value
 +var name = value
 ```
+
+> Note that gopatch does not yet support elision in value declarations. See
+> [#6] for more information.
+
+  [#6]: https://github.com/uber-go/gopatch/issues/6
+
+## Elision
+
+gopatch supports elision by adding `...` in several places to support omitting
+unimportant portions of a patch.
+
+Elisions may be added in the following places:
+
+- [Expressions](#elision-in-expressions)
+- [Statements](#elision-in-statements)
+- [Function declarations](#elision-in-function-declarations)
+- [Type declarations](#elision-in-type-declarations)
+
+Elisions in the `-` and `+` sections are matched with each other based on
+their positions. This doesn't always work as expected. While we plan to
+address this in a future version, meanwhile you can work around this by
+restructuring your patch so that elisions are on their own lines with a ` `
+prefix.
+
+For example,
+
+<table>
+<thead><tr><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>
+
+```diff
+@@
+@@
+-foo(...)
++bar(...)
+```
+
+</td><td>
+
+```diff
+@@
+@@
+-foo(
++bar(
+   ...,
+ )
+```
+
+</td></tr>
+</tbody></table>
 
 # Similar Projects
 
