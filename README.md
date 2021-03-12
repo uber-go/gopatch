@@ -537,6 +537,405 @@ the same.
 | `foo(x, y)`                   | No    |
 | `foo(getValue(), getValue())` | Yes   |
 
+## Diff
+
+In a patch, the diff section follows the metavariables. This section is where
+you specify the code transformation.
+
+The diff section **optionally** begins with the following:
+
+- [Package name](#package-names)
+- [Imports](#imports)
+
+Note that these are optional. If you don't wish to match on or modify the
+package name or imports, you can omit them.
+
+### Package Names
+
+gopatch supports matching on, and manipulating package names.
+
+- [Matching package names](#matching-package-names)
+- [Renaming packages](#renaming-packages)
+
+#### Matching package names
+
+Package names may be specified at the top of the diff similar to Go code.
+
+```diff
+@@
+@@
+ package foo
+
+# Rest of the diff
+```
+
+If specified, the diff will apply only to files with that package name.
+
+For example, following patch renames `foo.FooClient` to `foo.Client` to reduce
+stuttering in its usage. (See [Avoid stutter] for the motivation for this
+change.)
+
+<!-- This is used in the imports example below to reference this position.-->
+<a name="avoid-stutter-patch"></a>
+
+  [Avoid stutter]: https://blog.golang.org/package-names#TOC_3.
+
+```diff
+@@
+@@
+ package foo
+
+-FooClient
++Client
+```
+
+Note that this patch does not yet update consumers of
+`foo.FooClient`. Check the [Imports](#imports) section for how to do that.
+
+#### Renaming packages
+
+Package clauses can also be prefixed with `-` or `+` to rename packages as
+part of the patch.
+
+```diff
+@@
+@@
+-package foo
++package bar
+
+# rest of the diff
+```
+
+For example, the following patch renames the package and an object defined in
+it.
+
+```diff
+@@
+@@
+-package foo
++package bar
+
+-Foo
++Bar
+```
+
+Again, as with the previous patch, this does not rename consumers.
+
+### Imports
+
+gopatch allows matching on, and manipulating imports in a file.
+
+- [Matching imports](#matching-imports)
+- [Matching any import](#matching-any-import)
+- [Changing imports](#changing-imports)
+- [Changing any import](#changing-any-import)
+- [Best practices for imports](#best-practices-for-imports)
+
+#### Matching imports
+
+Imports appear at the top of the diff, after the package clause (if any).
+
+```diff
+@@
+@@
+ import "example.com/bar"
+
+ # rest of the patch
+
+@@
+@@
+-package foo
++package bar
+
+ import "example.com/bar"
+
+# rest of the diff
+```
+
+Imports may be unnamed, like the patch above, or they may be named like the
+following.
+
+```diff
+@@
+@@
+ import mybar "example.com/bar"
+
+# rest of the diff
+```
+
+These imports are matched exactly as-is. That is, the unnamed import will only
+match files which import the package unnamed, and the named import will only
+match files that import the package with that exact name.
+
+<table>
+<thead><tr><th>Patch</th><th>Input</th><th>Matches</th></tr></thead>
+<tbody>
+<tr><td>
+
+```diff
+@@
+@@
+ import "example.com/bar"
+
+# ...
+```
+
+</td><td>
+
+```go
+package foo
+
+import "example.com/bar"
+```
+
+</td><td>
+
+Yes
+
+</td></tr>
+<tr><td>
+
+```diff
+@@
+@@
+ import mybar "example.com/bar"
+
+# ...
+```
+
+</td><td>
+
+```go
+package foo
+
+import mybar "example.com/bar"
+```
+
+</td><td>
+
+Yes
+
+</td></tr>
+<tr><td>
+
+```diff
+@@
+@@
+ import "example.com/bar"
+
+# ...
+```
+
+</td><td>
+
+```go
+package foo
+
+import mybar "example.com/bar"
+```
+
+</td><td>
+
+No
+
+</td></tr>
+<tr><td>
+
+```diff
+@@
+@@
+ import mybar "example.com/bar"
+
+# ...
+```
+
+</td><td>
+
+```go
+package foo
+
+import notmybar "example.com/bar"
+```
+
+</td><td>
+
+No
+
+</td></tr>
+</tbody></table>
+
+#### Matching any import
+
+gopatch supports matching all imports of a specific import path, named or
+unnamed. To do this, declare an `identifier` [metavariable](#metavariables)
+and use that as the named import in the diff.
+
+```diff
+@@
+var bar identifier
+@@
+ import bar "example.com/bar"
+
+# rest of the patch
+```
+
+As a complete example, building upon the [patch above to avoid stuttering], we
+can now update consumers of `foo.FooClient`.
+
+  [patch above to avoid stuttering]: #avoid-stutter-patch
+
+```diff
+@@
+@@
+ import "example.com/foo"
+
+-foo.FooClient
++foo.Client
+
+@@
+var foo identifier
+@@
+ import foo "example.com/foo"
+
+-foo.FooClient
++foo.Client
+```
+
+The first diff in this patch affects files that use unnamed imports, and the
+second affects those that use named imports---regardless of name.
+
+> *Note*: In a future version of gopatch, we'll need only the second patch to
+> make this transformation. See also, [#2].
+
+  [#2]: https://github.com/uber-go/gopatch/issues/2
+
+#### Changing imports
+
+In addition to matching on imports, you can also change imports with gopatch.
+For example,
+
+```diff
+@@
+@@
+
+-import "example.com/foo"
++import "example.com/bar"
+
+-foo.Client
++bar.Client
+```
+
+> *Note*: It's a known limitation in gopatch right now that there must be
+> something after the `import`. You cannot currently write patches that only
+> match and change imports. See [#5] for more information.
+>
+> Meanwhile, you can work around this by writing a patch which matches but
+> does not change an arbitrary identifier in the imported package. For
+> example,
+>
+> ```diff
+> @@
+> var x identifier
+> @@
+> -import "example.com/foo"
+> +import "example.com/internal/foo"
+>
+> foo.x
+> ```
+>
+> This will match files that import `example.com/foo` and have at least one
+> reference to *anything* in that package.
+
+  [#5]: https://github.com/uber-go/gopatch/issues/5
+
+You can match on and manipulate, both, named and unnamed imports.
+
+For example, the following patch will search for an unnamed imports of a
+specific package and turn those into named imports.
+
+```diff
+@@
+var x identifier
+@@
+-import "example.com/foo-go.git"
++import foo "example.com/foo-go.git"
+
+ foo.x
+```
+
+(It's good practice in Go to use a named import when the last component of the
+import path, `foo-go.git` in this example, does not match the package name,
+`foo`.)
+
+#### Changing any import
+
+As with [matching any import](#matching-any-import), you can declare an
+identifier metavariable to match and manipulate both, named and unnamed
+imports.
+
+```diff
+@@
+var foo, x identifier
+@@
+-import foo "example.com/foo-go.git"
++import foo "example.com/foo.git"
+
+ foo.x
+```
+
+The above will match, both, named and unnamed imports of
+`example.com/foo-go.git` and change them to imports of `example.com/foo.git`,
+*preserving the name of a matched import*.
+
+| Input                                 | Output                              |
+|---------------------------------------|-------------------------------------|
+| `import foo "example.com/foo-go.git"` | `import foo "example.com/foo.git"`  |
+| `import bar "example.com/foo-go.git"` | `import bar "example.com/foo.git"`  |
+| `import "example.com/foo-go.git"`     | `import foo "example.com/foo.git"`* |
+
+> *This case is a known bug. See [#2] for more information.
+>
+> You can work around this by first explicitly matching and replacing the
+> cases with unnamed imports first. For example, turn the patch above into two
+> diffs, one addressing the unnamed imports, and one addressing the named.
+>
+> ```diff
+> @@
+> var x identifier
+> @@
+> -import "example.com/foo-go.git"
+> +import "example.com/foo.git"
+>
+>  foo.x
+>
+> @@
+> var foo, x identifier
+> @@
+> -import foo "example.com/foo-go.git"
+> +import foo "example.com/foo.git"
+>
+>  foo.x
+> ```
+
+#### Best practices for imports
+
+Given the known limitations and issues with imports highlighted above, the
+best practices for matching and manipulating imports are:
+
+- Handle unnamed imports first. This will make sure that previously named
+  imports do not unintentionally become named.
+- When matching any import, use a metavariable name that matches the name of
+  the imported package **exactly**. This name is used by gopatch to guess the
+  name of the package.
+
+    ```
+    # BAD                           | # GOOD
+    @@                              | @@
+    var x identifier                | var foo identifier
+    @@                              | @@
+     import x "example.com/foo.git" |  import foo "example.com/foo.git"
+    ```
+
 # Similar Projects
 
 - [gofmt rewrite rules] support simple transformations on expressions
