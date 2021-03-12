@@ -559,6 +559,7 @@ transformation on **exactly one** of the following:
 - [Statements](#statements)
 - [Function declarations](#function-declarations)
 - [Type declarations](#type-declarations)
+- [Value declarations](#value-declarations)
 
 > Support for multiple transformations in the same diff will be added in a
 > future version of gopatch. Meanwhile, you may specify multiple patches in
@@ -1069,6 +1070,70 @@ var Type expression
 -   B Type
 +   A, B Type
  }
+```
+
+### Value declarations
+
+gopatch can match and modify value declarations: both, `var` and `const`
+declarations. These appear after the [package name](#package-names) and
+[imports](#imports) (if any).
+
+```diff
+@@
+@@
+-var foo = v
++var bar = v
+
+@@
+@@
+-const foo = v
++const bar = v
+```
+
+These declarations can change the kind of declaration from `var` to `const` or
+vice-versa.
+
+```diff
+@@
+@@
+-var foo = 42
++const foo = 42
+```
+
+Transformations can operate on values inside groups as well.
+
+```diff
+@@
+@@
+ var (
+-  foo = 43
+   bar = 42
++  foo = bar + 1
+ )
+```
+
+> *Note*: gopatch is currently limited to operating on the format specified in
+> the patch only. That is, if the patch used `var name = value`, gopatch will
+> not currently operate on `var (name = value)`. We plan to fix this in a
+> future version. See [#3] for more information.
+
+  [#3]: https://github.com/uber-go/gopatch/issues/3
+
+Value declarations use [`identifier` metavariables] to capture names of
+values, and [`expression` metavariables] to capture the values associated with
+those declarations.
+
+  [`identifier` metavariables]: #identifier-metavariables
+  [`expression` metavariables]: #expression-metavariables
+
+
+```diff
+@@
+var name identifier
+var value expression
+@@
+-const name = value
++var name = value
 ```
 
 # Similar Projects
