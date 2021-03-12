@@ -3,6 +3,45 @@
 gopatch is a tool to match and transform Go code. It is meant to aid in
 refactoring and restyling.
 
+# Table of contents
+
+- [Introduction](#introduction)
+- [Getting started](#getting-started)
+  - [Installation](#installation)
+  - [Your first patch](#your-first-patch)
+  - [Apply the patch](#apply-the-patch)
+  - [Next steps](#next-steps)
+- [Usage](#usage)
+  - [Options](#options)
+- [Introduction to patches](#introduction-to-patches)
+  - [Introduction to metavariables](#introduction-to-metavariables)
+  - [Introduction to statement transformations](#introduction-to-statement-transformations)
+  - [Introduction to elision](#introduction-to-elision)
+- [Patches in depth](#patches-in-depth)
+  - [Metavariables](#metavariables)
+    - [Identifier metavariables](#identifier-metavariables)
+    - [Expression metavariables](#expression-metavariables)
+    - [Metavariable repetition](#metavariable-repetition)
+  - [Diff](#diff)
+    - [Package Names](#package-names)
+    - [Imports](#imports)
+    - [Expressions](#expressions)
+    - [Statements](#statements)
+    - [Function declarations](#function-declarations)
+    - [Type declarations](#type-declarations)
+    - [Value declarations](#value-declarations)
+  - [Elision](#elision)
+  - [Grammar](#grammar)
+- [Examples](#examples)
+- [Project status](#project-status)
+  - [Goals](#goals)
+  - [Known issues](#known-issues)
+  - [Upcoming](#upcoming)
+- [Similar Projects](#similar-projects)
+- [Credits](#credits)
+- [Appendix](#appendix)
+  - [Identifiers vs expressions vs statements](#identifiers-vs-expressions-vs-statements)
+
 # Introduction
 
 gopatch operates like the Unix `patch` tool: given a patch file and another
