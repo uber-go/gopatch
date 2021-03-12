@@ -550,6 +550,17 @@ The diff section **optionally** begins with the following:
 Note that these are optional. If you don't wish to match on or modify the
 package name or imports, you can omit them.
 
+Following the package name and imports, if any, the diff specifies a
+transformation on **exactly one** of the following:
+
+- [Expressions](#expressions)
+
+> Support for multiple transformations in the same diff will be added in a
+> future version of gopatch. Meanwhile, you may specify multiple patches in
+> the same file. See also [#4]
+
+  [#4]: https://github.com/uber-go/gopatch/issues/4
+
 ### Package Names
 
 gopatch supports matching on, and manipulating package names.
@@ -935,6 +946,34 @@ best practices for matching and manipulating imports are:
     @@                              | @@
      import x "example.com/foo.git" |  import foo "example.com/foo.git"
     ```
+
+### Expressions
+
+gopatch can match and transform expressions. This is the most basic type of
+transformation. These appear after the [package name](#package-names) and
+[imports](#imports) (if any).
+
+> **Unclear on the difference between expressions and statements?**
+>
+> Check [Identifiers vs expressions vs statements].
+
+```diff
+@@
+@@
+-user.GetName()
++user.Name
+```
+
+Expression transformations can use [metavariables](#metavariables) to specify
+which parts of them should be generic.
+
+```diff
+@@
+var x identifier
+@@
+-fmt.Sprintf("%v", x)
++fmt.Sprint(x)
+```
 
 # Similar Projects
 
