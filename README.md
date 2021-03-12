@@ -557,6 +557,7 @@ transformation on **exactly one** of the following:
 
 - [Expressions](#expressions)
 - [Statements](#statements)
+- [Function declarations](#function-declarations)
 
 > Support for multiple transformations in the same diff will be added in a
 > future version of gopatch. Meanwhile, you may specify multiple patches in
@@ -1004,6 +1005,38 @@ var log expression
  if err != nil {
 -   log.Error(err)
     return err
+ }
+```
+
+### Function declarations
+
+gopatch can match and modify function declarations. These appear after the
+[package name](#package-names) and [imports](#imports) (if any).
+
+
+```diff
+@@
+@@
+ func foo(
+-   uuid string,
++   uuid UUID,
+ ) {
+  ...
+ }
+```
+
+This works for functions with receivers too.
+
+```diff
+@@
+var t identifier
+var T expression
+@@
+ func (t *T) String() string {
++  if t == nil {
++    return "<nil>"
++  }
+   ...
  }
 ```
 
