@@ -1485,6 +1485,109 @@ For example,
 </td></tr>
 </tbody></table>
 
+## Grammar
+
+
+A file consists of one or more patches.
+
+```
+file = patch+
+```
+
+A patch consists of a metavariables section and a diff.
+
+```
+patch = metavariables diff
+```
+
+The metavariables section opens and closes with @@. It specifies zero or more
+metavariables.
+
+```
+metavariables =
+    '@@'
+    metavariable*
+    '@@'
+```
+
+Metavariables are declared in Go's 'var' declaration form.
+
+
+```
+metavariable =
+    'var' identi metavariable_type
+```
+
+Their names must be [valid Go identifiers], and their types must be one of
+`expression` and `identifier`.
+
+  [valid Go identifiers]: https://golang.org/ref/spec#Identifiers
+
+```
+metavariable_name = identifier
+metavariable_type = 'expression' | 'identifier'
+```
+
+Diffs contains lines prefixed with '-' or '+' to indicate that they represent
+code that should be deleted or added, or lines prefixed with ' ' to indicate
+that code they match should be left unchanged.
+
+```
+diff
+    = '-' line
+    | '+' line
+    | ' ' line
+```
+
+The minus and plus sections of a diff form two files. For example, the
+following diff,
+
+```diff
+-x, err := foo(...)
++x, err := bar(...)
+ if err != nil {
+   ...
+-  return err
++  return nil, err
+ }
+```
+
+Becomes two files:
+
+<table>
+<thead><tr><th>Find</th><th>Replace</th></tr></thead>
+<tbody>
+<tr><td>
+
+```go
+x, err := foo(...)
+if err != nil {
+  ...
+  return err
+}
+```
+
+</td><td>
+
+```go
+x, err := bar(...)
+if err != nil {
+  ...
+  return nil, err
+}
+```
+
+</td></tr>
+</tbody></table>
+
+Both these versions should be *almost* valid Go code with the following
+exceptions:
+
+- package clause may be omitted
+- imports may be omitted
+- function declarations may be omitted
+- [elisions](#elision) may appear in several places
+
 # Similar Projects
 
 - [gofmt rewrite rules] support simple transformations on expressions
