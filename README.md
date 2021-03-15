@@ -247,8 +247,8 @@ for later reuse.
 
 > **What is a Go expression?**
 >
-> Expressions refer to code that has value. You can pass theses as arguments
-> functions. These include `x`, `foo()`, `user.Name`, etc.
+> Expressions usually refer to code that has value. You can pass these as
+> arguments to functions. These include `x`, `foo()`, `user.Name`, etc.
 >
 > Check the [Identifiers vs expressions vs statements] section of the appendix
 > for more.
@@ -296,12 +296,12 @@ For more on metavariables see [Metavariables](#metavariables).
 gopatch patches are not limited to transforming basic expressions. You can
 also transform statements.
 
-> **What is a Go expression?**
+> **What is a Go statements?**
 >
-> Statements are instructions that do not have value. They cannot be passed as
-> parameters to other functions. These include assignments (`foo := bar()`),
-> if statements (`if foo { bar() }`), variable declarations (`var foo Bar`),
-> and so on.
+> Statements are instructions to do things, and do not have value. They cannot
+> be passed as parameters to other functions. These include assignments
+> (`foo := bar()`), if statements (`if foo { bar() }`), variable declarations
+> (`var foo Bar`), and so on.
 >
 > Check the [Identifiers vs expressions vs statements] section of the appendix
 > for more.
@@ -528,9 +528,9 @@ assignments.
 ### Expression metavariables
 
 Metavariables with the type `expression` match any Go expression. Expressions
-refer to code that has value. This includes references to variables (`foo`),
-function calls (`foo()`), references to attributes of variables (`foo.Bar`),
-and more.
+refer to code that has value or refers to a type. This includes references to
+variables (`foo`), function calls (`foo()`), references to attributes of
+variables (`foo.Bar`), type references (`[]foo`), and more.
 
 You can use expression metavariables to capture arbitrary Go expressions.
 
@@ -1716,13 +1716,19 @@ ideas for gopatch comes from [Coccinelle].
 A simplified explanation of the difference between identifiers, expressions
 and statements is,
 
-- **identifiers** are names of things
-- **expressions** are things that have values (you can pass these into functions)
-- **statements** are instructions to do things
+- [**identifiers**] are names of things
+- [**expressions**] are things that have values (you can pass these into
+  functions), or refer to types
+- [**statements**] are instructions to do things
+
+  [**identifiers**]: https://golang.org/ref/spec#identifier
+  [**expressions**]: https://golang.org/ref/spec#Expression
+  [**statements**]: https://golang.org/ref/spec#Statement
 
 Consider the following snippet.
 
 ```go
+var bar Bar
 if err := foo(bar.Baz()); err != nil {
   return err
 }
@@ -1730,9 +1736,11 @@ if err := foo(bar.Baz()); err != nil {
 
 It contains,
 
-- identifiers: `err`, `foo`, `bar`, `Baz`
+- identifiers: `err`, `foo`, `bar`, `Bar`, `Baz`
 
     ```
+    var bar Bar
+        '-' '-'
     if err := foo(bar.Baz()); err != nil {
        '-'    '-' '-' '-'     '-'
       return err
@@ -1740,10 +1748,12 @@ It contains,
     }
     ```
 
-- expressions: `bar`, `bar.Baz`, `bar.Baz()`, `foo(bar.Baz())`, `err`, `nil`,
+- expressions: `Bar`, `bar.Baz`, `bar.Baz()`, `foo(bar.Baz())`, `err`, `nil`,
   and `err != nil`
 
     ```
+    var bar Bar
+            '-'
                   .-------.
               .---|-------|.  .---------.
     if err := foo(bar.Baz()); err != nil {
@@ -1754,9 +1764,13 @@ It contains,
     }
     ```
 
-- statements: `err := ...`, `if ...`, and `return ...`
+    Note that `bar` in `var bar Bar` is not an expression.
+
+- statements: `var ...`, `err := ...`, `if ...`, and `return ...`
 
     ```
+    var bar Bar
+    '---------'
     if err := foo(bar.Baz()); err != nil {  -.
        '-------------------'                 |
       return err                             |
