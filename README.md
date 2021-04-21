@@ -39,8 +39,7 @@ refactoring and restyling.
   - [Upcoming](#upcoming)
 - [Similar Projects](#similar-projects)
 - [Credits](#credits)
-- [Appendix](#appendix)
-  - [Identifiers vs expressions vs statements](#identifiers-vs-expressions-vs-statements)
+- [Appendix](docs/Appendix.md)
 
 # Introduction
 
@@ -494,7 +493,7 @@ following types.
 >
 > Check [Identifiers vs expressions vs statements].
 
-  [Identifiers vs expressions vs statements]: #identifiers-vs-expressions-vs-statements
+  [Identifiers vs expressions vs statements]: docs/Appendix.md#identifiers-vs-expressions-vs-statements
 
 Metavariables are matched in the `-` section and if referenced in the `+`
 section, the matched contents are reproduced.
@@ -1708,72 +1707,3 @@ we have a number of features planned for gopatch.
 
 As mentioned previously, gopatch is heavily inspired by [Coccinelle]. Most
 ideas for gopatch comes from [Coccinelle].
-
-# Appendix
-
-## Identifiers vs expressions vs statements
-
-A simplified explanation of the difference between identifiers, expressions
-and statements is,
-
-- [**identifiers**] are names of things
-- [**expressions**] are things that have values (you can pass these into
-  functions), or refer to types
-- [**statements**] are instructions to do things
-
-  [**identifiers**]: https://golang.org/ref/spec#identifier
-  [**expressions**]: https://golang.org/ref/spec#Expression
-  [**statements**]: https://golang.org/ref/spec#Statement
-
-Consider the following snippet.
-
-```go
-var bar Bar
-if err := foo(bar.Baz()); err != nil {
-  return err
-}
-```
-
-It contains,
-
-- identifiers: `err`, `foo`, `bar`, `Bar`, `Baz`
-
-    ```
-    var bar Bar
-        '-' '-'
-    if err := foo(bar.Baz()); err != nil {
-       '-'    '-' '-' '-'     '-'
-      return err
-             '-'
-    }
-    ```
-
-- expressions: `Bar`, `bar.Baz`, `bar.Baz()`, `foo(bar.Baz())`, `err`, `nil`,
-  and `err != nil`
-
-    ```
-    var bar Bar
-            '-'
-                  .-------.
-              .---|-------|.  .---------.
-    if err := foo(bar.Baz()); err != nil {
-                  '-'   |     '-'    '-'
-                  '-----'
-      return err
-             '-'
-    }
-    ```
-
-    Note that `bar` in `var bar Bar` is not an expression.
-
-- statements: `var ...`, `err := ...`, `if ...`, and `return ...`
-
-    ```
-    var bar Bar
-    '---------'
-    if err := foo(bar.Baz()); err != nil {  -.
-       '-------------------'                 |
-      return err                             |
-      '--------'                             |
-    }                                       -'
-    ```
