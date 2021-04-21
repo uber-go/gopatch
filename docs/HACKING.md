@@ -1,45 +1,5 @@
 This attempts to document information necessary to hack on gopatch.
 
-# Development
-
-Until we switch to go-build or monorepo, gopatch is using Go modules. To
-develop locally, ensure that you have Go 1.11 or newer and export the
-environment variable `GO111MODULE=on`.
-
-```shell
-$ export GO111MODULE=on
-$ cd gopatch
-```
-
-The repository includes an `.envrc` so if you are using [`direnv`], the
-environment variable will be set for you automatically.
-
-  [`direnv`]: https://direnv.net/
-
-```shell
-$ cd gopatch
-direnv: error .envrc is blocked. Run `direnv allow` to approve its content.
-$ direnv allow
-direnv: loading .envrc
-direnv: export +GO111MODULE
-```
-
-Use the standard `go` commands inside this directory during development.
-
-```shell
-$ go build
-$ go test ./...
-```
-
-Add dependencies with `go get` and clean the `go.{mod,sum}` up before
-submitting a diff.
-
-```
-$ go get github.com/example/lib@v1.2.3
-...
-$ go mod tidy
-```
-
 # Terminology
 
 The following terminology is used in the rest of the document.
@@ -119,8 +79,8 @@ before and after. The above becomes,
 ```
 Before                  After
 ------------------      ------------------
-x, err := foo(...)      x, err := bar(...) 
-if err != nil {         if err != nil {    
+x, err := foo(...)      x, err := bar(...)
+if err != nil {         if err != nil {
   ...                     ...
   return err              return nil, err
 }                       }
@@ -150,10 +110,10 @@ Consider the before section from above,
 
 ```go
 x, err := foo(...)
-if err != nil {   
-  ...             
-  return err      
-}                 
+if err != nil {
+  ...
+  return err
+}
 ```
 
 This code, despite being invalid Go syntax, still contains valid Go tokens. To
@@ -163,14 +123,14 @@ transformed.
 
 
 ```
-                   | package _            
-                   | func _() {           
-x, err := foo(...) |   x, err := foo(dts) 
-if err != nil {    |   if err != nil {    
-  ...              |     dts              
-  return err       |     return err       
-}                  |   }                  
-                   | }                    
+                   | package _
+                   | func _() {
+x, err := foo(...) |   x, err := foo(dts)
+if err != nil {    |   if err != nil {
+  ...              |     dts
+  return err       |     return err
+}                  |   }
+                   | }
 ```
 
 It can then be parsed with `go/parser`. The relevant portion of the AST is
