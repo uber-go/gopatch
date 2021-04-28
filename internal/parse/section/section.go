@@ -137,7 +137,6 @@ func (p *programSplitter) next() {
 	p.pos = token.NoPos
 	p.text = nil
 	p.eof = true
-	return
 }
 
 // Comments are supported only on their own lines.

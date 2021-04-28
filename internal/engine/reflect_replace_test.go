@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uber-go/gopatch/internal/data"
-	"github.com/uber-go/gopatch/internal/goast"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/goast"
 )
 
 func TestGenericReplacer(t *testing.T) {

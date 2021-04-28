@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uber-go/gopatch/internal/data"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber-go/gopatch/internal/data"
 )
 
 func TestMetavar(t *testing.T) {
