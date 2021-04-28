@@ -16,10 +16,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jessevdk/go-flags"
 	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
 	"github.com/uber-go/gopatch/internal/parse"
-	"github.com/jessevdk/go-flags"
 	"go.uber.org/multierr"
 	"golang.org/x/tools/imports"
 )

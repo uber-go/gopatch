@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uber-go/gopatch/internal/goast"
-	"github.com/uber-go/gopatch/internal/text"
 	"github.com/kr/pretty"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber-go/gopatch/internal/goast"
+	"github.com/uber-go/gopatch/internal/text"
 )
 
 func TestParse(t *testing.T) {

@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uber-go/gopatch/internal/data"
-	"github.com/uber-go/gopatch/internal/pgo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber-go/gopatch/internal/data"
+	"github.com/uber-go/gopatch/internal/pgo"
 )
 
 func TestStmtSliceContainer(t *testing.T) {
