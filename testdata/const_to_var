@@ -39,3 +39,13 @@ func bar() {
 		Foo = "world"
 	)
 }
+
+-- single_top_level.in.go --
+package foo
+
+const Foo = "hello"
+
+-- single_top_level.out.go --
+package foo
+
+var Foo = "hello"

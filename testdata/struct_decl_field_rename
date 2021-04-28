@@ -1,0 +1,27 @@
+-- in.patch --
+@@
+@@
+ type User struct {
+   ...
+-  UserName string
++  Name string
+   ...
+ }
+
+-- middle.in.go --
+package foo
+
+type User struct {
+	Email    string
+	UserName string
+	ID       UUID
+}
+
+-- middle.out.go --
+package foo
+
+type User struct {
+	Email string
+	Name  string
+	ID    UUID
+}

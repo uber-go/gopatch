@@ -1,0 +1,26 @@
+-- in.patch --
+@@
+var x identifier
+@@
+-import "example.com/foo-go.git"
++import foo "example.com/foo-go.git"
+
+ foo.x
+
+-- user.in.go --
+package user
+
+import "example.com/foo-go.git"
+
+func stuff() {
+	foo.Do()
+}
+
+-- user.out.go --
+package user
+
+import foo "example.com/foo-go.git"
+
+func stuff() {
+	foo.Do()
+}

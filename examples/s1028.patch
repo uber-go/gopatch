@@ -1,0 +1,6 @@
+@@
+@@
+-import "errors"
+
+-errors.New(fmt.Sprintf(...))
++fmt.Errorf(...)

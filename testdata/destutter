@@ -1,0 +1,99 @@
+Removes stuttering in the name of a type.
+
+TODO: `var foo identifier` for named imports should not add a name when there
+wasn't there one before. fix_consumers* should be merged into one patch.
+
+-- fix.patch --
+=> examples/destutter.patch
+
+-- http_client.in.go --
+package http
+
+import "net/http"
+
+type HTTPClient struct {
+	client *http.Client
+}
+
+func New(c *http.Client) *HTTPClient {
+	return &HTTPClient{c}
+}
+
+func (c *HTTPClient) Do(
+	ctx context.Context,
+	r *http.Request,
+) (*http.Response, error) {
+	return c.client.Do(r.WithContext(ctx))
+}
+
+-- http_client.out.go --
+package http
+
+import "net/http"
+
+type Client struct {
+	client *http.Client
+}
+
+func New(c *http.Client) *Client {
+	return &Client{c}
+}
+
+func (c *Client) Do(
+	ctx context.Context,
+	r *http.Request,
+) (*http.Response, error) {
+	return c.client.Do(r.WithContext(ctx))
+}
+
+-- unqualified_import.in.go --
+package foo
+
+import "example.com/http"
+
+func doStuff(client *http.HTTPClient) err {
+	res, err := client.Do(getRequest())
+	if err != nil {
+		return err
+	}
+	return res.Body.Close()
+}
+
+-- unqualified_import.out.go --
+package foo
+
+import "example.com/http"
+
+func doStuff(client *http.Client) err {
+	res, err := client.Do(getRequest())
+	if err != nil {
+		return err
+	}
+	return res.Body.Close()
+}
+
+-- qualified_import.in.go --
+package bar
+
+import (
+	"net/http"
+
+	myhttp "example.com/http"
+)
+
+func buildClient(c *http.Client) *myhttp.HTTPClient {
+	return myhttp.New(c)
+}
+
+-- qualified_import.out.go --
+package bar
+
+import (
+	"net/http"
+
+	myhttp "example.com/http"
+)
+
+func buildClient(c *http.Client) *myhttp.Client {
+	return myhttp.New(c)
+}

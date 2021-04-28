@@ -1,0 +1,30 @@
+-- in.patch --
+@@
+var value expression
+@@
+  var (
+    ...
+-   name = value
++   _name = value
+    ...
+  )
+
+-- func.in.go --
+package single
+
+func foo() {
+	var (
+		foo = "bar"
+		name = "name"
+	)
+}
+
+-- func.out.go --
+package single
+
+func foo() {
+	var (
+		foo = "bar"
+		_name = "name"
+	)
+}

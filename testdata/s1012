@@ -1,0 +1,42 @@
+Resolves https://staticcheck.io/docs/checks#S1012.
+
+-- s1012.patch --
+=> examples/s1012.patch
+
+-- example.in.go --
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+
+	if err := realLogic(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("elapsed time:", time.Now().Sub(start))
+}
+
+-- example.out.go --
+package main
+
+import (
+	"fmt"
+	"log"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+
+	if err := realLogic(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("elapsed time:", time.Since(start))
+}

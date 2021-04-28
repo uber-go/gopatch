@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -38,6 +39,31 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
+func resolvePatchPath(t *testing.T, path string) string {
+	// If a patch file takes the form,
+	//   => another/file.patch
+	// Replace its path with the provided path.
+	const linkPrefix = "=>"
+
+	f, err := os.Open(path)
+	require.NoError(t, err, "open patch %q", path)
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	if !scanner.Scan() {
+		return path
+	}
+	line := scanner.Text()
+
+	// Not a link to anothe rfile. Return the original path
+	// unchanged.
+	if !strings.HasPrefix(line, linkPrefix) {
+		return path
+	}
+
+	return strings.TrimSpace(strings.TrimPrefix(line, linkPrefix))
+}
+
 func runIntegrationTest(t *testing.T, testFile string) {
 	ta, err := loadTestArchive(testFile)
 	require.NoError(t, err, "failed to load tests from txtar")
@@ -55,11 +81,13 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	)
 	// If there's only one patch, use stdin. Otherwise, use "-p".
 	if ps := ta.Patches; len(ps) == 1 {
-		stdin, err = ioutil.ReadFile(filepath.Join(dir, ps[0]))
+		path := resolvePatchPath(t, filepath.Join(dir, ps[0]))
+		stdin, err = ioutil.ReadFile(path)
 		require.NoError(t, err, "failed to read patch file %q", ps)
 	} else {
-		for _, patch := range ps {
-			args = append(args, "-p", filepath.Join(dir, patch))
+		for _, path := range ps {
+			path = resolvePatchPath(t, filepath.Join(dir, path))
+			args = append(args, "-p", path)
 		}
 	}
 
@@ -91,10 +119,23 @@ func skipTest(testFile, testName string) bool {
 // eventually should. It is essentially a todo list of bugs to be fixed.
 // For now, skip these tests.
 var testsToSkip = map[string]struct{}{
-	"func_within_a_func/two_dots": {},
-	"mismatched_dots/unnamed":     {},
-	"noop_import/remove_some":     {},
-	"noop_import/remove_all":      {},
+	"add_error_param/a":              {}, // https://github.com/uber-go/gopatch/issues/6
+	"func_within_a_func/two_dots":    {},
+	"mismatched_dots/unnamed":        {}, // https://github.com/uber-go/gopatch/issues/9
+	"noop_import/remove_all":         {},
+	"noop_import/remove_some":        {},
+	"switch_elision/body":            {},
+	"select_elision/example":         {},
+	"case_elision/a":                 {},
+	"httpclient_use_ctx/one_return":  {},
+	"const_to_var/single_top_level":  {},
+	"struct_field_list/zero":         {},
+	"struct_field_list/middle":       {},
+	"value_group_elision/func":       {}, // https://github.com/uber-go/gopatch/issues/6
+	"value_list_elision/foo":         {}, // https://github.com/uber-go/gopatch/issues/6
+	"range_value_elision/no_params":  {},
+	"range_value_elision/one_param":  {},
+	"range_value_elision/two_params": {},
 }
 
 const (

@@ -1,0 +1,21 @@
+-- in.patch --
+@@
+@@
+{
+-var a, ..., c string
++var a, ..., c int
+}
+
+-- foo.in.go --
+package foo
+
+func x() {
+	var a, b, c string
+}
+
+-- foo.out.go --
+package foo
+
+func x() {
+	var a, b, c int
+}

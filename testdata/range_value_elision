@@ -1,0 +1,61 @@
+-- in.patch --
+@@
+@@
+ for ... := range foo() {
+-  x()
++  y()
+ }
+
+-- no_params.in.go --
+package foo
+
+func foo() {
+	for range foo() {
+		x()
+	}
+}
+
+-- no_params.out.go --
+package foo
+
+func foo() {
+	for range foo() {
+		y()
+	}
+}
+
+-- one_param.in.go --
+package foo
+
+func foo() {
+	for i := range foo() {
+		x()
+	}
+}
+
+-- one_param.out.go --
+package foo
+
+func foo() {
+	for i := range foo() {
+		y()
+	}
+}
+
+-- two_params.in.go --
+package foo
+
+func foo() {
+	for i, a := range foo() {
+		x()
+	}
+}
+
+-- two_params.out.go --
+package foo
+
+func foo() {
+	for i, a := range foo() {
+		y()
+	}
+}

@@ -1,0 +1,52 @@
+-- in.patch --
+@@
+var name expression
+@@
+ User{
+   ...,
+-  Name: name,
++  ID: name,
+   ...,
+ }
+
+-- first.in.go --
+package foo
+
+func thing() {
+	do(User{
+		Name:  "foo",
+		Email: "foo@example.com",
+	})
+}
+
+-- first.out.go --
+package foo
+
+func thing() {
+	do(User{
+		ID:    "foo",
+		Email: "foo@example.com",
+	})
+}
+
+-- middle.in.go --
+package foo
+
+func thing() {
+	do(User{
+		Role:  Moderator,
+		Name:  "foo",
+		Email: "foo@example.com",
+	})
+}
+
+-- middle.out.go --
+package foo
+
+func thing() {
+	do(User{
+		Role:  Moderator,
+		ID:    "foo",
+		Email: "foo@example.com",
+	})
+}

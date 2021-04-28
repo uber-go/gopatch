@@ -1,0 +1,25 @@
+-- in.patch --
+@@
+var A, B identifier
+var Type expression
+@@
+ type Config struct {
+-   A Type
+-   B Type
++   A, B Type
+ }
+
+-- config.in.go --
+package main
+
+type Config struct {
+	Mods   []string
+	Admins []string
+}
+
+-- config.out.go --
+package main
+
+type Config struct {
+	Mods, Admins []string
+}

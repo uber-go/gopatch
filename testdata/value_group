@@ -1,0 +1,46 @@
+-- move.patch --
+@@
+@@
+ var (
+-  foo = 43
+   bar = 42
++  foo = bar + 1
+ )
+
+-- top_level.in.go --
+package a
+
+var (
+	foo = 43
+	bar = 42
+)
+
+-- top_level.out.go --
+package a
+
+var (
+	bar = 42
+	foo = bar + 1
+)
+
+-- func.in.go --
+package a
+
+func foo() {
+	var (
+		foo = 43
+		bar = 42
+	)
+	fmt.Println(foo, bar)
+}
+
+-- func.out.go --
+package a
+
+func foo() {
+	var (
+		bar = 42
+		foo = bar + 1
+	)
+	fmt.Println(foo, bar)
+}

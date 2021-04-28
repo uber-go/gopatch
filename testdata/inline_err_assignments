@@ -1,0 +1,57 @@
+-- inline.patch --
+@@
+var f expression
+var err identifier
+@@
+-err = f
+-if err != nil {
++if err := f; err != nil {
+   return ..., err
+ }
+
+-- multiple.in.go --
+package foo
+
+func bar() (*Result, error) {
+	// Test.
+	err = baz()
+	if err != nil {
+		return nil, err
+	}
+	return &Result{}, nil
+}
+
+-- multiple.out.go --
+package foo
+
+func bar() (*Result, error) {
+	// Test.
+	if err := baz(); err != nil {
+		return nil, err
+	}
+	return &Result{}, nil
+}
+
+
+-- single.in.go --
+package foo
+
+func bar() error {
+	// Test.
+	err = baz()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+-- single.out.go --
+package foo
+
+func bar() error {
+	// Test.
+	if err := baz(); err != nil {
+		return err
+	}
+	return nil
+}
