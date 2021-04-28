@@ -40,30 +40,6 @@ type SearchNode interface {
 // non-nil SearchResult if it matched.
 type Searcher func(SearchNode, Matcher, data.Data) *SearchResult
 
-// Traverses the AST, calling the provided matcher on nodes of the provided
-// type.
-func searchAST(nodeType reflect.Type) Searcher {
-	return func(cursor SearchNode, m Matcher, d data.Data) *SearchResult {
-		v := reflect.ValueOf(cursor.Node())
-		if !v.Type().AssignableTo(nodeType) {
-			return nil
-		}
-
-		d, ok := m.Match(v, d, nodeRegion(cursor.Node()))
-		if !ok {
-			return nil
-		}
-
-		return &SearchResult{
-			parent: cursor.Parent(),
-			name:   cursor.Name(),
-			index:  cursor.Index(),
-			data:   data.Index(d),
-			region: nodeRegion(cursor.Node()),
-		}
-	}
-}
-
 // SearchMatcher runs a Matcher on descendants of an AST, producing
 // SearchResults into Data.
 //
