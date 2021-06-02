@@ -52,7 +52,3 @@ $(GOLINT): tools/go.mod
 
 $(STATICCHECK): tools/go.mod
 	cd tools && go install honnef.co/go/tools/cmd/staticcheck
-
-.PHONY: docker-ci
-docker-ci:
-	docker run "$$(docker build -q .)"
