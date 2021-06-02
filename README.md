@@ -1,4 +1,4 @@
-# gopatch
+# gopatch [![Go](https://github.com/uber-go/gopatch/actions/workflows/go.yml/badge.svg)](https://github.com/uber-go/gopatch/actions/workflows/go.yml) [![codecov](https://codecov.io/gh/uber-go/gopatch/branch/main/graph/badge.svg?token=tFsx23GSTB)](https://codecov.io/gh/uber-go/gopatch)
 
 gopatch is a tool to match and transform Go code. It is meant to aid in
 refactoring and restyling.
@@ -505,6 +505,7 @@ we have a number of features planned for gopatch.
 
 # Similar Projects
 
+- [rf] is a refactoring tool with a custom DSL
 - [gofmt rewrite rules] support simple transformations on expressions
 - [eg] supports basic example-based refactoring
 - [Coccinelle] is a tool for C from which gopatch takes inspiration heavily
@@ -516,8 +517,8 @@ we have a number of features planned for gopatch.
   [Coccinelle]: https://coccinelle.gitlabpages.inria.fr/website/
   [Semgrep]: https://semgrep.dev/
   [Comby]: https://comby.dev/
+  [rf]: https://github.com/rsc/rf
 
 # Credits
 
-As mentioned previously, gopatch is heavily inspired by [Coccinelle]. Most
-ideas for gopatch comes from [Coccinelle].
+gopatch is heavily inspired by [Coccinelle].
