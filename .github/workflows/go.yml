@@ -36,4 +36,5 @@ jobs:
     - name: Test
       run: make cover
 
-    # TODO: codecov once this is open source.
+    - name: Upload coverage to codecov.io
+      uses: codecov/codecov-action@v1
