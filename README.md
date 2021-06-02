@@ -1,4 +1,4 @@
-# gopatch
+# gopatch [![Go](https://github.com/uber-go/gopatch/actions/workflows/go.yml/badge.svg)](https://github.com/uber-go/gopatch/actions/workflows/go.yml) [![codecov](https://codecov.io/gh/uber-go/gopatch/branch/main/graph/badge.svg?token=tFsx23GSTB)](https://codecov.io/gh/uber-go/gopatch)
 
 gopatch is a tool to match and transform Go code. It is meant to aid in
 refactoring and restyling.
