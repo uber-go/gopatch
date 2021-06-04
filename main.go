@@ -53,10 +53,24 @@ func main() {
 
 type options struct {
 	Patches        []string `short:"p" long:"patch" value-name:"file"`
-	DisplayVersion bool     `short:"v" long:"version"`
+	DisplayVersion bool     `long:"version"`
 	Args           struct {
 		Patterns []string `positional-arg-name:"pattern"`
 	} `positional-args:"yes"`
+	Verbose bool `short:"v" long:"verbose"`
+}
+
+type verboseLogger struct {
+	W  io.Writer
+	On bool
+}
+
+// Used for logging things when --verbose flag is turned on. Is a no-op when
+// the flag isn't on.
+func (logger verboseLogger) Log(msg string) {
+	if logger.On {
+		fmt.Fprintln(logger.W, "[gopatch]", msg)
+	}
 }
 
 func newArgParser() (*flags.Parser, *options) {
@@ -69,6 +83,10 @@ func newArgParser() (*flags.Parser, *options) {
 
 	parser.FindOptionByLongName("version").Description =
 		"Display the version of gopatch."
+
+	parser.FindOptionByLongName("verbose").Description =
+		"Turn on verbose mode that prints whether or not the file was patched " +
+			"for each file found."
 
 	parser.FindOptionByLongName("patch").Description =
 		"Path to a patch file specifying the code transformation. " +
@@ -206,6 +224,11 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 		return errors.New("please provide at least one pattern")
 	}
 
+	vLogger := verboseLogger{
+		W:  os.Stdout,
+		On: opts.Verbose,
+	}
+
 	fset := token.NewFileSet()
 	progs, err := loadPatches(fset, opts, stdin)
 	if err != nil {
@@ -223,6 +246,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 	for _, filename := range files {
 		f, err := parser.ParseFile(fset, filename, nil /* src */, parser.AllErrors|parser.ParseComments)
 		if err != nil {
+			vLogger.Log(fmt.Sprintf("%s : Couldn't patch. The file couldn't be parsed.", filename))
 			errors = append(errors, fmt.Errorf("could not parse %q: %v", filename, err))
 			continue
 		}
@@ -231,11 +255,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
+			vLogger.Log(fmt.Sprintf("%s : Couldn't patch. Nothing was matched.", filename))
 			continue
 		}
 
 		var out bytes.Buffer
 		if err := format.Node(&out, fset, f); err != nil {
+			vLogger.Log(fmt.Sprintf("%s : Couldn't patch. Check error logs for details.", filename))
 			errors = append(errors, fmt.Errorf("failed to rewrite %q: %v", filename, err))
 			continue
 		}
@@ -247,13 +273,17 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			FormatOnly: true,
 		})
 		if err != nil {
+			vLogger.Log(fmt.Sprintf("%s : Couldn't patch. Check error logs for details.", filename))
 			errors = append(errors, fmt.Errorf("reformat %q: %v", filename, err))
 			continue
 		}
 
 		if err := ioutil.WriteFile(filename, bs, 0644); err != nil {
+			vLogger.Log(fmt.Sprintf("%s : Couldn't patch. Check error logs for details.", filename))
 			errors = append(errors, err)
 			continue
+		} else {
+			vLogger.Log(fmt.Sprintf("%s : Patch successfully applied.", filename))
 		}
 	}
 
