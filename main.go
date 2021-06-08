@@ -271,9 +271,8 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			logger.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, err)
 			continue
-		} else {
-			logger.Printf("%s: patched", filename)
 		}
+		logger.Printf("%s: patched", filename)
 	}
 
 	errors = append(errors, patchRunner.errors...)
