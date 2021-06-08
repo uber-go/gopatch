@@ -211,12 +211,11 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 		return errors.New("please provide at least one pattern")
 	}
 
-	var logger *log.Logger
+	logOut := io.Discard
 	if opts.Verbose {
-		logger = log.New(os.Stdout, "", 0)
-	} else {
-		logger = log.New(io.Discard, "", 0)
+		logOut = os.Stdout
 	}
+	log := log.New(logOut, "", 0)
 
 	fset := token.NewFileSet()
 	progs, err := loadPatches(fset, opts, stdin)
@@ -235,7 +234,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 	for _, filename := range files {
 		f, err := parser.ParseFile(fset, filename, nil /* src */, parser.AllErrors|parser.ParseComments)
 		if err != nil {
-			logger.Printf("%s: failed: %v", filename, err)
+			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("could not parse %q: %v", filename, err))
 			continue
 		}
@@ -244,13 +243,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
-			logger.Printf("%s: skipped", filename)
+			log.Printf("%s: skipped", filename)
 			continue
 		}
 
 		var out bytes.Buffer
 		if err := format.Node(&out, fset, f); err != nil {
-			logger.Printf("%s: failed: %v", filename, err)
+			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("failed to rewrite %q: %v", filename, err))
 			continue
 		}
@@ -262,17 +261,17 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			FormatOnly: true,
 		})
 		if err != nil {
-			logger.Printf("%s: failed: %v", filename, err)
+			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("reformat %q: %v", filename, err))
 			continue
 		}
 
 		if err := ioutil.WriteFile(filename, bs, 0644); err != nil {
-			logger.Printf("%s: failed: %v", filename, err)
+			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, err)
 			continue
 		}
-		logger.Printf("%s: patched", filename)
+		log.Printf("%s: patched", filename)
 	}
 
 	errors = append(errors, patchRunner.errors...)
