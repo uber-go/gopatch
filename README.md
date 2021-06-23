@@ -58,8 +58,9 @@ transformations, it can be smarter because it understands Go syntax.
 Install gopatch with the following command.
 
 ```bash
-go get github.com/uber-go/gopatch@latest
+go install github.com/uber-go/gopatch@latest
 ```
+Note: If you're using Go < 1.16, use `go get github.com/uber-go/gopatch@latest` instead.
 
 ## Your first patch
 
