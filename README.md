@@ -60,6 +60,7 @@ Install gopatch with the following command.
 ```bash
 go install github.com/uber-go/gopatch@latest
 ```
+Note: If you're using Go < 1.16, use `go get github.com/uber-go/gopatch@latest` instead.
 
 ## Your first patch
 
