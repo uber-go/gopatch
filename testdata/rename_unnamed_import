@@ -1,0 +1,27 @@
+-- in.patch --
+@@
+var x identifier
+@@
+
+-import "github.com/fake/lib"
++import "github.com/totallyreal/lib"
+
+ lib.x
+
+-- unnamed.in.go --
+package main
+
+import "github.com/fake/lib"
+
+func foo() {
+	lib.Bar()
+}
+
+-- unnamed.out.go --
+package main
+
+import "github.com/totallyreal/lib"
+
+func foo() {
+	lib.Bar()
+}
