@@ -1,8 +1,5 @@
 Removes stuttering in the name of a type.
 
-TODO: `var foo identifier` for named imports should not add a name when there
-wasn't there one before. fix_consumers* should be merged into one patch.
-
 -- fix.patch --
 => examples/destutter.patch
 

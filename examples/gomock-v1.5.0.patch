@@ -2,10 +2,10 @@
 # the test finishes running. We no longer need to call mockCtrl.Finish
 # manually.
 @@
-var ctrl identifier
+var ctrl, gomock identifier
 var t expression
 @@
- import "github.com/golang/mock/gomock"
+ import gomock "github.com/golang/mock/gomock"
 
  ctrl := gomock.NewController(t)
  ...

@@ -1,15 +1,10 @@
-# TODO(abg): This is broken because of our current "uses import" detection
-# which treats the old context import as used, as it doesn't recognize that
-# the new one is meant to replace it.
-
 -- in.patch --
 @@
+var context identifier
 @@
--import "golang.org/x/net/context"
-+import "context"
+-import context "golang.org/x/net/context"
++import context "context"
 
-# TODO: Delete the requirement of having at least one AST-level
-# match/replacement.
  context
 
 -- top_level.in.go --
@@ -24,11 +19,7 @@ func x() {
 -- top_level.out.go --
 package foo
 
-import (
-	"context"
-
-	"golang.org/x/net/context"
-)
+import "context"
 
 func x() {
 	context.Background()
@@ -53,8 +44,6 @@ package foo
 import (
 	"context"
 	"time"
-
-	"golang.org/x/net/context"
 )
 
 func x() {

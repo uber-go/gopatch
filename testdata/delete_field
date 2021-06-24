@@ -53,7 +53,7 @@ func bar() {
 -- unnamed.out.go --
 package a
 
-import foo "example.com/foo.git"
+import "example.com/foo.git"
 
 func bar() {
 	foo.Initialize(foo.Params{

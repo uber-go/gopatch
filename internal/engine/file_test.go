@@ -553,7 +553,7 @@ func TestFile(t *testing.T) {
 			},
 		},
 		{
-			desc: "remove import",
+			desc: "remove unnamed import",
 			// -import "foo"
 			//  bar
 			minus: &pgo.File{
@@ -573,18 +573,6 @@ func TestFile(t *testing.T) {
 					giveSrc: text.Unlines(
 						"package x",
 						`import "foo"`,
-						"func bar() { bar() }",
-					),
-					wantSrc: text.Unlines(
-						"package x",
-						"func bar() { bar() }",
-					),
-				},
-				{
-					desc: "named import",
-					giveSrc: text.Unlines(
-						"package x",
-						`import baz "foo"`,
 						"func bar() { bar() }",
 					),
 					wantSrc: text.Unlines(

@@ -33,19 +33,24 @@ import (
 
 // ImportMatcher matches a single import.
 type ImportMatcher struct {
-	NameS string  // TODO: better naming
-	Name  Matcher // named import, if any
-	Path  string  // import path as a string
+	NameS         string  // TODO: better naming
+	Name          Matcher // named import, if any
+	NameIsMetavar bool    // records wehther the named import was a metavariable
+	// TODO: This is janky.
+
+	Path string // import path as a string
 }
 
 func (c *matcherCompiler) compileImport(imp *ast.ImportSpec) ImportMatcher {
 	var (
-		name  Matcher
-		nameS string
+		name          Matcher
+		nameS         string
+		nameIsMetavar bool
 	)
 	if n := imp.Name; n != nil {
 		nameS = n.Name
 		name = c.compileIdent(reflect.ValueOf(n))
+		nameIsMetavar = c.meta.LookupVar(nameS) == IdentMetavarType
 	}
 
 	// TODO: In the future, we should try to determine the package name
@@ -54,9 +59,10 @@ func (c *matcherCompiler) compileImport(imp *ast.ImportSpec) ImportMatcher {
 	// import path, so the code would have to actually exist on-disk.
 
 	return ImportMatcher{
-		NameS: nameS,
-		Name:  name,
-		Path:  goast.ImportPath(imp),
+		NameS:         nameS,
+		Name:          name,
+		Path:          goast.ImportPath(imp),
+		NameIsMetavar: nameIsMetavar,
 	}
 }
 
@@ -69,32 +75,71 @@ func (m ImportMatcher) Match(file *ast.File, d data.Data) (_ data.Data, ok bool)
 		return d, false
 	}
 
-	name := spec.Name
-	if name != nil {
-		// If we matched a named import, record the name.
-		d = data.WithValue(d, importKey(m.Path), importData{Name: name.Name})
-	}
+	// We need to account for four cases here:
+	//
+	// +--------------+-------------+-----------------------+
+	// | Patch import | File import | Behavior              |
+	// +--------------+-------------+-----------------------+
+	// | unnamed      | unnamed     | match                 |
+	// | unnamed      | named       | no match              |
+	// | named        | unnamed     | match if metavariable |
+	// | named        | named       | match name            |
+	// +--------------+-------------+-----------------------+
 
-	// Match was a success if this wasn't a named import.
+	// Patch import is unnamed. Match only if the file import is also
+	// unnamed.
 	if m.Name == nil {
-		return d, true
+		return d, spec.Name == nil
 	}
 
-	// if we didn't match a named import, assume that the name specified
-	// in the patch is the name.
-	if name == nil {
-		name = &ast.Ident{
+	if spec.Name == nil {
+		if !m.NameIsMetavar {
+			// If the patch import is not a metavar, then we meant
+			// to match it verbatim, so this is not a match.
+			return d, false
+		}
+
+		// If the patch import is a metavar, then record a fake name
+		// for the metavar so that there's a value associated with
+		// "foo" in "foo.X", but also record that the real name for
+		// this import metavar is empty.
+		d = data.WithValue(d, importMetavarKey(m.NameS), importMetavarData{
+			Unnamed: true,
+		})
+
+		d = data.WithValue(d, importKey(m.Path), importData{
+			Name:       m.NameS,
+			MetavarKey: importMetavarKey(m.NameS),
+		})
+
+		d, ok = m.Name.Match(reflect.ValueOf(&ast.Ident{
 			NamePos: spec.Pos(),
 			Name:    m.NameS,
-		}
+		}), d, nodeRegion(spec))
+	} else {
+		d = data.WithValue(d, importKey(m.Path), importData{Name: spec.Name.Name})
+
+		// Both are named. Match as-is and also associate the package
+		// name with the import path so that we can delete it later.
+		d, ok = m.Name.Match(reflect.ValueOf(spec.Name), d, nodeRegion(spec))
 	}
 
-	return m.Name.Match(reflect.ValueOf(name), d, nodeRegion(spec))
+	// Both imports are named. Match the name and move on.
+	return d, ok
 }
+
+type importMetavarKey string
+
+type importMetavarData struct{ Unnamed bool }
 
 type importKey string // import path
 
-type importData struct{ Name string }
+type importData struct {
+	Name string // package name of the import
+
+	// Name of the import metavar we used to match this value, if any.
+	MetavarKey importMetavarKey
+}
 
 // ImportsMatcher matches multiple imports in a Go file.
 type ImportsMatcher struct {
@@ -136,43 +181,76 @@ type importsData struct {
 
 // ImportReplacer replaces imports in a file.
 type ImportReplacer struct {
-	Name Replacer // named import, if any
-	Path string   // import path as a string
+	Name          Replacer // named import, if any
+	NameS         string
+	NameIsMetavar bool
+
+	Path string // import path as a string
 	Fset *token.FileSet
 }
 
 func (c *replacerCompiler) compileImport(imp *ast.ImportSpec) ImportReplacer {
-	var name Replacer
-	if imp.Name != nil {
-		name = c.compileIdent(reflect.ValueOf(imp.Name))
+	var (
+		name          Replacer
+		nameS         string
+		nameIsMetavar bool
+	)
+	if n := imp.Name; n != nil {
+		nameS = n.Name
+		name = c.compileIdent(reflect.ValueOf(n))
+		nameIsMetavar = c.meta.LookupVar(nameS) == IdentMetavarType
 	}
 
 	// TODO: Same as matcher, maybe we should attempt to determine the
 	// package name.
 
 	return ImportReplacer{
-		Name: name,
-		Path: goast.ImportPath(imp),
-		Fset: c.fset,
+		Name:          name,
+		NameS:         nameS,
+		Path:          goast.ImportPath(imp),
+		Fset:          c.fset,
+		NameIsMetavar: nameIsMetavar,
 	}
 }
 
 // Replace adds a single import. Returns the name of the import that was
 // added.
 func (r ImportReplacer) Replace(d data.Data, cl Changelog, f *ast.File) (string, error) {
-	var name string
+	// name is the name we want to use for the named import, and pkgName is
+	// how the rest of the file references this import.
+	var name, pkgName string
 	if r.Name != nil {
-		namev, err := r.Name.Replace(d, cl, f.Pos()) // pos is irrelevant
-		if err != nil {
-			return "", err
+		// The name replacer will produce the value for the named
+		// import specified in the patch as-is, or if it was a
+		// metavariable, using the matched value.
+		//
+		// This is undesirable for the case where the named import
+		// matched an unnamed import. For that case, we want to ignore
+		// the recorded name. So, if the named import is a
+		// metavariable that matched an unnamed import, don't look up
+		// its recorded value.
+
+		var mdata importMetavarData
+		if r.NameIsMetavar {
+			data.Lookup(d, importMetavarKey(r.NameS), &mdata)
+			pkgName = r.NameS // default to metavar name
 		}
-		name = namev.Interface().(*ast.Ident).Name
+
+		if !mdata.Unnamed {
+			namev, err := r.Name.Replace(d, cl, f.Pos()) // pos is irrelevant
+			if err != nil {
+				return "", err
+			}
+			name = namev.Interface().(*ast.Ident).Name
+			pkgName = name
+		}
+
 	}
 
 	if !astutil.AddNamedImport(r.Fset, f, name, r.Path) {
 		return "", nil
 	}
-	return name, nil
+	return pkgName, nil
 }
 
 // ImportsReplacer replaces a block of imports.
@@ -223,17 +301,29 @@ func (r ImportsReplacer) Cleanup(d data.Data, f *ast.File, newNames []string) er
 
 	// Delete matched imports that are no longer used.
 	for _, imp := range impData.MatchedImports {
-		var idata importData
-		data.Lookup(d, importKey(imp), &idata)
-		impName := idata.Name
-		if len(impName) == 0 {
-			impName = filepath.Base(imp)
+		var importName, pkgName string
+
+		if idata := new(importData); data.Lookup(d, importKey(imp), idata) {
+			pkgName = idata.Name
+			importName = idata.Name
+
+			// If we used a metavariable to match this import,
+			// record if its name was actually empty.
+			if mdata := new(importMetavarData); data.Lookup(d, idata.MetavarKey, mdata) {
+				if mdata.Unnamed {
+					importName = ""
+				}
+			}
+		}
+
+		if len(pkgName) == 0 {
+			pkgName = filepath.Base(imp)
 		}
 
 		// If this import was replaced by an added import, kill it.
-		_, replaced := taken[impName]
-		if replaced || !usesNameAsTopLevel(f, impName) {
-			astutil.DeleteNamedImport(r.Fset, f, idata.Name, imp)
+		_, replaced := taken[pkgName]
+		if replaced || !usesNameAsTopLevel(f, pkgName) {
+			astutil.DeleteNamedImport(r.Fset, f, importName, imp)
 		}
 	}
 

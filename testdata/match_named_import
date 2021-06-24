@@ -1,0 +1,50 @@
+Match a named import verbatim.
+
+-- in.patch --
+@@
+var X identifier
+@@
+-import foo "example.com/bar"
++import bar "example.com/bar"
+
+-foo.X
++bar.X
+
+-- unnamed.in.go --
+package whatever
+
+import "example.com/bar"
+
+// Should remain untouched.
+func stuff() {
+	foo.stuff()
+}
+
+-- unnamed.out.go --
+package whatever
+
+import "example.com/bar"
+
+// Should remain untouched.
+func stuff() {
+	foo.stuff()
+}
+
+
+-- named.in.go --
+package whatever
+
+import foo "example.com/bar"
+
+func stuff() {
+	foo.stuff()
+}
+
+-- named.out.go --
+package whatever
+
+import bar "example.com/bar"
+
+func stuff() {
+	bar.stuff()
+}

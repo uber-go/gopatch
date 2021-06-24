@@ -142,8 +142,6 @@ var testsToSkip = map[string]struct{}{
 	"add_error_param/a":              {}, // https://github.com/uber-go/gopatch/issues/6
 	"func_within_a_func/two_dots":    {},
 	"mismatched_dots/unnamed":        {}, // https://github.com/uber-go/gopatch/issues/9
-	"noop_import/remove_all":         {},
-	"noop_import/remove_some":        {},
 	"switch_elision/body":            {},
 	"select_elision/example":         {},
 	"case_elision/a":                 {},

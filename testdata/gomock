@@ -64,3 +64,34 @@ func TestBar(t *testing.T) {
 
 	run(NewBarMock(ctrl))
 }
+
+-- named_import.in.go --
+package baz
+
+import (
+	"testing"
+
+	mock "github.com/golang/mock/gomock"
+)
+
+func TestBaz(t *testing.T) {
+	mockCtrl := mock.NewController(t)
+	defer mockCtrl.Finish()
+
+	run(NewBazMock(mockCtrl))
+}
+
+-- named_import.out.go --
+package baz
+
+import (
+	"testing"
+
+	mock "github.com/golang/mock/gomock"
+)
+
+func TestBaz(t *testing.T) {
+	mockCtrl := mock.NewController(t)
+
+	run(NewBazMock(mockCtrl))
+}
