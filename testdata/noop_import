@@ -73,6 +73,7 @@ package main
 
 import (
 	"conversion/to.git"
+
 	"go.uber.org/thriftrw/ptr"
 )
 

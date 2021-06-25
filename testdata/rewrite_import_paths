@@ -61,7 +61,7 @@ func z() {
 -- no_named_import.out.go --
 package baz
 
-import fooclient "foo-client"
+import "foo-client"
 
 func z() {
 	fooclient.NewRequest()

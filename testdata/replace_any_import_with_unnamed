@@ -8,7 +8,7 @@ var fooclient identifier
 -fooclient.Init()
 +compat.Init()
 
--- from_unnamed.in.go --
+-- unnamed.in.go --
 package main
 
 import "example.com/foo/client"
@@ -17,7 +17,25 @@ func main() {
 	fooclient.Init()
 }
 
--- from_unnamed.out.go --
+-- unnamed.out.go --
+package main
+
+import "example.com/foo-client/compat"
+
+func main() {
+	compat.Init()
+}
+
+-- named.in.go --
+package main
+
+import client "example.com/foo/client"
+
+func main() {
+	client.Init()
+}
+
+-- named.out.go --
 package main
 
 import "example.com/foo-client/compat"

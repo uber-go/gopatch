@@ -414,13 +414,6 @@ can now update consumers of `foo.FooClient`.
 
 ```diff
 @@
-@@
- import "example.com/foo"
-
--foo.FooClient
-+foo.Client
-
-@@
 var foo identifier
 @@
  import foo "example.com/foo"
@@ -428,14 +421,6 @@ var foo identifier
 -foo.FooClient
 +foo.Client
 ```
-
-The first diff in this patch affects files that use unnamed imports, and the
-second affects those that use named imports---regardless of name.
-
-> *Note*: In a future version of gopatch, we'll need only the second patch to
-> make this transformation. See also, [#2].
-
-  [#2]: https://github.com/uber-go/gopatch/issues/2
 
 #### Changing imports
 
@@ -519,42 +504,16 @@ The above will match, both, named and unnamed imports of
 |---------------------------------------|-------------------------------------|
 | `import foo "example.com/foo-go.git"` | `import foo "example.com/foo.git"`  |
 | `import bar "example.com/foo-go.git"` | `import bar "example.com/foo.git"`  |
-| `import "example.com/foo-go.git"`     | `import foo "example.com/foo.git"`* |
-
-> *This case is a known bug. See [#2] for more information.
->
-> You can work around this by first explicitly matching and replacing the
-> cases with unnamed imports first. For example, turn the patch above into two
-> diffs, one addressing the unnamed imports, and one addressing the named.
->
-> ```diff
-> @@
-> var x identifier
-> @@
-> -import "example.com/foo-go.git"
-> +import "example.com/foo.git"
->
->  foo.x
->
-> @@
-> var foo, x identifier
-> @@
-> -import foo "example.com/foo-go.git"
-> +import foo "example.com/foo.git"
->
->  foo.x
-> ```
+| `import "example.com/foo-go.git"`     | `import "example.com/foo.git"`      |
 
 #### Best practices for imports
 
-Given the known limitations and issues with imports highlighted above, the
-best practices for matching and manipulating imports are:
+Given the limitations of AST analysis, gopatch cannot always accurately guess a
+package name for an import.
 
-- Handle unnamed imports first. This will make sure that previously named
-  imports do not unintentionally become named.
-- When matching any import, use a metavariable name that matches the name of
-  the imported package **exactly**. This name is used by gopatch to guess the
-  name of the package.
+As a best practice, when manipulating imports, use a metavariable name that
+matches the name of the imported package **exactly**. gopatch will use that as
+the name of the package during source analysis.
 
     ```
     # BAD                           | # GOOD
