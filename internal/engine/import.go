@@ -245,6 +245,10 @@ func (r ImportReplacer) Replace(d data.Data, cl Changelog, f *ast.File) (string,
 			pkgName = name
 		}
 
+	} else {
+		// TODO: more sophisticated package name guessing logic here
+		// and below.
+		pkgName = filepath.Base(r.Path)
 	}
 
 	if !astutil.AddNamedImport(r.Fset, f, name, r.Path) {
