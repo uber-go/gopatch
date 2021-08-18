@@ -200,7 +200,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 	}
 
 	if opts.DisplayVersion {
-		fmt.Fprintln(stderr, "gopatch v"+Version)
+		fmt.Fprintln(stderr, "gopatch "+_version)
 		return nil
 	}
 
