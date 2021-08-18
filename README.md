@@ -504,6 +504,16 @@ we have a number of features planned for gopatch.
 
   [#11]: https://github.com/uber-go/gopatch/issues/11
 
+# Contributing
+
+If you'd like to contribute to gopatch, you may find the following documents
+useful:
+
+- [HACKING](docs/HACKING.md) documents the architecture, code organization, and
+  other information necessary to contribute to the project.
+- [RELEASE](docs/RELEASE.md) documents the process for releasing a new version
+  of gopatch.
+
 # Similar Projects
 
 - [rf] is a refactoring tool with a custom DSL
