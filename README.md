@@ -55,7 +55,19 @@ transformations, it can be smarter because it understands Go syntax.
 
 ## Installation
 
-Install gopatch with the following command.
+Download a **pre-built binary** of gopatch from the [Releases page] or by
+running the following command in your terminal and place it on your `$PATH`.
+
+  [Releases page]: https://github.com/uber-go/gopatch/releases
+
+```bash
+VERSION=0.1.0
+URL="https://github.com/uber-go/gopatch/releases/download/v$VERSION/gopatch_${VERSION}_$(uname -s)_$(uname -m).tar.gz"
+curl -L "$URL" | tar xzv gopatch
+```
+
+Alternatively, if you have Go installed, **build it from source** and install
+it with the following command.
 
 ```bash
 go install github.com/uber-go/gopatch@latest

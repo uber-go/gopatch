@@ -12,13 +12,20 @@ Take the following steps to release a new version of gopatch.
     +## 1.2.3 - 2021-08-18
     ```
 
-3. Create a new PR with the change and the following title:
+3. Update the `VERSION` constant in the Installation section of the README.md.
+
+    ```diff
+    -VERSION=1.2.2
+    +VERSION=1.2.3
+    ```
+
+4. Create a new PR with the change and the following title:
 
     ```
     Preparing release v1.2.3
     ```
 
-4. After landing the PR, tag the release with an **annotated** git tag and push
+5. After landing the PR, tag the release with an **annotated** git tag and push
    the tag.
 
     ```
