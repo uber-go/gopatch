@@ -7,7 +7,7 @@ require (
 	github.com/rogpeppe/go-internal v1.8.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/multierr v1.7.0
-	golang.org/x/tools v0.1.7
+	golang.org/x/tools v0.1.8
 )
 
 go 1.13
