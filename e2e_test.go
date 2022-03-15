@@ -114,7 +114,7 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	for _, tt := range ta.Files {
 		t.Run(tt.Name, func(t *testing.T) {
 			if skipTest(testFile, tt.Name) {
-				t.Skip(fmt.Sprintf("skipping unfixed test case %v/%v", testFile, tt.Name))
+				t.Skipf("skipping unfixed test case %v/%v", testFile, tt.Name)
 			}
 
 			filePath := filepath.Join(dir, tt.Give)
