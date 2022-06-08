@@ -325,6 +325,10 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
 func cleanupFilePos(tfile *token.File, cl engine.Changelog, comments []*ast.CommentGroup) {
 	linesToDelete := make(map[int]struct{})
 	for _, dr := range cl.ChangedIntervals() {
+		if dr.Start == token.NoPos {
+			continue
+		}
+
 		for i := tfile.Line(dr.Start); i < tfile.Line(dr.End); i++ {
 			if i > 0 {
 				linesToDelete[i] = struct{}{}
