@@ -1,0 +1,32 @@
+-- in.patch --
+@@
+var randomIdentifier identifier
+@@
+-import "cmd/internal/edit"
++import "github.com/foo/bar/internal/edit"
+
+edit.randomIdentifier
+
+-- comment.in.go --
+// Copyright 2022 ...
+
+package main
+
+import (
+	"cmd/internal/edit"
+)
+
+func main() {
+	_ = edit.Buffer
+}
+
+-- comment.out.go --
+// Copyright 2022 ...
+
+package main
+
+import "github.com/foo/bar/internal/edit"
+
+func main() {
+	_ = edit.Buffer
+}
