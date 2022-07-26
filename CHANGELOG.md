@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.1 - 2022-07-26
+### Fixed
+- ([#54]) Preserve top-level comments in files when updating imports.
+- Parse generics syntax introduced in Go 1.18.
+
+  [#54]: https://github.com/uber-go/gopatch/issues/54
+
+Thanks to @breml for their contribution to this release.
+
 ## 0.1.0 - 2021-08-19
 Starting this release, we will include pre-built binaries of gopatch for
 different systems.

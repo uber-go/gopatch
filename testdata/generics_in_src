@@ -1,0 +1,34 @@
+Test that we can parse generics syntax in source files.
+
+-- foo_to_bar.patch --
+@@
+@@
+-foo
++bar
+
+-- a.in.go --
+package a
+
+import "fmt"
+
+func foo[T any](x T) {
+	fmt.Println(x)
+}
+
+func baz() {
+	foo[int](42)
+}
+
+-- a.out.go --
+package a
+
+import "fmt"
+
+func bar[T any](x T) {
+	fmt.Println(x)
+}
+
+func baz() {
+	bar[int](42)
+}
+
