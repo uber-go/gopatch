@@ -239,7 +239,8 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			continue
 		}
 
-		f, ok := patchRunner.Apply(filename, f)
+		f, comments, ok := patchRunner.Apply(filename, f)
+		fmt.Println(comments)
 
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
@@ -291,10 +292,9 @@ func newPatchRunner(fset *token.FileSet, patches []*engine.Program) *patchRunner
 	}
 }
 
-func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
+func (r *patchRunner) Apply(filename string, f *ast.File) (fout *ast.File, comments []string, matched bool) {
 	snap := astdiff.Before(f, ast.NewCommentMap(r.fset, f, f.Comments))
 
-	matched := false
 	for _, prog := range r.patches {
 		for _, c := range prog.Changes {
 			d, ok := c.Match(f)
@@ -304,22 +304,23 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
 			}
 
 			matched = true
+			comments= c.Comments
 
 			cl := engine.NewChangelog()
 
 			var err error
-			f, err = c.Replace(d, cl)
+			fout, err = c.Replace(d, cl)
 			if err != nil {
 				r.errors = append(r.errors, fmt.Errorf("could not update %q: %v", filename, err))
-				return nil, false
+				return nil, comments, false
 			}
 
-			snap = snap.Diff(f, cl)
-			cleanupFilePos(r.fset.File(f.Pos()), cl, f.Comments)
+			snap = snap.Diff(fout, cl)
+			cleanupFilePos(r.fset.File(fout.Pos()), cl, fout.Comments)
 		}
 	}
 
-	return f, matched
+	return fout, comments, matched
 }
 
 func cleanupFilePos(tfile *token.File, cl engine.Changelog, comments []*ast.CommentGroup) {

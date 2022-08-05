@@ -57,6 +57,9 @@ type Change struct {
 
 	// Patch for this change.
 	Patch *Patch
+
+	// Comments for this change
+	Comments []string
 }
 
 // Meta represents the metavariables section of a change.
