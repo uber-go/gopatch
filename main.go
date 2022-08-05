@@ -37,6 +37,7 @@ import (
 	"strings"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/diff"
 	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
 	"github.com/uber-go/gopatch/internal/parse"
@@ -53,6 +54,7 @@ func main() {
 
 type options struct {
 	Patches        []string `short:"p" long:"patch" value-name:"file"`
+	Linting        bool     `short:"l" long:"lint"`
 	DisplayVersion bool     `long:"version"`
 	Args           struct {
 		Patterns []string `positional-arg-name:"pattern"`
@@ -79,6 +81,9 @@ func newArgParser() (*flags.Parser, *options) {
 		"Path to a patch file specifying the code transformation. " +
 			"Multiple patches may be provided to be applied in-order. " +
 			"If the flag is omitted, a patch will be read from stdin."
+
+	parser.FindOptionByLongName("lint").Description =
+		"Turn on lint flag to output patch matches to stdout instead of modifying the files"
 
 	parser.Args()[0].Description =
 		"One or more files or directores containing Go code. " +
@@ -193,6 +198,15 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
+func modify(filename string, content []byte) error {
+	return ioutil.WriteFile(filename, content, 0644)
+}
+
+func preview(filename string, originalContent []byte, modifiedContent []byte, comment []string, stderr io.Writer) error {
+	fmt.Fprintf(stderr, strings.Join(comment, "\n")+"\n")
+	return diff.Text(filename, filename, originalContent, modifiedContent, stderr)
+}
+
 func run(args []string, stdin io.Reader, stderr io.Writer) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
@@ -232,7 +246,12 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 
 	var errors []error
 	for _, filename := range files {
-		f, err := parser.ParseFile(fset, filename, nil /* src */, parser.AllErrors|parser.ParseComments)
+		// getting the content of original file
+		content, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+		f, err := parser.ParseFile(fset, filename, content /* src */, parser.AllErrors|parser.ParseComments)
 		if err != nil {
 			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("could not parse %q: %v", filename, err))
@@ -240,7 +259,6 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 		}
 
 		f, comments, ok := patchRunner.Apply(filename, f)
-		fmt.Println(comments)
 
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
@@ -267,7 +285,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			continue
 		}
 
-		if err := ioutil.WriteFile(filename, bs, 0644); err != nil {
+		var error error
+		if opts.Linting {
+			error = preview(filename, content, bs, comments, stderr)
+		} else {
+			error = modify(filename, bs)
+		}
+		if error != nil {
 			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, err)
 			continue
@@ -304,7 +328,7 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (fout *ast.File, comme
 			}
 
 			matched = true
-			comments= c.Comments
+			comments = c.Comments
 
 			cl := engine.NewChangelog()
 
