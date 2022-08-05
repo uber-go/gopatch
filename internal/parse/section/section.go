@@ -112,9 +112,9 @@ type programSplitter struct {
 	file    *token.File // file to feed newline information
 	content []byte      // raw source
 
-	text []byte    // contents of the current line
-	pos  token.Pos // position at which text begins
-	LastComments []string // last comment stored before the section
+	text         []byte    // contents of the current line
+	pos          token.Pos // position at which text begins
+	LastComments []string  // last comment stored before the section
 
 	eof bool // whether we've reached EOF
 

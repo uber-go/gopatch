@@ -1,0 +1,23 @@
+# This patch reverse the changes made from p.patch
+# It replaces instances of fmt.Errorf()
+# with fmt.Sprintf()
+@@
+# comments 5 -
+# comments 6 -
+@@
+# comments 7 -
+-fmt.Errorf(...)
++import "errors"
++errors.New(fmt.Sprintf(...))
+
+# This patch replaces instances of time.Since(x)
+# with time.Now().Sub(x) where x is an identifier variable
+@@
+# comments 11 -
+# comments 12 -
+var x identifier
+@@
+-time.Since(x)
++time.Now().Sub(x)
+# comments 11 -
+# comments 12 -
