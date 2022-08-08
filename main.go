@@ -47,19 +47,21 @@ import (
 
 func main() {
 	log.SetFlags(0)
-	if err := run(os.Args[1:], os.Stdin, os.Stderr); err != nil {
+	if err := run(os.Args[1:], os.Stdin, os.Stderr, os.Stdout); err != nil {
 		log.Fatal(err)
 	}
 }
 
+type arguments struct {
+	Patterns []string `positional-arg-name:"pattern"`
+}
+
 type options struct {
-	Patches        []string `short:"p" long:"patch" value-name:"file"`
-	Linting        bool     `short:"l" long:"lint"`
-	DisplayVersion bool     `long:"version"`
-	Args           struct {
-		Patterns []string `positional-arg-name:"pattern"`
-	} `positional-args:"yes"`
-	Verbose bool `short:"v" long:"verbose"`
+	Patches        []string  `short:"p" long:"patch" value-name:"file"`
+	Diff           bool      `short:"d" long:"diff"`
+	DisplayVersion bool      `long:"version"`
+	Args           arguments `positional-args:"yes"`
+	Verbose        bool      `short:"v" long:"verbose"`
 }
 
 func newArgParser() (*flags.Parser, *options) {
@@ -82,8 +84,8 @@ func newArgParser() (*flags.Parser, *options) {
 			"Multiple patches may be provided to be applied in-order. " +
 			"If the flag is omitted, a patch will be read from stdin."
 
-	parser.FindOptionByLongName("lint").Description =
-		"Turn on lint flag to output patch matches to stdout instead of modifying the files"
+	parser.FindOptionByLongName("diff").Description =
+		"Print a diff of the proposed changes to stdout but don't modify any files."
 
 	parser.Args()[0].Description =
 		"One or more files or directores containing Go code. " +
@@ -198,21 +200,23 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
-func modify(filename string, content []byte) error {
-	return ioutil.WriteFile(filename, content, 0644)
+func preview(
+	filename string,
+	originalContent, modifiedContent []byte,
+	comments []string,
+	stderr, stdout io.Writer,
+) error {
+	for _, c := range comments {
+		fmt.Fprintln(stderr, c)
+	}
+	return diff.Text(filename, filename, originalContent, modifiedContent, stdout)
 }
 
-func preview(filename string, originalContent []byte, modifiedContent []byte, comment []string, stderr io.Writer) error {
-	fmt.Fprintf(stderr, strings.Join(comment, "\n")+"\n")
-	return diff.Text(filename, filename, originalContent, modifiedContent, stderr)
-}
-
-func run(args []string, stdin io.Reader, stderr io.Writer) error {
+func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
 		return err
 	}
-
 	if opts.DisplayVersion {
 		fmt.Fprintln(stderr, "gopatch "+_version)
 		return nil
@@ -246,8 +250,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 
 	var errors []error
 	for _, filename := range files {
-		// getting the content of original file
-		content, err := ioutil.ReadFile(filename)
+		content, err := os.ReadFile(filename)
 		if err != nil {
 			return err
 		}
@@ -259,7 +262,6 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 		}
 
 		f, comments, ok := patchRunner.Apply(filename, f)
-
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
 			log.Printf("%s: skipped", filename)
@@ -285,13 +287,12 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			continue
 		}
 
-		var error error
-		if opts.Linting {
-			error = preview(filename, content, bs, comments, stderr)
+		if opts.Diff {
+			err = preview(filename, content, bs, comments, stderr, stdout)
 		} else {
-			error = modify(filename, bs)
+			err = os.WriteFile(filename, bs, 0644)
 		}
-		if error != nil {
+		if err != nil {
 			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, err)
 			continue

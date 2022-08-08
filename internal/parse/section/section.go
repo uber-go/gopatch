@@ -114,7 +114,7 @@ type programSplitter struct {
 
 	text         []byte    // contents of the current line
 	pos          token.Pos // position at which text begins
-	LastComments []string  // last comment stored before the section
+	lastComments []string  // last comment stored before the section
 
 	eof bool // whether we've reached EOF
 
@@ -143,17 +143,9 @@ func (p *programSplitter) skipUntilEOL() {
 	}
 }
 
-// returns the last comments if it exists otherwise nil
-func (p *programSplitter) getLastComments() []string {
-	if len(p.LastComments) > 0 {
-		return p.LastComments
-	}
-	return []string{}
-}
-
 // Advances the scanner to the next non-comment line and collects the last comments.
 func (p *programSplitter) next() {
-	p.LastComments = []string{} // setting last comments to empty string whenever encounter non comment line
+	p.lastComments = nil // setting last comments to empty string whenever encounter non comment line
 	for ; p.offset < len(p.content); p.offset++ {
 		p.startOffset = p.offset
 		p.skipUntilEOL()
@@ -164,7 +156,7 @@ func (p *programSplitter) next() {
 			p.offset++
 			return
 		}
-		p.LastComments = append(p.LastComments, bytes.NewBuffer(p.text).String()[1:])
+		p.lastComments = append(p.lastComments, string(bytes.TrimSpace(p.text[1:])))
 	}
 
 	// Reached EOF.
@@ -195,7 +187,7 @@ func (p *programSplitter) readChange() *Change {
 	// Can't use a struct literal here because readName and readMeta advance
 	// p.pos between HeaderPos and AtPos.
 	var c Change
-	c.Comments = p.getLastComments()
+	c.Comments = p.lastComments
 	c.HeaderPos = p.pos
 	c.Name = p.readName()
 	c.Meta = p.readMeta()

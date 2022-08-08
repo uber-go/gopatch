@@ -1,6 +1,7 @@
 Based on a user example of a panic.
 
 -- in.patch --
+# This patch replaces import fooclient.SetParams with compat.SetParams
 @@
 @@
 -import fooclient "example.com/foo/client"
@@ -9,6 +10,7 @@ Based on a user example of a panic.
 -fooclient.SetParams
 +compat.SetParams
 
+# This patch replaces import fooclient.getClient with compat.GetClient
 @@
 @@
 -import fooclient "example.com/foo/client"
@@ -36,3 +38,20 @@ func Example() {
 	compat.SetParams("myservice")
 	client, err := compat.GetClient()
 }
+
+-- a.diff --
+@@ -1,8 +1,8 @@
+ package main
+ 
+-import fooclient "example.com/foo/client"
++import "example.com/foo-client/compat"
+ 
+ func Example() {
+-	fooclient.SetParams("myservice")
+-	client, err := fooclient.GetClient()
++	compat.SetParams("myservice")
++	client, err := compat.GetClient()
+ }
+
+-- a.diff.stderr --
+This patch replaces import fooclient.getClient with compat.GetClient

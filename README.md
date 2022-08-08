@@ -17,6 +17,9 @@ refactoring and restyling.
   - [Metavariables](#metavariables)
   - [Statements](#statements)
   - [Elision](#elision)
+  - [Comments](#comments)
+    - [Description comments](#description-comments)
+    - [Usage in diff mode](#usage-during-diff-mode)
 - [Examples](#examples)
 - [Project status](#project-status)
   - [Goals](#goals)
@@ -107,23 +110,64 @@ return fmt.Errorf("invalid port: %v", err)
 
 ## Apply the patch
 
-To apply the patch, `cd` to your Go project's directory.
+-  `cd` to your Go project's directory.
 
-```shell
-$ cd ~/go/src/example.com/myproject
-```
+  ```shell
+  $ cd ~/go/src/example.com/myproject
+  ```
 
-Run `gopatch` on the project, supplying the previously written patch with the
-`-p` flag.
+  Run `gopatch` on the project, supplying the previously written patch with the
+  `-p` flag.
 
-```shell
-$ gopatch -p ~/s1028.patch ./...
-```
+  ```shell
+  $ gopatch -p ~/s1028.patch ./...
+  ```
 
-This will apply the patch on all Go code in your project.
+  This will apply the patch on all Go code in your project.
 
-Check if there were any instances of this issue in your code by running
-`git diff`.
+  Check if there were any instances of this issue in your code by running
+  `git diff`.
+- Instead, `cd` to your Go project's directory.
+
+  ```shell
+  $ cd ~/go/src/example.com/myproject
+  ```
+
+  Run `gopatch` on the project, supplying the previously written patch with the
+  `-p` flag along with '-d' flag.
+
+  ```shell
+  $ gopatch -d -p ~/s1028.patch ./...
+  ```
+
+  This will turn on diff mode and will write the diff to stdout instead of modifying all
+  the Go code in your project. To provide more context on what the patch does, if
+  there were description comments in the patch, they will also get displayed at 
+  the top. To learn more about description comments jump to section [here](#description-comments)
+  
+  For example if we applied patch ~/s1028 to our testfile error.go
+  ```shell
+  $ gopatch -d -p ~/s1028.patch ./testdata/test_files/diff_example/
+  ```
+  Output would be : 
+  ```
+  This patch replaces instances of fmt.Sprintf()
+  with fmt.Errorf()
+  Patch files can be applied to mutiple files
+  --- gopatch/testdata/test_files/diff_example/error.go
+  +++ gopatch/testdata/test_files/diff_example/error.go
+  @@ -7,7 +7,7 @@
+ 
+  func foo() error {
+          err := errors.New("test")
+  -       return errors.New(fmt.Sprintf("error: %v", err))
+  +       return fmt.Errorf("error: %v", err)
+  }
+ 
+   func main() {
+
+  ```
+  Note: Only the description comments of patches that actually **apply** are displayed.
 
 ## Next steps
 
@@ -174,6 +218,22 @@ gopatch supports the following command line options.
     +bar
     EOF
     ```
+- `-d`, `--diff`
+
+    Flag to turn on diff mode. Provide this flag to write the diff to stdout instead
+    of modifying the file and display applied patches' [description comments](#description-comments) if they exist. 
+    Use in conjunction with -p to provide patch file.
+    
+    Only need to apply the flag once to turn on diff mode
+
+    ```shell
+    $ gopatch -d -p foo.patch -p bar.patch path/to/my/project
+    ```
+
+    If this flag is omitted, normal patching occurs which modifies the
+    file instead.
+
+   
 
 # Patches
 
@@ -452,7 +512,107 @@ if err := foo(); err != nil {
 For more on elision, see [Patches in depth/Elision].
 
   [Patches in depth/Elision]: docs/PatchesInDepth.md#elision
+## Comments
+Patches come with comments to give more context about what they do.
 
+Comments are prefixed by '#'
+
+For example:
+```
+# This patch replaces instances of time.Now().Sub(x)
+# with time.Since(x) where x is an identifier variable
+@@
+# Var x is in the metavariable section 
+var x identifier
+@@
+
+-time.Now().Sub(x)
++time.Since(x)
+# We replace time.Now().Sub(x)
+# with time.Since(x)
+
+```
+#### Description comments
+These are the comments which explain what the patch does. There is
+no requirement for the patches to contain them but they are encouraged
+to give more context to the user. 
+The Description comments must occur just before the metavariable 
+section.
+
+For example:
+```
+# Description comments
+# This patch replaces instances of time.Now().Sub(x)
+# with time.Since(x) where x is an identifier variable
+@@
+# Not a description comment
+var x identifier
+@@
+
+-time.Now().Sub(x)
++time.Since(x)
+# Not a description comment
+# Not a description comment
+
+```
+Patch files which have multiple patches can have mutiple description
+comments. For example
+```
+# 1st patch Description comment
+# This patch replaces instances of fmt.Sprintf()
+# with fmt.Errorf()
+# Patch files can be applied to mutiple files
+@@
+
+@@
+
+# Not a description comment
+-import "errors"
+-errors.New(fmt.Sprintf(...))
++fmt.Errorf(...)
+
+# Start of 2nd Patch Description comment
+# This patch replaces instances of time.Now().Sub(x)
+# with time.Since(x) where x is an identifier variable
+@@
+var x identifier
+@@
+
+-time.Now().Sub(x)
++time.Since(x)
+# Not a description comment
+```
+
+#### Usage during diff mode
+When diff mode is turned on by the '-d' flag we also display the 
+description/title comments of only the applied patches to help 
+the user understand what the patches do.
+
+```shell
+$ gopatch -d -p ~/s1028.patch testdata/test_files/diff_example/error.go
+```
+```
+  This patch replaces instances of fmt.Sprintf()
+  with fmt.Errorf()
+  Patch files can be applied to mutiple files
+  --- gopatch/testdata/test_files/diff_example/error.go
+  +++ gopatch/testdata/test_files/diff_example/error.go
+  @@ -7,7 +7,7 @@
+ 
+  func foo() error {
+          err := errors.New("test")
+  -       return errors.New(fmt.Sprintf("error: %v", err))
+  +       return fmt.Errorf("error: %v", err)
+  }
+ 
+   func main() {
+
+```
+  Note: Only the description comments get displayed during diff mode.
+  Non description comments are ignored. 
+  Moreover, only comments from patches that actually apply on the 
+  target file are shown.
+  
 # Examples
 
 This section lists various example patches you can try in your code.

@@ -1,6 +1,7 @@
 Delete an unnamed import verbatim.
 
 -- in.patch --
+# this patch removes an unnamed import verbatim.
 @@
 @@
 -import "foo"
@@ -23,6 +24,19 @@ func x() {
 	bar()
 }
 
+-- unnamed.diff --
+@@ -1,7 +1,5 @@
+ package x
+ 
+-import "foo"
+-
+ func x() {
+ 	bar()
+ }
+
+-- unnamed.diff.stderr --
+this patch removes an unnamed import verbatim.
+
 -- named.in.go --
 package x
 
@@ -40,3 +54,6 @@ import foo "foo"
 func x() {
 	bar()
 }
+
+-- named.diff --
+-- named.diff.stderr --

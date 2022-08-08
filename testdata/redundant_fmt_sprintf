@@ -1,0 +1,62 @@
+-- redundant_fmt_sprintf.patch --
+# This patch replaces instances of fmt.Sprintf()
+# with fmt.Errorf()
+# Patch files can be applied to mutiple files
+@@
+# comments 5 -
+# comments 6 -
+@@
+# comments 7 -
+-import "errors"
+-errors.New(fmt.Sprintf(...))
++fmt.Errorf(...)
+
+-- error.in.go --
+package patch_examples
+
+import (
+	"errors"
+	"fmt"
+)
+
+func boo() error {
+	err := errors.New("test")
+	return errors.New(fmt.Sprintf("error: %v", err))
+}
+
+func main() {
+	fmt.Println(boo())
+}
+
+-- error.out.go --
+package patch_examples
+
+import (
+	"errors"
+	"fmt"
+)
+
+func boo() error {
+	err := errors.New("test")
+	return fmt.Errorf("error: %v", err)
+}
+
+func main() {
+	fmt.Println(boo())
+}
+
+-- error.diff --
+@@ -7,7 +7,7 @@
+ 
+ func boo() error {
+ 	err := errors.New("test")
+-	return errors.New(fmt.Sprintf("error: %v", err))
++	return fmt.Errorf("error: %v", err)
+ }
+ 
+ func main() {
+
+-- error.diff.stderr --
+This patch replaces instances of fmt.Sprintf()
+with fmt.Errorf()
+Patch files can be applied to mutiple files
