@@ -35,6 +35,7 @@ type Change struct {
 	Name string
 	Meta *Meta
 
+	Comments []string
 	fset     *token.FileSet
 	matcher  FileMatcher
 	replacer FileReplacer
@@ -59,6 +60,7 @@ func (c *compiler) compileChange(achange *parse.Change) *Change {
 		fset:     c.fset,
 		matcher:  matcher,
 		replacer: replacer,
+		Comments: achange.Comments,
 	}
 }
 

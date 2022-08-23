@@ -1,0 +1,54 @@
+-- replace_with_time_since.patch --
+# This patch replaces time.Now.Sub()
+# with time.Since()
+@@
+# comments 11 -
+# comments 12 -
+var x identifier
+@@
+-time.Now().Sub(x)
++time.Since(x)
+# comments 11 -
+# comments 12 -
+
+-- time.in.go --
+package patch_examples
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	startOfYear := time.Date(2021, 01, 01, 0, 0, 0, 0, time.UTC)
+	result := time.Now().Sub(startOfYear)
+	fmt.Println(result)
+}
+
+-- time.out.go --
+package patch_examples
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	startOfYear := time.Date(2021, 01, 01, 0, 0, 0, 0, time.UTC)
+	result := time.Since(startOfYear)
+	fmt.Println(result)
+}
+
+-- time.diff --
+@@ -7,6 +7,6 @@
+ 
+ func main() {
+ 	startOfYear := time.Date(2021, 01, 01, 0, 0, 0, 0, time.UTC)
+-	result := time.Now().Sub(startOfYear)
++	result := time.Since(startOfYear)
+ 	fmt.Println(result)
+ }
+
+-- time.diff.stderr --
+This patch replaces time.Now.Sub()
+with time.Since()

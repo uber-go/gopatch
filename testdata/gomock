@@ -32,6 +32,21 @@ func TestFoo(t *testing.T) {
 	run(NewFooMock(ctrl))
 }
 
+-- foo_test.diff --
+@@ -8,7 +8,6 @@
+ 
+ func TestFoo(t *testing.T) {
+ 	ctrl := gomock.NewController(t)
+-	defer ctrl.Finish()
+ 
+ 	run(NewFooMock(ctrl))
+ }
+
+-- foo_test.diff.stderr --
+In gomock 1.50, the Controller.Finish method is called automatically when
+the test finishes running. We no longer need to call mockCtrl.Finish
+manually.
+
 -- bar_test.in.go --
 package bar
 
@@ -65,6 +80,21 @@ func TestBar(t *testing.T) {
 	run(NewBarMock(ctrl))
 }
 
+-- bar_test.diff --
+@@ -9,7 +9,6 @@
+ func TestBar(t *testing.T) {
+ 	ctrl := gomock.NewController(t)
+ 	dir := t.TempDir()
+-	defer ctrl.Finish()
+ 
+ 	run(NewBarMock(ctrl))
+ }
+
+-- bar_test.diff.stderr --
+In gomock 1.50, the Controller.Finish method is called automatically when
+the test finishes running. We no longer need to call mockCtrl.Finish
+manually.
+
 -- named_import.in.go --
 package baz
 
@@ -95,3 +125,18 @@ func TestBaz(t *testing.T) {
 
 	run(NewBazMock(mockCtrl))
 }
+
+-- named_import.diff --
+@@ -8,7 +8,6 @@
+ 
+ func TestBaz(t *testing.T) {
+ 	mockCtrl := mock.NewController(t)
+-	defer mockCtrl.Finish()
+ 
+ 	run(NewBazMock(mockCtrl))
+ }
+
+-- named_import.diff.stderr --
+In gomock 1.50, the Controller.Finish method is called automatically when
+the test finishes running. We no longer need to call mockCtrl.Finish
+manually.

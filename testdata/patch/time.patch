@@ -1,0 +1,11 @@
+# This patch replaces instances of time.Now().Sub(x)
+# with time.Since(x) where x is an identifier variable
+@@
+# comments 11 -
+# comments 12 -
+var x identifier
+@@
+-time.Now().Sub(x)
++time.Since(x)
+# comments 11 -
+# comments 12 -

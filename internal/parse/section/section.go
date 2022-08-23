@@ -55,6 +55,9 @@ type Change struct {
 	// Patch is the patch section of the change. This is the code after the
 	// second @@.
 	Patch Section
+
+	// Comments in the patch
+	Comments []string
 }
 
 var _ ast.Node = (*Change)(nil)
@@ -109,8 +112,9 @@ type programSplitter struct {
 	file    *token.File // file to feed newline information
 	content []byte      // raw source
 
-	text []byte    // contents of the current line
-	pos  token.Pos // position at which text begins
+	text         []byte    // contents of the current line
+	pos          token.Pos // position at which text begins
+	lastComments []string  // last comment stored before the section
 
 	eof bool // whether we've reached EOF
 
@@ -139,8 +143,9 @@ func (p *programSplitter) skipUntilEOL() {
 	}
 }
 
-// Advances the scanner to the next non-comment line.
+// Advances the scanner to the next non-comment line and collects the last comments.
 func (p *programSplitter) next() {
+	p.lastComments = nil // setting last comments to empty string whenever encounter non comment line
 	for ; p.offset < len(p.content); p.offset++ {
 		p.startOffset = p.offset
 		p.skipUntilEOL()
@@ -151,6 +156,7 @@ func (p *programSplitter) next() {
 			p.offset++
 			return
 		}
+		p.lastComments = append(p.lastComments, string(bytes.TrimSpace(p.text[1:])))
 	}
 
 	// Reached EOF.
@@ -181,6 +187,7 @@ func (p *programSplitter) readChange() *Change {
 	// Can't use a struct literal here because readName and readMeta advance
 	// p.pos between HeaderPos and AtPos.
 	var c Change
+	c.Comments = p.lastComments
 	c.HeaderPos = p.pos
 	c.Name = p.readName()
 	c.Meta = p.readMeta()

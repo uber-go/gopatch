@@ -37,6 +37,7 @@ import (
 	"strings"
 
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/diff"
 	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
 	"github.com/uber-go/gopatch/internal/parse"
@@ -46,18 +47,21 @@ import (
 
 func main() {
 	log.SetFlags(0)
-	if err := run(os.Args[1:], os.Stdin, os.Stderr); err != nil {
+	if err := run(os.Args[1:], os.Stdin, os.Stderr, os.Stdout); err != nil {
 		log.Fatal(err)
 	}
 }
 
+type arguments struct {
+	Patterns []string `positional-arg-name:"pattern"`
+}
+
 type options struct {
-	Patches        []string `short:"p" long:"patch" value-name:"file"`
-	DisplayVersion bool     `long:"version"`
-	Args           struct {
-		Patterns []string `positional-arg-name:"pattern"`
-	} `positional-args:"yes"`
-	Verbose bool `short:"v" long:"verbose"`
+	Patches        []string  `short:"p" long:"patch" value-name:"file"`
+	Diff           bool      `short:"d" long:"diff"`
+	DisplayVersion bool      `long:"version"`
+	Args           arguments `positional-args:"yes"`
+	Verbose        bool      `short:"v" long:"verbose"`
 }
 
 func newArgParser() (*flags.Parser, *options) {
@@ -79,6 +83,9 @@ func newArgParser() (*flags.Parser, *options) {
 		"Path to a patch file specifying the code transformation. " +
 			"Multiple patches may be provided to be applied in-order. " +
 			"If the flag is omitted, a patch will be read from stdin."
+
+	parser.FindOptionByLongName("diff").Description =
+		"Print a diff of the proposed changes to stdout but don't modify any files."
 
 	parser.Args()[0].Description =
 		"One or more files or directores containing Go code. " +
@@ -193,12 +200,23 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
-func run(args []string, stdin io.Reader, stderr io.Writer) error {
+func preview(
+	filename string,
+	originalContent, modifiedContent []byte,
+	comments []string,
+	stderr, stdout io.Writer,
+) error {
+	for _, c := range comments {
+		fmt.Fprintln(stderr, c)
+	}
+	return diff.Text(filename, filename, originalContent, modifiedContent, stdout)
+}
+
+func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
 		return err
 	}
-
 	if opts.DisplayVersion {
 		fmt.Fprintln(stderr, "gopatch "+_version)
 		return nil
@@ -232,15 +250,18 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 
 	var errors []error
 	for _, filename := range files {
-		f, err := parser.ParseFile(fset, filename, nil /* src */, parser.AllErrors|parser.ParseComments)
+		content, err := os.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+		f, err := parser.ParseFile(fset, filename, content /* src */, parser.AllErrors|parser.ParseComments)
 		if err != nil {
 			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("could not parse %q: %v", filename, err))
 			continue
 		}
 
-		f, ok := patchRunner.Apply(filename, f)
-
+		f, comments, ok := patchRunner.Apply(filename, f)
 		// If at least one patch didn't match, there's nothing to do.
 		if !ok {
 			log.Printf("%s: skipped", filename)
@@ -266,7 +287,12 @@ func run(args []string, stdin io.Reader, stderr io.Writer) error {
 			continue
 		}
 
-		if err := ioutil.WriteFile(filename, bs, 0644); err != nil {
+		if opts.Diff {
+			err = preview(filename, content, bs, comments, stderr, stdout)
+		} else {
+			err = os.WriteFile(filename, bs, 0644)
+		}
+		if err != nil {
 			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, err)
 			continue
@@ -291,10 +317,9 @@ func newPatchRunner(fset *token.FileSet, patches []*engine.Program) *patchRunner
 	}
 }
 
-func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
+func (r *patchRunner) Apply(filename string, f *ast.File) (fout *ast.File, comments []string, matched bool) {
 	snap := astdiff.Before(f, ast.NewCommentMap(r.fset, f, f.Comments))
 
-	matched := false
 	for _, prog := range r.patches {
 		for _, c := range prog.Changes {
 			d, ok := c.Match(f)
@@ -304,22 +329,23 @@ func (r *patchRunner) Apply(filename string, f *ast.File) (*ast.File, bool) {
 			}
 
 			matched = true
+			comments = c.Comments
 
 			cl := engine.NewChangelog()
 
 			var err error
-			f, err = c.Replace(d, cl)
+			fout, err = c.Replace(d, cl)
 			if err != nil {
 				r.errors = append(r.errors, fmt.Errorf("could not update %q: %v", filename, err))
-				return nil, false
+				return nil, comments, false
 			}
 
-			snap = snap.Diff(f, cl)
-			cleanupFilePos(r.fset.File(f.Pos()), cl, f.Comments)
+			snap = snap.Diff(fout, cl)
+			cleanupFilePos(r.fset.File(fout.Pos()), cl, fout.Comments)
 		}
 	}
 
-	return f, matched
+	return fout, comments, matched
 }
 
 func cleanupFilePos(tfile *token.File, cl engine.Changelog, comments []*ast.CommentGroup) {

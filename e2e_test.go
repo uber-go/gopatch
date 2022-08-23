@@ -24,6 +24,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,7 +33,6 @@ import (
 	"testing"
 
 	"github.com/rogpeppe/go-internal/txtar"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/multierr"
 )
@@ -118,11 +118,22 @@ func runIntegrationTest(t *testing.T, testFile string) {
 			}
 
 			filePath := filepath.Join(dir, tt.Give)
-			args := append([]string{filePath}, args...)
-			require.NoError(t, run(args, bytes.NewReader(stdin), new(bytes.Buffer)),
-				"could not run patch")
+			if len(tt.WantDiff) > 0 {
+				args := append([]string{"-d", filePath}, args...)
+				var stderr, stdout bytes.Buffer
+				require.NoError(t, run(args, bytes.NewReader(stdin), &stderr, &stdout),
+					"could not run patch")
+				wantSplit := strings.Split(string(tt.WantDiff), "\n")
+				// 1st two lines skipped as they contain absolute path that keeps changing every testcase
+				gotSplit := strings.Split(stdout.String(), "\n")[2:]
+				assert.Equal(t, wantSplit, gotSplit)
+				assert.Equal(t, string(tt.WantComment), stderr.String())
 
-			got, err := ioutil.ReadFile(filePath)
+			}
+			args := append([]string{filePath}, args...)
+			require.NoError(t, run(args, bytes.NewReader(stdin), new(bytes.Buffer), new(bytes.Buffer)),
+				"could not run patch")
+			got, err := os.ReadFile(filePath)
 			require.NoErrorf(t, err, "failed to read %q", filePath)
 			assert.Equal(t, string(tt.Want), string(got))
 		})
@@ -157,10 +168,12 @@ var testsToSkip = map[string]struct{}{
 }
 
 const (
-	_patch = ".patch"
-	_in    = ".in.go"
-	_out   = ".out.go"
-	_go    = ".go"
+	_patch  = ".patch"
+	_in     = ".in.go"
+	_out    = ".out.go"
+	_go     = ".go"
+	_diff   = ".diff"
+	_stderr = ".diff.stderr"
 )
 
 type testArchive struct {
@@ -185,6 +198,12 @@ type testFile struct {
 	// Expected contents of the Go file after the patches have been
 	// applied.
 	Want []byte
+
+	// Expected diff if tool run in --diff mode
+	WantDiff []byte
+
+	// Expected comment if tool run in --diff mode
+	WantComment []byte
 }
 
 // Loads a test archive in-memory.
@@ -230,6 +249,15 @@ func loadTestArchive(path string) (*testArchive, error) {
 			f.Data = singleTrailingNewline(f.Data)
 
 			getTestFile(name).Give = f.Name
+
+		case strings.HasSuffix(f.Name, _diff):
+			name := strings.TrimSuffix(f.Name, _diff) // foo.diff => foo
+			getTestFile(name).WantDiff = singleTrailingNewline(f.Data)
+
+		case strings.HasSuffix(f.Name, _stderr):
+			name := strings.TrimSuffix(f.Name, _stderr)
+			getTestFile(name).WantComment = singleTrailingNewline(f.Data)
+
 		case strings.HasSuffix(f.Name, _out):
 			name := strings.TrimSuffix(f.Name, _out) // foo.out.go => foo
 			getTestFile(name).Want = singleTrailingNewline(f.Data)

@@ -36,5 +36,6 @@ func (p *parser) parseChange(i int, c *section.Change) (_ *Change, err error) {
 		return nil, err
 	}
 
+	change.Comments = c.Comments
 	return &change, nil
 }

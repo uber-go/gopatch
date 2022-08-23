@@ -114,6 +114,7 @@ func TestSplit(t *testing.T) {
 				{
 					HeaderPos: 1,
 					AtPos:     4,
+					Comments:  nil,
 				},
 			},
 			wantPosInfo: map[token.Pos]posInfo{
@@ -133,6 +134,7 @@ func TestSplit(t *testing.T) {
 					Name:      "foo4_2",
 					HeaderPos: 1,
 					AtPos:     12,
+					Comments:  nil,
 				},
 			},
 		},
@@ -156,6 +158,7 @@ func TestSplit(t *testing.T) {
 						line(24, "-x()"),
 						line(29, "+x(42)"),
 					},
+					Comments: nil,
 				},
 			},
 			wantPosInfo: map[token.Pos]posInfo{
@@ -188,6 +191,8 @@ func TestSplit(t *testing.T) {
 						line(88, "-x()"),
 						line(129, "+x(42)"),
 					},
+					Comments: []string{
+						"This patch adds an argument."},
 				},
 			},
 			wantPosInfo: map[token.Pos]posInfo{
@@ -217,6 +222,7 @@ func TestSplit(t *testing.T) {
 						line(27, " bar(1, 2)"),
 						line(38, "+baz(1, 2)"),
 					},
+					Comments: nil,
 				},
 			},
 		},
@@ -235,6 +241,7 @@ func TestSplit(t *testing.T) {
 					Patch: Section{
 						line(10, "-foo()"),
 					},
+					Comments: nil,
 				},
 			},
 		},
@@ -264,6 +271,7 @@ func TestSplit(t *testing.T) {
 						line(44, "+err := foo(...)"),
 						line(61, ""),
 					},
+					Comments: nil,
 				},
 				{
 					HeaderPos: 62,
@@ -275,6 +283,7 @@ func TestSplit(t *testing.T) {
 					Patch: Section{
 						line(95, "-foo()"),
 					},
+					Comments: nil,
 				},
 			},
 		},
