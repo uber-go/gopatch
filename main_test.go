@@ -162,3 +162,45 @@ func TestPreview(t *testing.T) {
 		assert.Equal(t, expectedString, outputString)
 	})
 }
+
+func TestPrintComments(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		tests := []struct {
+			give []string
+			name string
+			want string
+		}{
+			{
+				name: "single line comment",
+				give: []string{"Since, gomock 1.5.0, Controller.Finish does not need to be called manually"},
+				want: "Since, gomock 1.5.0, Controller.Finish does not need to be called manually\n",
+			},
+			{
+				name: "multiple line comment",
+				give: []string{"#This is the firstline of the comment", " This is",
+					"a multiple line comment.", "This is the 3rd line of the comment"},
+				want: "#This is the firstline of the comment\n" + " This is\n" +
+					"a multiple line comment.\n" + "This is the 3rd line of the comment\n",
+			},
+			{
+				name: "empty comment",
+				give: []string{""},
+				want: "\n",
+			},
+			{
+				name: "nil comment",
+				give: []string(nil),
+				want: "",
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				var stderr bytes.Buffer
+				printComments(tt.give, &stderr)
+				got := stderr.String()
+				assert.Equal(t, tt.want, got)
+			})
+		}
+
+	})
+}
