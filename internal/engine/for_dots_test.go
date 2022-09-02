@@ -36,7 +36,7 @@ import (
 // statements based on the provided booleans. If everything is true,
 // generates,
 //
-//  for i ;= 0; i < 10; i++ { $body }
+//	for i ;= 0; i < 10; i++ { $body }
 func forStmtWith(init, cond, post bool, body *ast.BlockStmt) *ast.ForStmt {
 	stmt := &ast.ForStmt{Body: body}
 
@@ -71,7 +71,7 @@ func forStmtWith(init, cond, post bool, body *ast.BlockStmt) *ast.ForStmt {
 // Generates a RangeStmt with the provided body and Key and Value set based on
 // the provided booleans. If everything is true, generates,
 //
-//  for i, v := range x { $body }
+//	for i, v := range x { $body }
 func rangeStmtWith(key, value bool, body *ast.BlockStmt) *ast.RangeStmt {
 	stmt := &ast.RangeStmt{
 		X:    ast.NewIdent("x"),

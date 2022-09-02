@@ -29,7 +29,6 @@ import (
 	"go/parser"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -106,7 +105,7 @@ func parseAndCompile(fset *token.FileSet, name string, src []byte) (*engine.Prog
 func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine.Program, error) {
 	if len(opts.Patches) == 0 {
 		// No patches. Read from stdin.
-		src, err := ioutil.ReadAll(stdin)
+		src, err := io.ReadAll(stdin)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +121,7 @@ func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine
 	// Load each patch provided with "-p".
 	var progs []*engine.Program
 	for _, path := range opts.Patches {
-		src, err := ioutil.ReadFile(path)
+		src, err := os.ReadFile(path)
 		if err != nil {
 			return nil, fmt.Errorf("could not read %q: %v", path, err)
 		}

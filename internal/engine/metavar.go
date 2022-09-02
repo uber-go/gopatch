@@ -33,10 +33,10 @@ import (
 // MetavarMatcher is compiled from a metavarible occurring in the minus
 // section of the patch.
 //
-//  @@
-//  var x expression
-//  @@
-//  -foo(x, x)
+//	@@
+//	var x expression
+//	@@
+//	-foo(x, x)
 //
 // The first time a metavariable occurs in the patch, it matches and captures
 // a value of the requested type. For any consecutive appearances of the
@@ -122,20 +122,20 @@ func isIdent(t reflect.Type) bool {
 // MetavarReplacer is compiled from a metavarible occurring in the plus
 // section of the patch.
 //
-//  @@
-//  var x expression
-//  @@
-//  -foo(x)
-//  +bar(x)
+//	@@
+//	var x expression
+//	@@
+//	-foo(x)
+//	+bar(x)
 //
 // A metavariable cannot be referenced in the plus secton of the patch if it
 // wasn't in the minus section. For example, the following is invalid.
 //
-//  @@
-//  var x expression
-//  @@
-//  -foo()
-//  +foo(x)
+//	@@
+//	var x expression
+//	@@
+//	-foo()
+//	+foo(x)
 //
 // Each occurrence of the metavariable in the plus section of the patch is
 // replaced with the value originally captured for it by the Matcher.

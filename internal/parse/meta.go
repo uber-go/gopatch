@@ -104,7 +104,7 @@ func (p *metaParser) parse() *Meta {
 
 // Parses and returns a VarDecl.
 //
-//   var x, y, z Foo
+//	var x, y, z Foo
 func (p *metaParser) parseDecl() *VarDecl {
 	defer p.next()
 

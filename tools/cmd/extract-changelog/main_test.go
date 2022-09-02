@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -51,7 +51,7 @@ func TestMain(t *testing.T) {
 
 	changelog := filepath.Join(t.TempDir(), "CHANGELOG.md")
 	require.NoError(t,
-		ioutil.WriteFile(changelog, []byte(_changelog), 0644))
+		os.WriteFile(changelog, []byte(_changelog), 0644))
 
 	tests := []struct {
 		desc string
