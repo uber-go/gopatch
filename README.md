@@ -61,7 +61,7 @@ transformations, it can be smarter because it understands Go syntax.
 Download a **pre-built binary** of gopatch from the [Releases page] or by
 running the following command in your terminal and place it on your `$PATH`.
 
-  [Releases page]: https://github.com/uber-go/gopatch/releases
+[Releases page]: https://github.com/uber-go/gopatch/releases
 
 ```bash
 VERSION=0.1.0
@@ -95,10 +95,10 @@ This patch is a fix for staticcheck [S1028]. It searches for uses of
 [`fmt.Sprintf`] with [`errors.New`], and simplifies them by replacing them
 with [`fmt.Errorf`].
 
-  [S1028]: https://staticcheck.io/docs/checks#S1028
-  [`fmt.Sprintf`]: https://golang.org/pkg/fmt/#Sprintf
-  [`errors.New`]: https://golang.org/pkg/errors/#New
-  [`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
+[S1028]: https://staticcheck.io/docs/checks#S1028
+[`fmt.Sprintf`]: https://golang.org/pkg/fmt/#Sprintf
+[`errors.New`]: https://golang.org/pkg/errors/#New
+[`fmt.Errorf`]: https://golang.org/pkg/fmt/#Errorf
 
 For example,
 
@@ -112,21 +112,21 @@ return fmt.Errorf("invalid port: %v", err)
 
 -  `cd` to your Go project's directory.
 
-  ```shell
-  $ cd ~/go/src/example.com/myproject
-  ```
+    ```shell
+    $ cd ~/go/src/example.com/myproject
+    ```
 
-  Run `gopatch` on the project, supplying the previously written patch with the
-  `-p` flag.
+   Run `gopatch` on the project, supplying the previously written patch with the
+   `-p` flag.
 
-  ```shell
-  $ gopatch -p ~/s1028.patch ./...
-  ```
+    ```shell
+    $ gopatch -p ~/s1028.patch ./...
+    ```
 
-  This will apply the patch on all Go code in your project.
+   This will apply the patch on all Go code in your project.
 
-  Check if there were any instances of this issue in your code by running
-  `git diff`.
+   Check if there were any instances of this issue in your code by running
+   `git diff`.
 - Instead, `cd` to your Go project's directory.
 
   ```shell
@@ -142,14 +142,14 @@ return fmt.Errorf("invalid port: %v", err)
 
   This will turn on diff mode and will write the diff to stdout instead of modifying all
   the Go code in your project. To provide more context on what the patch does, if
-  there were description comments in the patch, they will also get displayed at 
+  there were description comments in the patch, they will also get displayed at
   the top. To learn more about description comments jump to section [here](#description-comments)
-  
+
   For example if we applied patch ~/s1028 to our testfile error.go
   ```shell
   $ gopatch -d -p ~/s1028.patch ./testdata/test_files/diff_example/
   ```
-  Output would be : 
+  Output would be :
   ```
   This patch replaces instances of fmt.Sprintf()
   with fmt.Errorf()
@@ -168,18 +168,62 @@ return fmt.Errorf("invalid port: %v", err)
 
   ```
   Note: Only the description comments of patches that actually **apply** are displayed.
+- `cd` to your Go project's directory.
+
+  ```shell
+  $ cd ~/go/src/example.com/myproject
+  ```
+
+  Run `gopatch` on the project, supplying the previously written patch with the
+  `-p` flag along with '--print-only' flag.
+
+  ```shell
+  $ gopatch --print-only -p ~/s1028.patch ./...
+  ```
+
+  This will turn on print-only mode and will print the changed code stdout instead of modifying
+  all the Go code in your project. To provide more context on what the patch does, if
+  there were description comments in the patch, they will be printed to stderr .
+  To learn more about description comments jump to section [here](#description-comments)
+
+  For example if we applied patch error.patch to our testfile error.go
+  ```shell
+  $ gopatch --print-only -p ./testdata/patch/error.go ./testdata/test_files/diff_example/
+  ```
+  Output would be :
+  ```
+  This patch replaces instances of fmt.Sprintf()
+  with fmt.Errorf()
+  Patch files can be applied to mutiple files
+  package diff_example
+
+  import (
+        "errors"
+        "fmt"
+  )
+
+  func boo() error {
+        err := errors.New("test")
+        return fmt.Errorf("error: %v", err)
+  }
+
+  func main() {
+        fmt.Println(boo())
+  }
+  ```
+  Note: Only the description comments of patches that actually **apply** are displayed.
 
 ## Next steps
 
 To learn how to write your own patches, move on to the [Patches] section. To
 dive deeper into patches, check out [Patches in depth].
 
-  [Patches in depth]: docs/PatchesInDepth.md
+[Patches in depth]: docs/PatchesInDepth.md
 
 To experiment with other sample patches, check out the [Examples] section.
 
-  [Patches]: #patches
-  [Examples]: #examples
+[Patches]: #patches
+[Examples]: #examples
 
 # Usage
 
@@ -199,16 +243,16 @@ gopatch supports the following command line options.
 
 - `-p file`, `--patch=file`
 
-    Path to a patch file specifying a transformation. Read more about the
-    patch file format in [Patches].
+  Path to a patch file specifying a transformation. Read more about the
+  patch file format in [Patches].
 
-    Provide this flag multiple times to apply multiple patches in-order.
+  Provide this flag multiple times to apply multiple patches in-order.
 
     ```shell
     $ gopatch -p foo.patch -p bar.patch path/to/my/project
     ```
 
-    If this flag is omitted, a patch is expected on stdin.
+  If this flag is omitted, a patch is expected on stdin.
 
     ```shell
     $ gopatch path/to/my/project << EOF
@@ -220,20 +264,33 @@ gopatch supports the following command line options.
     ```
 - `-d`, `--diff`
 
-    Flag to turn on diff mode. Provide this flag to write the diff to stdout instead
-    of modifying the file and display applied patches' [description comments](#description-comments) if they exist. 
-    Use in conjunction with -p to provide patch file.
-    
-    Only need to apply the flag once to turn on diff mode
+  Flag to turn on diff mode. Provide this flag to write the diff to stdout instead
+  of modifying the file and display applied patches' [description comments](#description-comments) if they exist.
+  Use in conjunction with -p to provide patch file.
+
+  Only need to apply the flag once to turn on diff mode
 
     ```shell
     $ gopatch -d -p foo.patch -p bar.patch path/to/my/project
     ```
 
-    If this flag is omitted, normal patching occurs which modifies the
-    file instead.
+  If this flag is omitted, normal patching occurs which modifies the
+  file instead.
+- `--print-only`
 
-   
+  Flag to turn on print-only mode. Provide this flag to write the changed code to stdout instead of modifying the
+  file and display applied patches' [description comments](#description-comments) to stderr if they exist.
+  Use in conjunction with -p to provide patch file.
+
+  Only need to apply the flag once to turn on print-only mode
+
+    ```shell
+    $ gopatch --print-only -p foo.patch -p bar.patch path/to/my/project
+    ```
+
+  If this flag is omitted, normal patching occurs which modifies the
+  file instead.
+
 
 # Patches
 
@@ -313,7 +370,7 @@ for later reuse.
 > Check the [Identifiers vs expressions vs statements] section of the appendix
 > for more.
 
-  [Identifiers vs expressions vs statements]: docs/Appendix.md#identifiers-vs-expressions-vs-statements
+[Identifiers vs expressions vs statements]: docs/Appendix.md#identifiers-vs-expressions-vs-statements
 
 So the following patch will search for invocations of `foo` with a single
 argument---any argument---and replace them with invocations of `bar` with the
@@ -353,7 +410,7 @@ var x expression
 
 For more on metavariables see [Patches in depth/Metavariables].
 
-  [Patches in depth/Metavariables]: docs/PatchesInDepth.md#metavariables
+[Patches in depth/Metavariables]: docs/PatchesInDepth.md#metavariables
 
 ## Statements
 
@@ -393,7 +450,7 @@ The patch will search for code that assigns to an error variable immediately
 before returning it, and inlines the assignment into the `if` statement. This
 effectively [reduces the scope of the variable] to just the `if` statement.
 
-  [reduces the scope of the variable]: https://github.com/uber-go/guide/blob/master/style.md#reduce-scope-of-variables
+[reduces the scope of the variable]: https://github.com/uber-go/guide/blob/master/style.md#reduce-scope-of-variables
 
 <table>
 <thead><tr><th>Input</th><th>Output</th></tr></thead>
@@ -438,7 +495,7 @@ if err := comment.Submit(ctx); err != nil {
 
 For more on transforming statements, see [Patches In Depth/Statements].
 
-  [Patches In Depth/Statements]: docs/PatchesInDepth.md#statements
+[Patches In Depth/Statements]: docs/PatchesInDepth.md#statements
 
 ## Elision
 
@@ -468,7 +525,7 @@ have.
 Going back to the patch from [Statements], we can instead write the following
 patch.
 
-  [Statements]: #statements
+[Statements]: #statements
 
 ```diff
 @@
@@ -511,7 +568,7 @@ if err := foo(); err != nil {
 
 For more on elision, see [Patches in depth/Elision].
 
-  [Patches in depth/Elision]: docs/PatchesInDepth.md#elision
+[Patches in depth/Elision]: docs/PatchesInDepth.md#elision
 ## Comments
 Patches come with comments to give more context about what they do.
 
@@ -535,8 +592,8 @@ var x identifier
 #### Description comments
 These are the comments which explain what the patch does. There is
 no requirement for the patches to contain them but they are encouraged
-to give more context to the user. 
-The Description comments must occur just before the metavariable 
+to give more context to the user.
+The Description comments must occur just before the metavariable
 section.
 
 For example:
@@ -583,10 +640,10 @@ var x identifier
 # Not a description comment
 ```
 
-#### Usage during diff mode
-When diff mode is turned on by the '-d' flag we also display the 
-description/title comments of only the applied patches to help 
-the user understand what the patches do.
+#### Usage during diff and print-only mode
+When diff or print-only mode is turned on by the '-d' or '--print-only' flag respectively we also display the
+description/title comments of only the applied patches to help
+the user understand what the patches do. The comments are printed to stderr
 
 ```shell
 $ gopatch -d -p ~/s1028.patch testdata/test_files/diff_example/error.go
@@ -608,11 +665,11 @@ $ gopatch -d -p ~/s1028.patch testdata/test_files/diff_example/error.go
    func main() {
 
 ```
-  Note: Only the description comments get displayed during diff mode.
-  Non description comments are ignored. 
-  Moreover, only comments from patches that actually apply on the 
-  target file are shown.
-  
+Note: Only the description comments get displayed during diff & print-only mode.
+Non description comments are ignored.
+Moreover, only comments from patches that actually apply on the
+target file are shown.
+
 # Examples
 
 This section lists various example patches you can try in your code.
