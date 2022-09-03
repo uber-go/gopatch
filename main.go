@@ -269,7 +269,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 
 		f, comments, ok := patchRunner.Apply(filename, f)
 		// If at least one patch didn't match, there's nothing to do.
+		// If --print was passed, print the contents out as-is.
 		if !ok {
+			if opts.Print {
+				if _, err := stdout.Write(content); err != nil {
+					return err
+				}
+			}
 			log.Printf("%s: skipped", filename)
 			continue
 		}
