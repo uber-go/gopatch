@@ -22,6 +22,8 @@ type Request struct {
 }
 
 -- alone.diff --
+--- alone.go
++++ alone.go
 @@ -1,5 +1,4 @@
  package alone
  
@@ -48,6 +50,8 @@ type Request struct {
 }
 
 -- triple.diff --
+--- triple.go
++++ triple.go
 @@ -2,6 +2,6 @@
  
  type Request struct {

@@ -113,6 +113,11 @@ func runIntegrationTest(t *testing.T, testFile string) {
 			Stdin:  bytes.NewReader(stdin),
 			Stdout: &stdoutbuf,
 			Stderr: &stderrbuf,
+			Getwd: func() (string, error) {
+				// cwd is always the directory inside which we
+				// extracted the txtar.
+				return dir, nil
+			},
 		}
 		err = cmd.Run(append(extraArgs, args...))
 		return stdoutbuf.String(), stderrbuf.String(), err
@@ -124,13 +129,13 @@ func runIntegrationTest(t *testing.T, testFile string) {
 				t.Skipf("skipping unfixed test case %v/%v", testFile, tt.Name)
 			}
 
-			filePath := filepath.Join(dir, tt.Give)
+			filePath := tt.Give
 			t.Run("diff", func(t *testing.T) {
 				stdout, stderr, err := run("-d", filePath)
 				require.NoError(t, err, "could not run patch")
 				assert.Equal(t,
 					string(tt.WantDiff),
-					dropLinesN(stdout, 2), // first two lines file paths, which are dynamic
+					stdout,
 					"output of --diff did not match")
 				assert.Equal(t, string(tt.WantComment), stderr)
 			})
@@ -145,23 +150,11 @@ func runIntegrationTest(t *testing.T, testFile string) {
 			_, _, err := run(filePath)
 			require.NoError(t, err, "could not run patch")
 
-			got, err := os.ReadFile(filePath)
+			got, err := os.ReadFile(filepath.Join(dir, filePath))
 			require.NoError(t, err, "failed to read %q", filePath)
 			assert.Equal(t, string(tt.Want), string(got))
 		})
 	}
-}
-
-// drops up to N lines from the start of the given string.
-func dropLinesN(s string, n int) string {
-	for ; n > 0; n-- {
-		idx := strings.IndexRune(s, '\n')
-		if idx < 0 {
-			return s
-		}
-		s = s[idx+1:]
-	}
-	return s
 }
 
 func skipTest(testFile, testName string) bool {

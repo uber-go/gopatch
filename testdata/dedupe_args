@@ -22,6 +22,8 @@ func bar() {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -1,5 +1,6 @@
  package foo
  
@@ -47,6 +49,8 @@ func baz() {
 }
 
 -- bar.diff --
+--- bar.go
++++ bar.go
 @@ -1,5 +1,6 @@
  package bar
  

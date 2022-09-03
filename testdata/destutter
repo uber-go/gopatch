@@ -44,6 +44,8 @@ func (c *Client) Do(
 }
 
 -- http_client.diff --
+--- http_client.go
++++ http_client.go
 @@ -2,15 +2,15 @@
  
  import "net/http"
@@ -92,6 +94,8 @@ func doStuff(client *http.Client) err {
 }
 
 -- unqualified_import.diff --
+--- unqualified_import.go
++++ unqualified_import.go
 @@ -2,7 +2,7 @@
  
  import "example.com/http"
@@ -129,6 +133,8 @@ func buildClient(c *http.Client) *myhttp.Client {
 }
 
 -- qualified_import.diff --
+--- qualified_import.go
++++ qualified_import.go
 @@ -6,6 +6,6 @@
  	myhttp "example.com/http"
  )

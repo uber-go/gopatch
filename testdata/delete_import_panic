@@ -40,6 +40,8 @@ func Example() {
 }
 
 -- a.diff --
+--- a.go
++++ a.go
 @@ -1,8 +1,8 @@
  package main
  

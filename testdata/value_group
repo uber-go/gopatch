@@ -24,6 +24,8 @@ var (
 )
 
 -- top_level.diff --
+--- top_level.go
++++ top_level.go
 @@ -1,6 +1,6 @@
  package a
  
@@ -56,6 +58,8 @@ func foo() {
 }
 
 -- func.diff --
+--- func.go
++++ func.go
 @@ -2,8 +2,8 @@
  
  func foo() {

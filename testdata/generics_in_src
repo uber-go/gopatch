@@ -34,6 +34,8 @@ func baz() {
 
 
 -- a.diff --
+--- a.go
++++ a.go
 @@ -2,10 +2,10 @@
  
  import "fmt"

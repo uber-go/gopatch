@@ -36,6 +36,8 @@ func X() {
 }
 
 -- mutex.diff --
+--- mutex.go
++++ mutex.go
 @@ -2,6 +2,7 @@
  
  func X() {

@@ -30,6 +30,8 @@ func do() {
 }
 
 -- buffer.diff --
+--- buffer.go
++++ buffer.go
 @@ -2,7 +2,5 @@
  
  func do() {

@@ -26,6 +26,8 @@ func baz() {
 }
 
 -- a.diff --
+--- a.go
++++ a.go
 @@ -1,7 +1,7 @@
  package a
  

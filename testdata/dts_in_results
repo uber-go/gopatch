@@ -22,6 +22,8 @@ func name(foo string, bar int) (string, error) {
 }
 
 -- unnamed.diff --
+--- unnamed.go
++++ unnamed.go
 @@ -1,5 +1,5 @@
  package a
  
@@ -55,6 +57,8 @@ func name(foo string, bar int) (val string, err error) {
 }
 
 -- named.diff --
+--- named.go
++++ named.go
 @@ -1,5 +1,5 @@
  package a
  

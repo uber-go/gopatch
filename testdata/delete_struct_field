@@ -39,6 +39,8 @@ type Bar struct {
 }
 
 -- delete.diff --
+--- delete.go
++++ delete.go
 @@ -2,12 +2,10 @@
  
  type Foo struct {

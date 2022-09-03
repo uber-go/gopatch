@@ -32,6 +32,8 @@ func main() {
 }
 
 -- comment.diff --
+--- comment.go
++++ comment.go
 @@ -2,9 +2,7 @@
  
  package main

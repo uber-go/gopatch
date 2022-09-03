@@ -28,6 +28,8 @@ func x() {
 }
 
 -- x.diff --
+--- x.go
++++ x.go
 @@ -1,7 +1,7 @@
  package foo
  

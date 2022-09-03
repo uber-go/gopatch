@@ -21,6 +21,8 @@ func (r *Receiver) name(bar string) string {
 }
 
 -- has_receiver.diff --
+--- has_receiver.go
++++ has_receiver.go
 @@ -1,5 +1,5 @@
  package a
  

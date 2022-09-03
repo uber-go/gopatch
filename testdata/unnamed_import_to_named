@@ -28,6 +28,8 @@ func foo() {
 }
 
 -- match.diff --
+--- match.go
++++ match.go
 @@ -1,6 +1,6 @@
  package a
  

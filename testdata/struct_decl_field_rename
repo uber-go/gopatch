@@ -27,6 +27,8 @@ type User struct {
 }
 
 -- middle.diff --
+--- middle.go
++++ middle.go
 @@ -1,7 +1,7 @@
  package foo
  

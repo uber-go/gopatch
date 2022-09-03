@@ -82,6 +82,8 @@ func getResponse(ctx context.Context, req *http.Request) (*http.Response, error)
 }
 
 -- two_returns.diff --
+--- two_returns.go
++++ two_returns.go
 @@ -1,8 +1,12 @@
  package main
  

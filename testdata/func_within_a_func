@@ -35,6 +35,8 @@ func foo(close func(*log.Logger) error) string {
 }
 
 -- one_dots.diff --
+--- one_dots.go
++++ one_dots.go
 @@ -5,7 +5,7 @@
  	"os"
  )

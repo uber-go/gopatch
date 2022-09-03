@@ -30,6 +30,8 @@ func x() {
 }
 
 -- has_same_named_import.diff --
+--- has_same_named_import.go
++++ has_same_named_import.go
 @@ -1,6 +1,6 @@
  package bar
  
@@ -60,6 +62,8 @@ func y() {
 }
 
 -- has_different_named_import.diff --
+--- has_different_named_import.go
++++ has_different_named_import.go
 @@ -1,6 +1,6 @@
  package baz
  
@@ -88,6 +92,8 @@ func z() {
 }
 
 -- no_named_import.diff --
+--- no_named_import.go
++++ no_named_import.go
 @@ -1,6 +1,6 @@
  package baz
  

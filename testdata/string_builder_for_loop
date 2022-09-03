@@ -43,6 +43,8 @@ func foo() string {
 }
 
 -- for_loop_three_clauses.diff --
+--- for_loop_three_clauses.go
++++ for_loop_three_clauses.go
 @@ -1,9 +1,13 @@
  package foo
  
@@ -85,6 +87,8 @@ func bar() {
 }
 
 -- for_loop_one_clause.diff --
+--- for_loop_one_clause.go
++++ for_loop_one_clause.go
 @@ -1,8 +1,12 @@
  package bar
  
@@ -131,6 +135,8 @@ func baz() {
 }
 
 -- range_one_result.diff --
+--- range_one_result.go
++++ range_one_result.go
 @@ -1,10 +1,15 @@
  package baz
  
@@ -176,6 +182,8 @@ func qux() {
 }
 
 -- range_two_results.diff --
+--- range_two_results.go
++++ range_two_results.go
 @@ -1,8 +1,12 @@
  package qux
  
@@ -222,6 +230,8 @@ func quux() {
 }
 
 -- range_no_results.diff --
+--- range_no_results.go
++++ range_no_results.go
 @@ -1,10 +1,15 @@
  package quux
  
@@ -267,6 +277,8 @@ func quuz() {
 }
 
 -- range_assign.diff --
+--- range_assign.go
++++ range_assign.go
 @@ -1,8 +1,12 @@
  package quuz
  

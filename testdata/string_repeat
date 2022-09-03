@@ -34,6 +34,8 @@ func do() {
 
 
 -- buffer.diff --
+--- buffer.go
++++ buffer.go
 @@ -1,8 +1,7 @@
  package foo
  

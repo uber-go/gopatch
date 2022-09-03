@@ -27,6 +27,8 @@ func main() {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -1,4 +1,4 @@
 -package foo
 +package bar

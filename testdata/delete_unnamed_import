@@ -25,6 +25,8 @@ func x() {
 }
 
 -- unnamed.diff --
+--- unnamed.go
++++ unnamed.go
 @@ -1,7 +1,5 @@
  package x
  

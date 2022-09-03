@@ -31,6 +31,8 @@ func Do() error {
 }
 
 -- replace.diff --
+--- replace.go
++++ replace.go
 @@ -1,7 +1,7 @@
  package foo
  
@@ -68,6 +70,8 @@ func Do() error {
 }
 
 -- leave_sprintf.diff --
+--- leave_sprintf.go
++++ leave_sprintf.go
 @@ -1,9 +1,12 @@
  package bar
  

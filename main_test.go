@@ -25,6 +25,7 @@ package main
 import (
 	"bytes"
 	"go/token"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -148,6 +149,7 @@ func TestPreview(t *testing.T) {
 			cmd := &mainCmd{
 				Stdout: &stdout,
 				Stderr: &stderr,
+				Getwd:  os.Getwd,
 			}
 
 			comment := []string{"example comment"}
@@ -164,6 +166,7 @@ func TestPreview(t *testing.T) {
 		cmd := &mainCmd{
 			Stdout: &stdout,
 			Stderr: &stderr,
+			Getwd:  os.Getwd,
 		}
 
 		comment := []string{"example comment"}

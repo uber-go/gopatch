@@ -39,6 +39,8 @@ func Foo(context.Context) error {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -2,12 +2,12 @@
  
  import (

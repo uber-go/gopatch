@@ -27,6 +27,8 @@ func stuff() {
 
 
 -- user.diff --
+--- user.go
++++ user.go
 @@ -1,6 +1,6 @@
  package user
  

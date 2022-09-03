@@ -20,6 +20,8 @@ func main() {
 }
 
 -- simple.diff --
+--- simple.go
++++ simple.go
 @@ -1,5 +1,5 @@
  package main
  

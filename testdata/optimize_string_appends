@@ -53,6 +53,8 @@ func run() string {
 }
 
 -- loop.diff --
+--- loop.go
++++ loop.go
 @@ -1,11 +1,15 @@
  package foo
  

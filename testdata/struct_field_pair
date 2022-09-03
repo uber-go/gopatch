@@ -25,6 +25,8 @@ type Config struct {
 }
 
 -- config.diff --
+--- config.go
++++ config.go
 @@ -1,6 +1,5 @@
  package main
  

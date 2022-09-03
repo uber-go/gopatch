@@ -50,6 +50,8 @@ func foo(s string) *bool {
 }
 
 -- remove_all.diff --
+--- remove_all.go
++++ remove_all.go
 @@ -1,13 +1,11 @@
  package main
  
@@ -110,6 +112,8 @@ func foo(s string) *bool {
 }
 
 -- remove_some.diff --
+--- remove_some.go
++++ remove_some.go
 @@ -2,16 +2,18 @@
  
  import (

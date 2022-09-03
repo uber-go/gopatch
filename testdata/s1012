@@ -42,6 +42,8 @@ func main() {
 }
 
 -- example.diff --
+--- example.go
++++ example.go
 @@ -13,5 +13,5 @@
  		log.Fatal(err)
  	}

@@ -27,6 +27,8 @@ func items() []string {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -1,5 +1,7 @@
  package foo
  

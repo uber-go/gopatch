@@ -138,15 +138,29 @@ func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine
 	return progs, nil
 }
 
-func findGoFiles(path string) ([]string, error) {
+// sourcePath is the path to a Go source file.
+type sourcePath struct {
+	// Form closest to what was provided by the user.
+	// If they provided a relative path, this will be relative.
+	Provided string
+
+	// Absolute path to the file.
+	Absolute string
+}
+
+func findGoFiles(cwd, path string) (_ []sourcePath, err error) {
 	// Users may expect "./..."-stlye patterns to work.
 	path = strings.TrimSuffix(path, "...")
-	path, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
+
+	var relativeTo string // empty if path was absolute
+	if !filepath.IsAbs(path) {
+		relativeTo = cwd
+		path = filepath.Join(relativeTo, path)
+	} else {
+		path = filepath.Clean(path) // drop extraneous ., .., etc.
 	}
 
-	var files []string
+	var paths []sourcePath
 	err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -154,10 +168,12 @@ func findGoFiles(path string) ([]string, error) {
 
 		mode := info.Mode()
 		switch {
-		case mode.IsRegular():
-			if strings.HasSuffix(path, ".go") {
-				files = append(files, path)
+		case mode.IsRegular() && strings.HasSuffix(path, ".go"):
+			sp := sourcePath{Absolute: path, Provided: path}
+			if p, err := filepath.Rel(relativeTo, path); err == nil {
+				sp.Provided = p
 			}
+			paths = append(paths, sp)
 
 		case mode.IsDir():
 			base := filepath.Base(path)
@@ -174,36 +190,41 @@ func findGoFiles(path string) ([]string, error) {
 		return nil
 	})
 
-	return files, err
+	return paths, err
 }
 
-func findFiles(patterns []string) (_ []string, err error) {
-	files := make(map[string]struct{})
+func findFiles(cwd string, patterns []string) (_ []sourcePath, err error) {
+	files := make(map[string]sourcePath)
+
 	for _, pat := range patterns {
-		fs, findErr := findGoFiles(pat)
+		fs, findErr := findGoFiles(cwd, pat)
 		if findErr != nil {
 			err = multierr.Append(err, fmt.Errorf("enumerating Go files in %q: %v", pat, err))
 			continue
 		}
 
 		for _, f := range fs {
-			files[f] = struct{}{}
+			files[f.Absolute] = f
 		}
 	}
 
-	sortedFiles := make([]string, 0, len(files))
-	for f := range files {
-		sortedFiles = append(sortedFiles, f)
+	sortedPaths := make([]sourcePath, 0, len(files))
+	for _, p := range files {
+		sortedPaths = append(sortedPaths, p)
 	}
-	sort.Strings(sortedFiles)
+	sort.Slice(sortedPaths, func(i, j int) bool {
+		return sortedPaths[i].Absolute < sortedPaths[j].Absolute
+	})
 
-	return sortedFiles, err
+	return sortedPaths, err
 }
 
 type mainCmd struct {
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
+
+	Getwd func() (string, error) // == os.Getwd
 }
 
 func runMain() (exitCode int) {
@@ -211,6 +232,7 @@ func runMain() (exitCode int) {
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
+		Getwd:  os.Getwd,
 	}
 	if err := cmd.Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(cmd.Stderr, err)
@@ -250,13 +272,19 @@ func (cmd *mainCmd) Run(args []string) error {
 
 	patchRunner := newPatchRunner(fset, progs)
 
-	files, err := findFiles(opts.Args.Patterns)
+	cwd, err := cmd.Getwd()
+	if err != nil {
+		return fmt.Errorf("getwd: %w", err)
+	}
+
+	files, err := findFiles(cwd, opts.Args.Patterns)
 	if err != nil {
 		return err
 	}
 
 	var errors []error
-	for _, filename := range files {
+	for _, sourcePath := range files {
+		filename := sourcePath.Absolute
 		content, err := os.ReadFile(filename)
 		if err != nil {
 			return err
@@ -302,7 +330,7 @@ func (cmd *mainCmd) Run(args []string) error {
 
 		switch {
 		case opts.Diff:
-			err = cmd.preview(filename, content, bs, comments)
+			err = cmd.preview(sourcePath.Provided, content, bs, comments)
 		case opts.Print:
 			cmd.printComments(comments)
 			_, err = cmd.Stdout.Write(bs)

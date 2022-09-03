@@ -50,6 +50,8 @@ func zzz() {
 }
 
 -- stuff.diff --
+--- stuff.go
++++ stuff.go
 @@ -1,12 +1,6 @@
  package stuff
  

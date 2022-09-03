@@ -34,6 +34,8 @@ func bar() (*Result, error) {
 
 
 -- multiple.diff --
+--- multiple.go
++++ multiple.go
 @@ -2,8 +2,7 @@
  
  func bar() (*Result, error) {
@@ -69,6 +71,8 @@ func bar() error {
 }
 
 -- single.diff --
+--- single.go
++++ single.go
 @@ -2,8 +2,7 @@
  
  func bar() error {

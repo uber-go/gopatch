@@ -21,6 +21,8 @@ func bar() error {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -1,4 +1,5 @@
  package foo
  

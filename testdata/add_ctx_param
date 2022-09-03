@@ -34,6 +34,8 @@ func Send(context.Context, string) (*Response, error) {
 }
 
 -- send.diff --
+--- send.go
++++ send.go
 @@ -1,7 +1,7 @@
  package sender
  

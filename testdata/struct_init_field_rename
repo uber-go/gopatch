@@ -30,6 +30,8 @@ func thing() {
 }
 
 -- first.diff --
+--- first.go
++++ first.go
 @@ -2,7 +2,7 @@
  
  func thing() {
@@ -63,6 +65,8 @@ func thing() {
 }
 
 -- middle.diff --
+--- middle.go
++++ middle.go
 @@ -3,7 +3,7 @@
  func thing() {
  	do(User{

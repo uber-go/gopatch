@@ -45,3 +45,7 @@ package main
 func main() {
 	foo(1)
 }
+
+-- a.diff --
+--- a.go
++++ a.go

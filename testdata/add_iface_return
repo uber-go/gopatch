@@ -48,6 +48,8 @@ func (*bar) Do() error {
 }
 
 -- a.diff --
+--- a.go
++++ a.go
 @@ -1,12 +1,13 @@
  package a
  

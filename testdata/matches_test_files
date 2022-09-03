@@ -21,6 +21,8 @@ func y() {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -1,5 +1,5 @@
  package x
  
@@ -48,6 +50,8 @@ func TestThing(t *testing.T) {
 }
 
 -- foo_test.diff --
+--- foo_test.go
++++ foo_test.go
 @@ -3,5 +3,5 @@
  import "testing"
  

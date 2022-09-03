@@ -22,6 +22,8 @@ func foo() {
 }
 
 -- example.diff --
+--- example.go
++++ example.go
 @@ -3,5 +3,5 @@
  import "fmt"
  

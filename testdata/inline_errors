@@ -53,6 +53,8 @@ func bar() (Result, error) {
 }
 
 -- match.diff --
+--- match.go
++++ match.go
 @@ -2,8 +2,7 @@
  
  func bar() (Result, error) {
@@ -119,6 +121,8 @@ func qux() {
 }
 
 -- else.diff --
+--- else.go
++++ else.go
 @@ -1,12 +1,10 @@
  package foo
  
@@ -163,6 +167,8 @@ func foo() error {
 }
 
 -- case.diff --
+--- case.go
++++ case.go
 @@ -3,8 +3,7 @@
  func foo() error {
  	switch bar() {
@@ -202,6 +208,8 @@ func foo(ctx context.Context) error {
 }
 
 -- select.diff --
+--- select.go
++++ select.go
 @@ -3,8 +3,7 @@
  func foo(ctx context.Context) error {
  	select {

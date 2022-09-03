@@ -46,6 +46,8 @@ func main() {
 }
 
 -- error.diff --
+--- error.go
++++ error.go
 @@ -7,7 +7,7 @@
  
  func boo() error {

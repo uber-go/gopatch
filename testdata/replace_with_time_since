@@ -40,6 +40,8 @@ func main() {
 }
 
 -- time.diff --
+--- time.go
++++ time.go
 @@ -7,6 +7,6 @@
  
  func main() {

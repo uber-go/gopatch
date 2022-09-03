@@ -38,6 +38,8 @@ func bar() {
 }
 
 -- named.diff --
+--- named.go
++++ named.go
 @@ -5,7 +5,7 @@
  func bar() {
  	foogit.Initialize(foogit.Params{
@@ -75,6 +77,8 @@ func bar() {
 }
 
 -- unnamed.diff --
+--- unnamed.go
++++ unnamed.go
 @@ -5,7 +5,7 @@
  func bar() {
  	foo.Initialize(foo.Params{

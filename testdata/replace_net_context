@@ -26,6 +26,8 @@ func x() {
 }
 
 -- top_level.diff --
+--- top_level.go
++++ top_level.go
 @@ -1,6 +1,6 @@
  package foo
  
@@ -61,6 +63,8 @@ func x() {
 }
 
 -- import_group.diff --
+--- import_group.go
++++ import_group.go
 @@ -1,9 +1,8 @@
  package foo
  

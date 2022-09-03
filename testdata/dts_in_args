@@ -21,6 +21,8 @@ func name(foo string, thingOne string, thingTwo func(...string) string, bar int)
 }
 
 -- dts_in_args.diff --
+--- dts_in_args.go
++++ dts_in_args.go
 @@ -1,5 +1,5 @@
  package a
  

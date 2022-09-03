@@ -38,6 +38,8 @@ func (b *Bar) String() string {
 }
 
 -- foo.diff --
+--- foo.go
++++ foo.go
 @@ -5,5 +5,8 @@
  }
  
