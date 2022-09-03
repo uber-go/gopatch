@@ -332,7 +332,7 @@ func (cmd *mainCmd) Run(args []string) error {
 		case opts.Diff:
 			err = cmd.preview(sourcePath.Provided, content, bs, comments)
 		case opts.Print:
-			cmd.printComments(comments)
+			cmd.printComments(sourcePath.Original, comments)
 			_, err = cmd.Stdout.Write(bs)
 		default:
 			err = os.WriteFile(filename, bs, 0o644)
@@ -354,13 +354,13 @@ func (cmd *mainCmd) preview(
 	originalContent, modifiedContent []byte,
 	comments []string,
 ) error {
-	cmd.printComments(comments)
+	cmd.printComments(filename, comments)
 	return diff.Text(filename, filename, originalContent, modifiedContent, cmd.Stdout)
 }
 
-func (cmd *mainCmd) printComments(comments []string) {
+func (cmd *mainCmd) printComments(filename string, comments []string) {
 	for _, c := range comments {
-		fmt.Fprintln(cmd.Stderr, c)
+		fmt.Fprintf(cmd.Stderr, "%v:%v\n", filename, c)
 	}
 }
 

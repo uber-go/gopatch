@@ -125,10 +125,9 @@ func TestPreview(t *testing.T) {
 		filename string
 	}{
 		{
-			name:     "preview",
-			before:   "single line",
-			after:    "different line",
-			filename: "testdata/test_files/lint_example/time.go",
+			name:   "preview",
+			before: "single line",
+			after:  "different line",
 			want: "--- testdata/test_files/lint_example/time.go\n" +
 				"+++ testdata/test_files/lint_example/time.go\n" +
 				"@@ -1,1 +0,0 @@\n" +
@@ -137,8 +136,7 @@ func TestPreview(t *testing.T) {
 				"+different line\n",
 		},
 		{
-			name:     "empty file",
-			filename: "testdata/test_files/lint_example/time.go",
+			name: "empty file",
 			want: "--- testdata/test_files/lint_example/time.go\n" +
 				"+++ testdata/test_files/lint_example/time.go\n",
 		},
@@ -153,10 +151,10 @@ func TestPreview(t *testing.T) {
 			}
 
 			comment := []string{"example comment"}
-			err := cmd.preview(tt.filename, []byte(tt.before), []byte(tt.after), comment)
+			err := cmd.preview("testdata/test_files/lint_example/time.go", []byte(tt.before), []byte(tt.after), comment)
 			require.NoError(t, err)
 
-			assert.Equal(t, "example comment\n", stderr.String())
+			assert.Equal(t, "testdata/test_files/lint_example/time.go:example comment\n", stderr.String())
 			assert.Equal(t, tt.want, stdout.String())
 		})
 	}
@@ -173,7 +171,7 @@ func TestPreview(t *testing.T) {
 		err := cmd.preview("testdata/test_files/lint_example/time.go", nil, nil, comment)
 		require.NoError(t, err)
 
-		assert.Equal(t, "example comment\n", stderr.String())
+		assert.Equal(t, "testdata/test_files/lint_example/time.go:example comment\n", stderr.String())
 		assert.Equal(t,
 			"--- testdata/test_files/lint_example/time.go\n"+
 				"+++ testdata/test_files/lint_example/time.go\n",

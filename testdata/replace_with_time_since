@@ -1,6 +1,5 @@
 -- replace_with_time_since.patch --
-# This patch replaces time.Now.Sub()
-# with time.Since()
+# Replace time.Now().Sub() with time.Since()
 @@
 # comments 11 -
 # comments 12 -
@@ -52,5 +51,4 @@ func main() {
  }
 
 -- time.diff.stderr --
-This patch replaces time.Now.Sub()
-with time.Since()
+time.go:Replace time.Now().Sub() with time.Since()

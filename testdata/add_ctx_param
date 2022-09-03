@@ -4,7 +4,7 @@ TODO: Collateral changes to callers of this function.
 TODO: Handle named and unnamed parameters automatically.
 
 -- add_ctx_param.patch --
-# This patch adds the context parameter to the function definition
+# Add context parameter to the function
 @@
 var f identifier
 @@
@@ -47,4 +47,4 @@ func Send(context.Context, string) (*Response, error) {
  	return &Response{}, nil
 
 -- send.diff.stderr --
-This patch adds the context parameter to the function definition
+send.go:Add context parameter to the function

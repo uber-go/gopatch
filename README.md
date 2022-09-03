@@ -151,9 +151,7 @@ return fmt.Errorf("invalid port: %v", err)
   ```
   Output would be : 
   ```
-  This patch replaces instances of fmt.Sprintf()
-  with fmt.Errorf()
-  Patch files can be applied to mutiple files
+  gopatch/testdata/test_files/diff_example/error.go:Replace redundant fmt.Sprintf with fmt.Errorf
   --- gopatch/testdata/test_files/diff_example/error.go
   +++ gopatch/testdata/test_files/diff_example/error.go
   @@ -7,7 +7,7 @@
@@ -512,17 +510,19 @@ if err := foo(); err != nil {
 For more on elision, see [Patches in depth/Elision].
 
   [Patches in depth/Elision]: docs/PatchesInDepth.md#elision
+
 ## Comments
+
 Patches come with comments to give more context about what they do.
 
 Comments are prefixed by '#'
 
 For example:
+
 ```
-# This patch replaces instances of time.Now().Sub(x)
-# with time.Since(x) where x is an identifier variable
+# Replace time.Now().Sub(x) with time.Since(x)
 @@
-# Var x is in the metavariable section 
+# var x is in the metavariable section 
 var x identifier
 @@
 
@@ -530,20 +530,19 @@ var x identifier
 +time.Since(x)
 # We replace time.Now().Sub(x)
 # with time.Since(x)
-
 ```
+
 #### Description comments
-These are the comments which explain what the patch does. There is
-no requirement for the patches to contain them but they are encouraged
-to give more context to the user. 
-The Description comments must occur just before the metavariable 
-section.
 
-For example:
+Description comments are comments that appear directly above a patch's first
+`@@` line.
+gopatch will record these descriptions and display them to users with use of
+the `--diff` or `--print-only` flags.
+
+For example,
+
 ```
-# Description comments
-# This patch replaces instances of time.Now().Sub(x)
-# with time.Since(x) where x is an identifier variable
+# Replace time.Now().Sub(x) with time.Since(x)
 @@
 # Not a description comment
 var x identifier
@@ -553,27 +552,21 @@ var x identifier
 +time.Since(x)
 # Not a description comment
 # Not a description comment
+```
+
+Patch files with multiple patches can have a separate description for each
+patch.
 
 ```
-Patch files which have multiple patches can have mutiple description
-comments. For example
-```
-# 1st patch Description comment
-# This patch replaces instances of fmt.Sprintf()
-# with fmt.Errorf()
-# Patch files can be applied to mutiple files
+# Replace redundant fmt.Sprintf with fmt.Errorf
+@@
 @@
 
-@@
-
-# Not a description comment
 -import "errors"
 -errors.New(fmt.Sprintf(...))
 +fmt.Errorf(...)
 
-# Start of 2nd Patch Description comment
-# This patch replaces instances of time.Now().Sub(x)
-# with time.Since(x) where x is an identifier variable
+# Replace time.Now().Sub(x) with time.Since(x)
 @@
 var x identifier
 @@
@@ -583,36 +576,36 @@ var x identifier
 # Not a description comment
 ```
 
-#### Usage during diff mode
-When diff mode is turned on by the '-d' flag we also display the 
-description/title comments of only the applied patches to help 
-the user understand what the patches do.
+As these are messages that will be printed to users of the patch,
+we recommend the following best practices for description comments.
+
+- Keep them short and on a single-line
+- Use imperative mood ("replace X with Y", not "replaces X with Y")
+
+#### Usage with `--diff`
+
+When diff mode is turned on by the `-d`/`--diff` flag, gopatch will print
+description comments for patches that matched different files to stderr.
 
 ```shell
 $ gopatch -d -p ~/s1028.patch testdata/test_files/diff_example/error.go
-```
-```
-  This patch replaces instances of fmt.Sprintf()
-  with fmt.Errorf()
-  Patch files can be applied to mutiple files
-  --- gopatch/testdata/test_files/diff_example/error.go
-  +++ gopatch/testdata/test_files/diff_example/error.go
-  @@ -7,7 +7,7 @@
- 
-  func foo() error {
-          err := errors.New("test")
-  -       return errors.New(fmt.Sprintf("error: %v", err))
-  +       return fmt.Errorf("error: %v", err)
-  }
- 
-   func main() {
+error.go:Replace redundant fmt.Sprintf with fmt.Errorf
+--- error.go
++++ error.go
+@@ -7,7 +7,7 @@
 
+func foo() error {
+        err := errors.New("test")
+-       return errors.New(fmt.Sprintf("error: %v", err))
++       return fmt.Errorf("error: %v", err)
+}
+
+ func main() {
 ```
-  Note: Only the description comments get displayed during diff mode.
-  Non description comments are ignored. 
-  Moreover, only comments from patches that actually apply on the 
-  target file are shown.
-  
+
+Note that gopatch will print only the description comments in diff mode.
+Other comments will be ignored.
+
 # Examples
 
 This section lists various example patches you can try in your code.

@@ -45,9 +45,7 @@ func TestFoo(t *testing.T) {
  }
 
 -- foo_test.diff.stderr --
-In gomock 1.50, the Controller.Finish method is called automatically when
-the test finishes running. We no longer need to call mockCtrl.Finish
-manually.
+foo_test.go:Delete redundant gomock.Controller.Finish()
 
 -- bar_test.in.go --
 package bar
@@ -95,9 +93,7 @@ func TestBar(t *testing.T) {
  }
 
 -- bar_test.diff.stderr --
-In gomock 1.50, the Controller.Finish method is called automatically when
-the test finishes running. We no longer need to call mockCtrl.Finish
-manually.
+bar_test.go:Delete redundant gomock.Controller.Finish()
 
 -- named_import.in.go --
 package baz
@@ -143,6 +139,4 @@ func TestBaz(t *testing.T) {
  }
 
 -- named_import.diff.stderr --
-In gomock 1.50, the Controller.Finish method is called automatically when
-the test finishes running. We no longer need to call mockCtrl.Finish
-manually.
+named_import.go:Delete redundant gomock.Controller.Finish()

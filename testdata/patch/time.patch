@@ -1,5 +1,4 @@
-# This patch replaces instances of time.Now().Sub(x)
-# with time.Since(x) where x is an identifier variable
+# Replace time.Now().Sub() with time.Since()
 @@
 # comments 11 -
 # comments 12 -

@@ -1,6 +1,4 @@
-# This patch replaces instances of fmt.Sprintf()
-# with fmt.Errorf()
-# Patch files can be applied to mutiple files
+# Replace unnecessary fmt.Sprintf with fmt.Errorf
 @@
 # comments 5 -
 # comments 6 -

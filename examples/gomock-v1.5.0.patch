@@ -1,7 +1,8 @@
-# In gomock 1.50, the Controller.Finish method is called automatically when
-# the test finishes running. We no longer need to call mockCtrl.Finish
-# manually.
+# Delete redundant gomock.Controller.Finish()
 @@
+# In gomock 1.50, the Controller.Finish method is called automatically when the
+# test finishes running.
+# We no longer need to call mockCtrl.Finish manually.
 var ctrl, gomock identifier
 var t expression
 @@

@@ -1,7 +1,5 @@
 -- redundant_fmt_sprintf.patch --
-# This patch replaces instances of fmt.Sprintf()
-# with fmt.Errorf()
-# Patch files can be applied to mutiple files
+# Replace errors.New(fmt.Sprintf()) with fmt.Errorf()
 @@
 # comments 5 -
 # comments 6 -
@@ -59,6 +57,4 @@ func main() {
  func main() {
 
 -- error.diff.stderr --
-This patch replaces instances of fmt.Sprintf()
-with fmt.Errorf()
-Patch files can be applied to mutiple files
+error.go:Replace errors.New(fmt.Sprintf()) with fmt.Errorf()

@@ -1,7 +1,7 @@
 Delete an unnamed import verbatim.
 
 -- in.patch --
-# this patch removes an unnamed import verbatim.
+# Delete unnamed import
 @@
 @@
 -import "foo"
@@ -37,7 +37,7 @@ func x() {
  }
 
 -- unnamed.diff.stderr --
-this patch removes an unnamed import verbatim.
+unnamed.go:Delete unnamed import
 
 -- named.in.go --
 package x

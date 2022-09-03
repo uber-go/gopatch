@@ -1,5 +1,5 @@
 -- in.patch --
-# This patch embeds to newtype
+# Convert embed to newtype
 @@
 var X, Y identifier
 @@
@@ -26,4 +26,4 @@ type A B
 +type A B
 
 -- foo.diff.stderr --
-This patch embeds to newtype
+foo.go:Convert embed to newtype

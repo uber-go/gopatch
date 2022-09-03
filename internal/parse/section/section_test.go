@@ -170,7 +170,7 @@ func TestSplit(t *testing.T) {
 		{
 			desc: "comments",
 			give: text.Unlines(
-				"# This patch adds an argument.",
+				"# Add an argument",
 				"@@",
 				"  # x will match any identifier.",
 				"var x identifier",
@@ -192,7 +192,7 @@ func TestSplit(t *testing.T) {
 						line(129, "+x(42)"),
 					},
 					Comments: []string{
-						"This patch adds an argument.",
+						"Add an argument",
 					},
 				},
 			},
