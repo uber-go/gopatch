@@ -24,7 +24,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -108,6 +107,17 @@ func runIntegrationTest(t *testing.T, testFile string) {
 		}
 	}
 
+	run := func(extraArgs ...string) (stdout, stderr string, err error) {
+		var stdoutbuf, stderrbuf bytes.Buffer
+		cmd := mainCmd{
+			Stdin:  bytes.NewReader(stdin),
+			Stdout: &stdoutbuf,
+			Stderr: &stderrbuf,
+		}
+		err = cmd.Run(append(extraArgs, args...))
+		return stdoutbuf.String(), stderrbuf.String(), err
+	}
+
 	for _, tt := range ta.Files {
 		t.Run(tt.Name, func(t *testing.T) {
 			if skipTest(testFile, tt.Name) {
@@ -116,32 +126,27 @@ func runIntegrationTest(t *testing.T, testFile string) {
 
 			filePath := filepath.Join(dir, tt.Give)
 			t.Run("diff", func(t *testing.T) {
-				args := append([]string{"-d", filePath}, args...)
-				var stderr, stdout bytes.Buffer
-				require.NoError(t, run(args, bytes.NewReader(stdin), &stderr, &stdout),
-					"could not run patch")
+				stdout, stderr, err := run("-d", filePath)
+				require.NoError(t, err, "could not run patch")
 				assert.Equal(t,
 					string(tt.WantDiff),
-					dropLinesN(stdout.String(), 2), // first two lines file paths, which are dynamic
+					dropLinesN(stdout, 2), // first two lines file paths, which are dynamic
 					"output of --diff did not match")
-				assert.Equal(t, string(tt.WantComment), stderr.String())
+				assert.Equal(t, string(tt.WantComment), stderr)
 			})
 
 			t.Run("print", func(t *testing.T) {
-				args := append([]string{"--print-only", filePath}, args...)
-				var stdout, stderr bytes.Buffer
-				require.NoError(t, run(args, bytes.NewReader(stdin), &stderr, &stdout),
-					"could not run patch")
-
-				assert.Equal(t, string(tt.Want), stdout.String())
-				assert.Equal(t, string(tt.WantComment), stderr.String())
+				stdout, stderr, err := run("--print-only", filePath)
+				require.NoError(t, err, "could not run patch")
+				assert.Equal(t, string(tt.Want), stdout)
+				assert.Equal(t, string(tt.WantComment), stderr)
 			})
 
-			args := append([]string{filePath}, args...)
-			require.NoError(t, run(args, bytes.NewReader(stdin), io.Discard, io.Discard),
-				"could not run patch")
+			_, _, err := run(filePath)
+			require.NoError(t, err, "could not run patch")
+
 			got, err := os.ReadFile(filePath)
-			require.NoErrorf(t, err, "failed to read %q", filePath)
+			require.NoError(t, err, "failed to read %q", filePath)
 			assert.Equal(t, string(tt.Want), string(got))
 		})
 	}

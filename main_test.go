@@ -115,52 +115,65 @@ func TestLoadPatches(t *testing.T) {
 
 func TestPreview(t *testing.T) {
 	t.Parallel()
-	t.Run("Success", func(t *testing.T) {
-		tests := []struct {
-			name     string
-			before   string
-			after    string
-			want     string
-			filename string
-		}{
-			{
-				name:     "preview",
-				before:   "single line",
-				after:    "different line",
-				filename: "testdata/test_files/lint_example/time.go",
-				want: "\n--- testdata/test_files/lint_example/time.go\n" +
-					"+++ testdata/test_files/lint_example/time.go\n@@ -1,1 " +
-					"+0,0 @@\n-single line\n@@ -0,0 +1,1 @@\n+different line\n",
-			},
-			{
-				name:     "empty file",
-				filename: "testdata/test_files/lint_example/time.go",
-				want: "\n--- testdata/test_files/lint_example/time.go\n" +
-					"+++ testdata/test_files/lint_example/time.go\n",
-			},
-		}
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				var stderr, stdout bytes.Buffer
-				comment := []string{"example comment"}
-				err := preview(tt.filename, []byte(tt.before), []byte(tt.after), comment, &stderr, &stdout)
-				require.NoError(t, err)
-				outputString := stderr.String() + stdout.String()
-				want := comment[0] + tt.want
-				assert.Equal(t, want, outputString)
-			})
-		}
-	})
+
+	tests := []struct {
+		name     string
+		before   string
+		after    string
+		want     string
+		filename string
+	}{
+		{
+			name:     "preview",
+			before:   "single line",
+			after:    "different line",
+			filename: "testdata/test_files/lint_example/time.go",
+			want: "--- testdata/test_files/lint_example/time.go\n" +
+				"+++ testdata/test_files/lint_example/time.go\n" +
+				"@@ -1,1 +0,0 @@\n" +
+				"-single line\n" +
+				"@@ -0,0 +1,1 @@\n" +
+				"+different line\n",
+		},
+		{
+			name:     "empty file",
+			filename: "testdata/test_files/lint_example/time.go",
+			want: "--- testdata/test_files/lint_example/time.go\n" +
+				"+++ testdata/test_files/lint_example/time.go\n",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stderr, stdout bytes.Buffer
+			cmd := &mainCmd{
+				Stdout: &stdout,
+				Stderr: &stderr,
+			}
+
+			comment := []string{"example comment"}
+			err := cmd.preview(tt.filename, []byte(tt.before), []byte(tt.after), comment)
+			require.NoError(t, err)
+
+			assert.Equal(t, "example comment\n", stderr.String())
+			assert.Equal(t, tt.want, stdout.String())
+		})
+	}
 
 	t.Run("nil for strings", func(t *testing.T) {
-		comment := []string{"example comment"}
-		filename := "testdata/test_files/lint_example/time.go"
 		var stderr, stdout bytes.Buffer
-		err := preview(filename, nil, nil, comment, &stderr, &stdout)
+		cmd := &mainCmd{
+			Stdout: &stdout,
+			Stderr: &stderr,
+		}
+
+		comment := []string{"example comment"}
+		err := cmd.preview("testdata/test_files/lint_example/time.go", nil, nil, comment)
 		require.NoError(t, err)
-		outputString := stderr.String() + stdout.String()
-		expectedString := comment[0] + "\n--- testdata/test_files/lint_example/time.go\n+++ " +
-			"testdata/test_files/lint_example/time.go\n"
-		assert.Equal(t, expectedString, outputString)
+
+		assert.Equal(t, "example comment\n", stderr.String())
+		assert.Equal(t,
+			"--- testdata/test_files/lint_example/time.go\n"+
+				"+++ testdata/test_files/lint_example/time.go\n",
+			stdout.String())
 	})
 }

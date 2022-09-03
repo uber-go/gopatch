@@ -45,10 +45,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(0)
-	if err := run(os.Args[1:], os.Stdin, os.Stderr, os.Stdout); err != nil {
-		log.Fatal(err)
-	}
+	os.Exit(runMain())
 }
 
 type arguments struct {
@@ -203,47 +200,50 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
-func printComments(comments []string, stderr io.Writer) {
-	for _, c := range comments {
-		fmt.Fprintln(stderr, c)
+type mainCmd struct {
+	Stdin  io.Reader
+	Stdout io.Writer
+	Stderr io.Writer
+}
+
+func runMain() (exitCode int) {
+	cmd := mainCmd{
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
 	}
+	if err := cmd.Run(os.Args[1:]); err != nil {
+		fmt.Fprintln(cmd.Stderr, err)
+		return 1
+	}
+	return 0
 }
 
-func preview(
-	filename string,
-	originalContent, modifiedContent []byte,
-	comments []string,
-	stderr, stdout io.Writer,
-) error {
-	printComments(comments, stderr)
-	return diff.Text(filename, filename, originalContent, modifiedContent, stdout)
-}
-
-func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) error {
+func (cmd *mainCmd) Run(args []string) error {
 	argParser, opts := newArgParser()
 	if _, err := argParser.ParseArgs(args); err != nil {
 		return err
 	}
 	if opts.DisplayVersion {
-		fmt.Fprintln(stderr, "gopatch "+_version)
+		fmt.Fprintln(cmd.Stderr, "gopatch "+_version)
 		return nil
 	}
 
 	if len(opts.Args.Patterns) == 0 {
-		argParser.WriteHelp(stderr)
-		fmt.Fprintln(stderr)
+		argParser.WriteHelp(cmd.Stderr)
+		fmt.Fprintln(cmd.Stderr)
 
 		return errors.New("please provide at least one pattern")
 	}
 
 	logOut := io.Discard
 	if opts.Verbose {
-		logOut = os.Stdout
+		logOut = cmd.Stdout
 	}
 	log := log.New(logOut, "", 0)
 
 	fset := token.NewFileSet()
-	progs, err := loadPatches(fset, opts, stdin)
+	progs, err := loadPatches(fset, opts, cmd.Stdin)
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 		// If --print-only was passed, print the contents out as-is.
 		if !ok {
 			if opts.Print {
-				if _, err := stdout.Write(content); err != nil {
+				if _, err := cmd.Stdout.Write(content); err != nil {
 					return err
 				}
 			}
@@ -302,10 +302,10 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 
 		switch {
 		case opts.Diff:
-			err = preview(filename, content, bs, comments, stderr, stdout)
+			err = cmd.preview(filename, content, bs, comments)
 		case opts.Print:
-			printComments(comments, stderr)
-			_, err = stdout.Write(bs)
+			cmd.printComments(comments)
+			_, err = cmd.Stdout.Write(bs)
 		default:
 			err = os.WriteFile(filename, bs, 0o644)
 		}
@@ -319,6 +319,21 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 
 	errors = append(errors, patchRunner.errors...)
 	return multierr.Combine(errors...)
+}
+
+func (cmd *mainCmd) preview(
+	filename string,
+	originalContent, modifiedContent []byte,
+	comments []string,
+) error {
+	cmd.printComments(comments)
+	return diff.Text(filename, filename, originalContent, modifiedContent, cmd.Stdout)
+}
+
+func (cmd *mainCmd) printComments(comments []string) {
+	for _, c := range comments {
+		fmt.Fprintln(cmd.Stderr, c)
+	}
 }
 
 type patchRunner struct {
