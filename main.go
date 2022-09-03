@@ -88,7 +88,8 @@ func newArgParser() (*flags.Parser, *options) {
 		"Print a diff of the proposed changes to stdout but don't modify any files."
 
 	parser.FindOptionByLongName("print-only").Description =
-		"If true, don't modify the code and print the changed code to stdout."
+		"Print files to stdout without modifying them."
+
 	parser.Args()[0].Description =
 		"One or more files or directores containing Go code. " +
 			"When directories are provided, all Go files in them and their " +
