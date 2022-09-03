@@ -59,6 +59,7 @@ type options struct {
 	Patches        []string  `short:"p" long:"patch" value-name:"file"`
 	Diff           bool      `short:"d" long:"diff"`
 	DisplayVersion bool      `long:"version"`
+	Print          bool      `long:"print-only"`
 	Args           arguments `positional-args:"yes"`
 	Verbose        bool      `short:"v" long:"verbose"`
 }
@@ -85,6 +86,9 @@ func newArgParser() (*flags.Parser, *options) {
 
 	parser.FindOptionByLongName("diff").Description =
 		"Print a diff of the proposed changes to stdout but don't modify any files."
+
+	parser.FindOptionByLongName("print-only").Description =
+		"Print files to stdout without modifying them."
 
 	parser.Args()[0].Description =
 		"One or more files or directores containing Go code. " +
@@ -199,15 +203,19 @@ func findFiles(patterns []string) (_ []string, err error) {
 	return sortedFiles, err
 }
 
+func printComments(comments []string, stderr io.Writer) {
+	for _, c := range comments {
+		fmt.Fprintln(stderr, c)
+	}
+}
+
 func preview(
 	filename string,
 	originalContent, modifiedContent []byte,
 	comments []string,
 	stderr, stdout io.Writer,
 ) error {
-	for _, c := range comments {
-		fmt.Fprintln(stderr, c)
-	}
+	printComments(comments, stderr)
 	return diff.Text(filename, filename, originalContent, modifiedContent, stdout)
 }
 
@@ -262,7 +270,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 
 		f, comments, ok := patchRunner.Apply(filename, f)
 		// If at least one patch didn't match, there's nothing to do.
+		// If --print-only was passed, print the contents out as-is.
 		if !ok {
+			if opts.Print {
+				if _, err := stdout.Write(content); err != nil {
+					return err
+				}
+			}
 			log.Printf("%s: skipped", filename)
 			continue
 		}
@@ -286,9 +300,13 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 			continue
 		}
 
-		if opts.Diff {
+		switch {
+		case opts.Diff:
 			err = preview(filename, content, bs, comments, stderr, stdout)
-		} else {
+		case opts.Print:
+			printComments(comments, stderr)
+			_, err = stdout.Write(bs)
+		default:
 			err = os.WriteFile(filename, bs, 0644)
 		}
 		if err != nil {

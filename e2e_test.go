@@ -127,6 +127,16 @@ func runIntegrationTest(t *testing.T, testFile string) {
 				assert.Equal(t, string(tt.WantComment), stderr.String())
 			})
 
+			t.Run("print", func(t *testing.T) {
+				args := append([]string{"--print-only", filePath}, args...)
+				var stdout, stderr bytes.Buffer
+				require.NoError(t, run(args, bytes.NewReader(stdin), &stderr, &stdout),
+					"could not run patch")
+
+				assert.Equal(t, string(tt.Want), stdout.String())
+				assert.Equal(t, string(tt.WantComment), stderr.String())
+			})
+
 			args := append([]string{filePath}, args...)
 			require.NoError(t, run(args, bytes.NewReader(stdin), io.Discard, io.Discard),
 				"could not run patch")
