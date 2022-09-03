@@ -26,3 +26,14 @@ func x() {
 		bar() // qux
 	}
 }
+
+-- x.diff --
+@@ -1,7 +1,7 @@
+ package foo
+ 
+ func x() {
+-	if true {
++	for true {
+ 		foo() // baz
+ 		bar() // qux
+ 	}

@@ -25,3 +25,13 @@ import "github.com/totallyreal/lib"
 func foo() {
 	lib.Bar()
 }
+
+-- unnamed.diff --
+@@ -1,6 +1,6 @@
+ package main
+ 
+-import "github.com/fake/lib"
++import "github.com/totallyreal/lib"
+ 
+ func foo() {
+ 	lib.Bar()

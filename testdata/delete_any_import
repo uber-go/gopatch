@@ -22,6 +22,16 @@ func x() {
 	bar()
 }
 
+-- unnamed.diff --
+@@ -1,7 +1,5 @@
+ package x
+ 
+-import "foo"
+-
+ func x() {
+ 	bar()
+ }
+
 -- named.in.go --
 package x
 
@@ -37,3 +47,13 @@ package x
 func x() {
 	bar()
 }
+
+-- named.diff --
+@@ -1,7 +1,5 @@
+ package x
+ 
+-import baz "foo"
+-
+ func x() {
+ 	bar()
+ }

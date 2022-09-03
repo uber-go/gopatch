@@ -52,6 +52,18 @@ func bar() (Result, error) {
 	return Result{}, nil
 }
 
+-- match.diff --
+@@ -2,8 +2,7 @@
+ 
+ func bar() (Result, error) {
+ 	// Test.
+-	err := baz()
+-	if err != nil {
++	if err := baz(); err != nil {
+ 		// Hello.
+ 		log()
+ 		return nil, err
+
 -- no_match.in.go --
 package foo
 
@@ -106,6 +118,23 @@ func qux() {
 	}
 }
 
+-- else.diff --
+@@ -1,12 +1,10 @@
+ package foo
+ 
+ func qux() {
+-	err := foo()
+-	if err != nil {
++	if err := foo(); err != nil {
+ 		return
+ 	} else {
+-		err2 := quux()
+-		if err2 != nil {
++		if err2 := quux(); err2 != nil {
+ 			return
+ 		}
+ 	}
+
 -- case.in.go --
 package foo
 
@@ -133,6 +162,18 @@ func foo() error {
 	return nil
 }
 
+-- case.diff --
+@@ -3,8 +3,7 @@
+ func foo() error {
+ 	switch bar() {
+ 	case "x":
+-		err := baz()
+-		if err != nil {
++		if err := baz(); err != nil {
+ 			return err
+ 		}
+ 	}
+
 -- select.in.go --
 package foo
 
@@ -159,3 +200,15 @@ func foo(ctx context.Context) error {
 	}
 	return nil
 }
+
+-- select.diff --
+@@ -3,8 +3,7 @@
+ func foo(ctx context.Context) error {
+ 	select {
+ 	case <-ctx.Done():
+-		err := ctx.Err()
+-		if err != nil {
++		if err := ctx.Err(); err != nil {
+ 			return err
+ 		}
+ 	}

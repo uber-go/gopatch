@@ -18,3 +18,12 @@ package main
 func main() {
 	bar(42)
 }
+
+-- simple.diff --
+@@ -1,5 +1,5 @@
+ package main
+ 
+ func main() {
+-	foo(42)
++	bar(42)
+ }

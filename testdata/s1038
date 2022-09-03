@@ -20,3 +20,12 @@ import "fmt"
 func foo() {
 	fmt.Printf("thing happend: %v", thing())
 }
+
+-- example.diff --
+@@ -3,5 +3,5 @@
+ import "fmt"
+ 
+ func foo() {
+-	fmt.Print(fmt.Sprintf("thing happend: %v", thing()))
++	fmt.Printf("thing happend: %v", thing())
+ }

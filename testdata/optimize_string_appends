@@ -51,3 +51,23 @@ func run() string {
 
 	return s
 }
+
+-- loop.diff --
+@@ -1,11 +1,15 @@
+ package foo
+ 
++import "strings"
++
+ func run() string {
+-	var s string
++	var sb strings.Builder
+ 	for i := range foo(true /* bar */) {
+ 		x := foo()
+-		s += x
++		sb.WriteString(x)
+ 		log(x)
+ 	}
++	s := sb.String()
++
+ 	return s
+ }

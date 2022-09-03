@@ -33,6 +33,18 @@ func bar() (*Result, error) {
 }
 
 
+-- multiple.diff --
+@@ -2,8 +2,7 @@
+ 
+ func bar() (*Result, error) {
+ 	// Test.
+-	err = baz()
+-	if err != nil {
++	if err := baz(); err != nil {
+ 		return nil, err
+ 	}
+ 	return &Result{}, nil
+
 -- single.in.go --
 package foo
 
@@ -55,3 +67,15 @@ func bar() error {
 	}
 	return nil
 }
+
+-- single.diff --
+@@ -2,8 +2,7 @@
+ 
+ func bar() error {
+ 	// Test.
+-	err = baz()
+-	if err != nil {
++	if err := baz(); err != nil {
+ 		return err
+ 	}
+ 	return nil

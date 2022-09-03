@@ -49,6 +49,26 @@ func foo(s string) *bool {
 	return ptr.Bool(true)
 }
 
+-- remove_all.diff --
+@@ -1,13 +1,11 @@
+ package main
+ 
+-import (
+-	"conversion/to.git"
+-)
++import "go.uber.org/thriftrw/ptr"
+ 
+ func foo(s string) *bool {
+-	if to.StrPtr(s) == nil {
+-		return to.BoolPtr(false)
++	if ptr.String(s) == nil {
++		return ptr.Bool(false)
+ 	}
+ 
+-	return to.BoolPtr(true)
++	return ptr.Bool(true)
+ }
+
 -- remove_some.in.go --
 package main
 
@@ -88,3 +108,28 @@ func foo(s string) *bool {
 
 	return ptr.Bool(true)
 }
+
+-- remove_some.diff --
+@@ -2,16 +2,18 @@
+ 
+ import (
+ 	"conversion/to.git"
++
++	"go.uber.org/thriftrw/ptr"
+ )
+ 
+ func foo(s string) *bool {
+-	if to.StrPtr(s) == nil {
+-		return to.BoolPtr(false)
++	if ptr.String(s) == nil {
++		return ptr.Bool(false)
+ 	}
+ 
+ 	if to.DecimalPtr(s) == nil {
+-		return to.BoolPtr(false)
++		return ptr.Bool(false)
+ 	}
+ 
+-	return to.BoolPtr(true)
++	return ptr.Bool(true)
+ }

@@ -21,6 +21,16 @@ func name(foo string, bar int) (string, error) {
 	return "very valid go", nil
 }
 
+-- unnamed.diff --
+@@ -1,5 +1,5 @@
+ package a
+ 
+-func name(foo string, bar int) (error, string) {
+-	return nil, "very valid go"
++func name(foo string, bar int) (string, error) {
++	return "very valid go", nil
+ }
+
 -- named.patch --
 @@
 @@
@@ -43,3 +53,13 @@ package a
 func name(foo string, bar int) (val string, err error) {
 	return "very valid go", nil
 }
+
+-- named.diff --
+@@ -1,5 +1,5 @@
+ package a
+ 
+-func name(foo string, bar int) (err error, val string) {
+-	return nil, "very valid go"
++func name(foo string, bar int) (val string, err error) {
++	return "very valid go", nil
+ }

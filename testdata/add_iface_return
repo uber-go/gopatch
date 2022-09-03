@@ -46,3 +46,21 @@ func (*bar) Do() error {
 	fmt.Println("hello")
 	return nil
 }
+
+-- a.diff --
+@@ -1,12 +1,13 @@
+ package a
+ 
+ type Foo interface {
+-	Do()
++	Do() error
+ 	String() string
+ }
+ 
+ type bar struct{}
+ 
+-func (*bar) Do() {
++func (*bar) Do() error {
+ 	fmt.Println("hello")
++	return nil
+ }

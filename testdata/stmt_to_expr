@@ -17,3 +17,12 @@ package a
 func b() {
 	bar()
 }
+
+-- a.diff --
+@@ -1,5 +1,5 @@
+ package a
+ 
+ func b() {
+-	x := foo()
++	bar()
+ }

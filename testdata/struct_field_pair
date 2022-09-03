@@ -23,3 +23,13 @@ package main
 type Config struct {
 	Mods, Admins []string
 }
+
+-- config.diff --
+@@ -1,6 +1,5 @@
+ package main
+ 
+ type Config struct {
+-	Mods   []string
+-	Admins []string
++	Mods, Admins []string
+ }

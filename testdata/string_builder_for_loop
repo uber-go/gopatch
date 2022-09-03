@@ -42,6 +42,24 @@ func foo() string {
 	// TODO: return string; unsupported right now.
 }
 
+-- for_loop_three_clauses.diff --
+@@ -1,9 +1,13 @@
+ package foo
+ 
++import "strings"
++
+ func foo() string {
+-	var x string
++	var sb strings.Builder
+ 	for s := next(); s != ""; s = next() {
+-		x += s
++		sb.WriteString(s)
+ 	}
++	x := sb.String()
++
+ 	// TODO: return string; unsupported right now.
+ }
+
 -- for_loop_one_clause.in.go --
 package bar
 
@@ -65,6 +83,23 @@ func bar() {
 	x := sb.String()
 
 }
+
+-- for_loop_one_clause.diff --
+@@ -1,8 +1,12 @@
+ package bar
+ 
++import "strings"
++
+ func bar() {
+-	var x string
++	var sb strings.Builder
+ 	for condition() {
+-		x += next()
++		sb.WriteString(next())
+ 	}
++	x := sb.String()
++
+ }
 
 -- range_one_result.in.go --
 package baz
@@ -95,6 +130,27 @@ func baz() {
 
 }
 
+-- range_one_result.diff --
+@@ -1,10 +1,15 @@
+ package baz
+ 
+-import "fmt"
++import (
++	"fmt"
++	"strings"
++)
+ 
+ func baz() {
+-	var a string
++	var sb strings.Builder
+ 	for x := range y() {
+-		a += fmt.Sprintf("<%q>", x)
++		sb.WriteString(fmt.Sprintf("<%q>", x))
+ 	}
++	a := sb.String()
++
+ }
+
 -- range_two_results.in.go --
 package qux
 
@@ -118,6 +174,23 @@ func qux() {
 	a := sb.String()
 
 }
+
+-- range_two_results.diff --
+@@ -1,8 +1,12 @@
+ package qux
+ 
++import "strings"
++
+ func qux() {
+-	var a string
++	var sb strings.Builder
+ 	for k, v := range something() {
+-		a += k + ": " + v
++		sb.WriteString(k + ": " + v)
+ 	}
++	a := sb.String()
++
+ }
 
 -- range_no_results.in.go --
 package quux
@@ -148,6 +221,27 @@ func quux() {
 
 }
 
+-- range_no_results.diff --
+@@ -1,10 +1,15 @@
+ package quux
+ 
+-import "time"
++import (
++	"strings"
++	"time"
++)
+ 
+ func quux() {
+-	var infinity string
++	var sb strings.Builder
+ 	for range time.Tick(time.Millisecond) {
+-		infinity += "∞"
++		sb.WriteString("∞")
+ 	}
++	infinity := sb.String()
++
+ }
+
 -- range_assign.in.go --
 package quuz
 
@@ -171,3 +265,20 @@ func quuz() {
 	a := sb.String()
 
 }
+
+-- range_assign.diff --
+@@ -1,8 +1,12 @@
+ package quuz
+ 
++import "strings"
++
+ func quuz() {
+-	var a string
++	var sb strings.Builder
+ 	for x = range y() {
+-		a += x
++		sb.WriteString(x)
+ 	}
++	a := sb.String()
++
+ }

@@ -25,3 +25,13 @@ func stuff() {
 	foo.Do()
 }
 
+
+-- user.diff --
+@@ -1,6 +1,6 @@
+ package user
+ 
+-import "example.com/foo-go.git"
++import foo "example.com/foo"
+ 
+ func stuff() {
+ 	foo.Do()

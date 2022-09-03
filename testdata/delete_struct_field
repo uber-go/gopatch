@@ -37,3 +37,18 @@ type Foo struct {
 
 type Bar struct {
 }
+
+-- delete.diff --
+@@ -2,12 +2,10 @@
+ 
+ type Foo struct {
+ 	A string
+-	B *Deprecated
+ 
+ 	// C does stuff.
+ 	C int
+ }
+ 
+ type Bar struct {
+-	d *Deprecated
+ }

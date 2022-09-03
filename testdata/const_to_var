@@ -22,6 +22,15 @@ var (
 	Foo = "hello"
 )
 
+-- top_level.diff --
+@@ -1,5 +1,5 @@
+ package foo
+ 
+-const (
++var (
+ 	Foo = "hello"
+ )
+
 -- nested.in.go --
 package foo
 
@@ -39,6 +48,17 @@ func bar() {
 		Foo = "world"
 	)
 }
+
+-- nested.diff --
+@@ -1,7 +1,7 @@
+ package foo
+ 
+ func bar() {
+-	const (
++	var (
+ 		Foo = "world"
+ 	)
+ }
 
 -- single_top_level.in.go --
 package foo

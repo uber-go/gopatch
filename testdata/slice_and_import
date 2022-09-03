@@ -25,3 +25,14 @@ import "example.com/constants"
 func items() []string {
 	return []string{"a", "b", constants.Foo, "bar", "d"}
 }
+
+-- foo.diff --
+@@ -1,5 +1,7 @@
+ package foo
+ 
++import "example.com/constants"
++
+ func items() []string {
+-	return []string{"a", "b", "foo", "bar", "d"}
++	return []string{"a", "b", constants.Foo, "bar", "d"}
+ }

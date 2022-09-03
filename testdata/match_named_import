@@ -48,3 +48,15 @@ import bar "example.com/bar"
 func stuff() {
 	bar.stuff()
 }
+
+-- named.diff --
+@@ -1,7 +1,7 @@
+ package whatever
+ 
+-import foo "example.com/bar"
++import bar "example.com/bar"
+ 
+ func stuff() {
+-	foo.stuff()
++	bar.stuff()
+ }

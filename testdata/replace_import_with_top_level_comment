@@ -30,3 +30,16 @@ import "github.com/foo/bar/internal/edit"
 func main() {
 	_ = edit.Buffer
 }
+
+-- comment.diff --
+@@ -2,9 +2,7 @@
+ 
+ package main
+ 
+-import (
+-	"cmd/internal/edit"
+-)
++import "github.com/foo/bar/internal/edit"
+ 
+ func main() {
+ 	_ = edit.Buffer

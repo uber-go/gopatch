@@ -36,3 +36,14 @@ func (b *Bar) String() string {
 	}
 	return b.Name
 }
+
+-- foo.diff --
+@@ -5,5 +5,8 @@
+ }
+ 
+ func (b *Bar) String() string {
++	if b == nil {
++		return "<nil>"
++	}
+ 	return b.Name
+ }

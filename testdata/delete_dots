@@ -48,3 +48,30 @@ func zzz() {
 	baz()
 	qux()
 }
+
+-- stuff.diff --
+@@ -1,12 +1,6 @@
+ package stuff
+ 
+ func zzz() {
+-	foo()
+-
+-	if err := x(); err != nil {
+-		panic(err)
+-	}
+-
+ 	bar()
+ 
+ 	if err := y(); err != nil {
+@@ -14,11 +8,5 @@
+ 	}
+ 
+ 	baz()
+-
+-	if err := y(); err != nil {
+-		// This should be deleted.
+-		panic(err)
+-	}
+-
+ 	qux()
+ }

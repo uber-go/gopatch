@@ -25,3 +25,11 @@ import "fmt"
 func main() {
 	Foo()
 }
+
+-- foo.diff --
+@@ -1,4 +1,4 @@
+-package foo
++package bar
+ 
+ import "fmt"
+ 

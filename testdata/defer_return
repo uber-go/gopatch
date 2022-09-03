@@ -34,3 +34,15 @@ func X() {
 	mutex.Unlock()
 	return r
 }
+
+-- mutex.diff --
+@@ -2,6 +2,7 @@
+ 
+ func X() {
+ 	mutex.Lock()
+-	defer mutex.Unlock()
+-	return calculate()
++	r := calculate()
++	mutex.Unlock()
++	return r
+ }

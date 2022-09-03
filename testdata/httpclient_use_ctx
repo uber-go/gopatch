@@ -80,3 +80,20 @@ func getResponse(ctx context.Context, req *http.Request) (*http.Response, error)
 	res, err := http.DefaultClient.Do(req)
 	return res, err
 }
+
+-- two_returns.diff --
+@@ -1,8 +1,12 @@
+ package main
+ 
+-import "net/http"
++import (
++	"context"
++	"net/http"
++)
+ 
+-func getResponse(req *http.Request) (*http.Response, error) {
++func getResponse(ctx context.Context, req *http.Request) (*http.Response, error) {
++	req = req.WithContext(ctx)
+ 	res, err := http.DefaultClient.Do(req)
+ 	return res, err
+ }
