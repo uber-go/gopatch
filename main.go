@@ -72,28 +72,28 @@ func newArgParser() (*flags.Parser, *options) {
 	// The following is more readable than long descriptions in struct
 	// tags.
 
-	parser.FindOptionByLongName("version").Description =
-		"Display the version of gopatch."
+	parser.FindOptionByLongName("version").
+		Description = "Display the version of gopatch."
 
-	parser.FindOptionByLongName("verbose").Description =
-		"Turn on verbose mode that prints whether or not the file was patched " +
-			"for each file found."
+	parser.FindOptionByLongName("verbose").
+		Description = "Turn on verbose mode that prints whether or not the file was patched " +
+		"for each file found."
 
-	parser.FindOptionByLongName("patch").Description =
-		"Path to a patch file specifying the code transformation. " +
-			"Multiple patches may be provided to be applied in-order. " +
-			"If the flag is omitted, a patch will be read from stdin."
+	parser.FindOptionByLongName("patch").
+		Description = "Path to a patch file specifying the code transformation. " +
+		"Multiple patches may be provided to be applied in-order. " +
+		"If the flag is omitted, a patch will be read from stdin."
 
-	parser.FindOptionByLongName("diff").Description =
-		"Print a diff of the proposed changes to stdout but don't modify any files."
+	parser.FindOptionByLongName("diff").
+		Description = "Print a diff of the proposed changes to stdout but don't modify any files."
 
-	parser.FindOptionByLongName("print-only").Description =
-		"Print files to stdout without modifying them."
+	parser.FindOptionByLongName("print-only").
+		Description = "Print files to stdout without modifying them."
 
-	parser.Args()[0].Description =
-		"One or more files or directores containing Go code. " +
-			"When directories are provided, all Go files in them and their " +
-			"descendants will be transformed."
+	parser.Args()[0].
+		Description = "One or more files or directores containing Go code. " +
+		"When directories are provided, all Go files in them and their " +
+		"descendants will be transformed."
 
 	return parser, &opts
 }
@@ -307,7 +307,7 @@ func run(args []string, stdin io.Reader, stderr io.Writer, stdout io.Writer) err
 			printComments(comments, stderr)
 			_, err = stdout.Write(bs)
 		default:
-			err = os.WriteFile(filename, bs, 0644)
+			err = os.WriteFile(filename, bs, 0o644)
 		}
 		if err != nil {
 			log.Printf("%s: failed: %v", filename, err)
