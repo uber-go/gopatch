@@ -192,7 +192,8 @@ func TestSplit(t *testing.T) {
 						line(129, "+x(42)"),
 					},
 					Comments: []string{
-						"This patch adds an argument."},
+						"This patch adds an argument.",
+					},
 				},
 			},
 			wantPosInfo: map[token.Pos]posInfo{

@@ -51,7 +51,7 @@ func TestMain(t *testing.T) {
 
 	changelog := filepath.Join(t.TempDir(), "CHANGELOG.md")
 	require.NoError(t,
-		os.WriteFile(changelog, []byte(_changelog), 0644))
+		os.WriteFile(changelog, []byte(_changelog), 0o644))
 
 	tests := []struct {
 		desc string

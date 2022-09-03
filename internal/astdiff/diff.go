@@ -91,7 +91,6 @@ func (f changeFinder) unchanged(from, to *value) {
 
 func (f changeFinder) changed() {
 	f.cl.Changed(f.Pos, f.End)
-
 }
 
 func (f changeFinder) commentsFor(n *value) (before, after []*ast.Comment) {

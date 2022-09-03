@@ -74,7 +74,8 @@ func TestNewArgParser(t *testing.T) {
 func TestLoadPatches(t *testing.T) {
 	t.Parallel()
 	t.Run("Success", func(t *testing.T) {
-		opts := &options{Patches: []string{"testdata/patch/error.patch"},
+		opts := &options{
+			Patches:        []string{"testdata/patch/error.patch"},
 			Diff:           true,
 			DisplayVersion: false,
 			Verbose:        false,
@@ -85,7 +86,8 @@ func TestLoadPatches(t *testing.T) {
 		require.NoError(t, err)
 	})
 	t.Run("Success - mutiple patches", func(t *testing.T) {
-		opts := &options{Patches: []string{"testdata/patch/error.patch"},
+		opts := &options{
+			Patches:        []string{"testdata/patch/error.patch"},
 			Diff:           true,
 			DisplayVersion: false,
 			Verbose:        false,
@@ -98,7 +100,8 @@ func TestLoadPatches(t *testing.T) {
 	})
 	t.Run("Failure", func(t *testing.T) {
 		path := "testdata/patch/error1.patch"
-		opts := &options{Patches: []string{path},
+		opts := &options{
+			Patches:        []string{path},
 			Diff:           true,
 			DisplayVersion: false,
 			Verbose:        false,
@@ -147,7 +150,6 @@ func TestPreview(t *testing.T) {
 				assert.Equal(t, want, outputString)
 			})
 		}
-
 	})
 
 	t.Run("nil for strings", func(t *testing.T) {
