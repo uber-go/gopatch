@@ -24,8 +24,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
@@ -33,6 +31,7 @@ import (
 	"testing"
 
 	"github.com/rogpeppe/go-internal/txtar"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/multierr"
 )
@@ -40,7 +39,7 @@ import (
 func TestIntegration(t *testing.T) {
 	const testdata = "testdata"
 
-	infos, err := ioutil.ReadDir(testdata)
+	infos, err := os.ReadDir(testdata)
 	require.NoErrorf(t, err, "failed to ls %q", testdata)
 
 	// Disable Go modules so that we don't try to fetch against tests.
@@ -88,10 +87,7 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	ta, err := loadTestArchive(testFile)
 	require.NoError(t, err, "failed to load tests from txtar")
 
-	dir, err := ioutil.TempDir("", "gopatch-integration")
-	require.NoError(t, err, "failed to create temporary directory")
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	require.NoErrorf(t, txtar.Write(ta.Archive, dir),
 		"could not write archive to %q", dir)
 
@@ -102,7 +98,7 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	// If there's only one patch, use stdin. Otherwise, use "-p".
 	if ps := ta.Patches; len(ps) == 1 {
 		path := resolvePatchPath(t, filepath.Join(dir, ps[0]))
-		stdin, err = ioutil.ReadFile(path)
+		stdin, err = os.ReadFile(path)
 		require.NoError(t, err, "failed to read patch file %q", ps)
 	} else {
 		for _, path := range ps {

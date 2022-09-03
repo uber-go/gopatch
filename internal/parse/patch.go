@@ -120,18 +120,18 @@ type patchVersion struct {
 //
 // Given the unified diff,
 //
-//   foo
-//  -bar
-//  +baz
-//   qux
+//	 foo
+//	-bar
+//	+baz
+//	 qux
 //
 // This functions splits it into,
 //
-//  Before  After
-//  ------  -----
-//  foo     foo
-//  bar     baz
-//  qux     qux
+//	Before  After
+//	------  -----
+//	foo     foo
+//	bar     baz
+//	qux     qux
 func splitPatch(patch section.Section) (before, after patchVersion) {
 	var (
 		minus, plus bytes.Buffer

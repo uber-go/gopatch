@@ -22,11 +22,11 @@
 // mutated in-place by taking snapshots of their state between successive
 // patch executions.
 //
-//  snap := astdiff.Before(node)
-//  modify(node)
-//  snap = snap.Diff(node, changelog)
-//  modify(node)
-//  snap = snap.Diff(node, changelog)
+//	snap := astdiff.Before(node)
+//	modify(node)
+//	snap = snap.Diff(node, changelog)
+//	modify(node)
+//	snap = snap.Diff(node, changelog)
 package astdiff
 
 import (

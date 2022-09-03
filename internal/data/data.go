@@ -51,8 +51,8 @@ func (d *emptyData) Value(interface{}) interface{} { return nil }
 // WithValue returns a new Data with the given key-value pair associated with
 // it.
 //
-//   d = data.WithValue(d, x, 42)
-//   d.Value(x) // == 42
+//	d = data.WithValue(d, x, 42)
+//	d.Value(x) // == 42
 //
 // The original object is left unmodified so if the returned Data object is
 // discarded, its value will not be made available.
@@ -90,10 +90,10 @@ func (d *valueData) Value(k interface{}) interface{} {
 //
 // Reports whether a value was found.
 //
-//   d = data.WithValue(d, x, 42)
+//	d = data.WithValue(d, x, 42)
 //
-//   var out int
-//   data.Lookup(k, x, &out) // == true
+//	var out int
+//	data.Lookup(k, x, &out) // == true
 //
 // Panics if the type of the value for the pointer is not compatible with the
 // value associated with the key.

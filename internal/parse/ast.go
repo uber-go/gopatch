@@ -34,18 +34,18 @@ type Program struct {
 
 // Change is a single change in a patch. Changes are specified in the format,
 //
-//  @@
-//  # metavariables go here
-//  @@
-//  # patch goes here
+//	@@
+//	# metavariables go here
+//	@@
+//	# patch goes here
 //
 // Optionally, a name may be specified for a change between the first two
 // "@@"s.
 //
-//  @ mychange @
-//  # metavariables go here
-//  @@
-//  # patch goes here
+//	@ mychange @
+//	# metavariables go here
+//	@@
+//	# patch goes here
 type Change struct {
 	// Name for the change, if any.
 	//
@@ -72,8 +72,8 @@ type Meta struct {
 
 // VarDecl is a single var declaration in a metavariable block.
 //
-//  var foo, bar identifier
-//  var baz, qux expression
+//	var foo, bar identifier
+//	var baz, qux expression
 type VarDecl struct {
 	// Position at which the "var" keyword appears.
 	VarPos token.Pos
