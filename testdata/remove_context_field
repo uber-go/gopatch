@@ -21,6 +21,14 @@ package alone
 type Request struct {
 }
 
+-- alone.diff --
+@@ -1,5 +1,4 @@
+ package alone
+ 
+ type Request struct {
+-	Context context.Context
+ }
+
 -- triple.in.go --
 package triple
 
@@ -38,3 +46,13 @@ type Request struct {
 
 	Time time.Duration
 }
+
+-- triple.diff --
+@@ -2,6 +2,6 @@
+ 
+ type Request struct {
+ 	User string
+-	Ctxt context.Context
++
+ 	Time time.Duration
+ }

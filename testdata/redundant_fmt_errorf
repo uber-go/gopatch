@@ -30,6 +30,18 @@ func Do() error {
 	return errors.New("great sadness")
 }
 
+-- replace.diff --
+@@ -1,7 +1,7 @@
+ package foo
+ 
+-import "fmt"
++import "errors"
+ 
+ func Do() error {
+-	return fmt.Errorf("great sadness")
++	return errors.New("great sadness")
+ }
+
 -- leave_sprintf.in.go --
 package bar
 
@@ -54,3 +66,20 @@ const _thing = "thing"
 func Do() error {
 	return errors.New(fmt.Sprintf("%v failed", _thing))
 }
+
+-- leave_sprintf.diff --
+@@ -1,9 +1,12 @@
+ package bar
+ 
+-import "fmt"
++import (
++	"errors"
++	"fmt"
++)
+ 
+ const _thing = "thing"
+ 
+ func Do() error {
+-	return fmt.Errorf(fmt.Sprintf("%v failed", _thing))
++	return errors.New(fmt.Sprintf("%v failed", _thing))
+ }

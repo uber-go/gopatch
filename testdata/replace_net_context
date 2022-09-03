@@ -25,6 +25,16 @@ func x() {
 	context.Background()
 }
 
+-- top_level.diff --
+@@ -1,6 +1,6 @@
+ package foo
+ 
+-import "golang.org/x/net/context"
++import "context"
+ 
+ func x() {
+ 	context.Background()
+
 -- import_group.in.go --
 package foo
 
@@ -49,3 +59,16 @@ import (
 func x() {
 	context.WithTimeout(context.Background(), time.Second)
 }
+
+-- import_group.diff --
+@@ -1,9 +1,8 @@
+ package foo
+ 
+ import (
++	"context"
+ 	"time"
+-
+-	"golang.org/x/net/context"
+ )
+ 
+ func x() {

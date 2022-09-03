@@ -32,3 +32,17 @@ func do() {
 	s := strings.Repeat("x", getCount())
 }
 
+
+-- buffer.diff --
+@@ -1,8 +1,7 @@
+ package foo
+ 
++import "strings"
++
+ func do() {
+-	var s string
+-	for n := 0; n < getCount(); n++ {
+-		s += "x"
+-	}
++	s := strings.Repeat("x", getCount())
+ }

@@ -37,3 +37,20 @@ import (
 func Foo(context.Context) error {
 	return errors.New("foo")
 }
+
+-- foo.diff --
+@@ -2,12 +2,12 @@
+ 
+ import (
+ 	"context"
+-	"fmt"
++	"errors"
+ 
+ 	"code.mycompany.com/foo"
+ )
+ 
+ // Foo does stuff.
+ func Foo(context.Context) error {
+-	return fmt.Errorf("foo")
++	return errors.New("foo")
+ }

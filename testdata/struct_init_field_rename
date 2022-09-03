@@ -29,6 +29,17 @@ func thing() {
 	})
 }
 
+-- first.diff --
+@@ -2,7 +2,7 @@
+ 
+ func thing() {
+ 	do(User{
+-		Name:  "foo",
++		ID:    "foo",
+ 		Email: "foo@example.com",
+ 	})
+ }
+
 -- middle.in.go --
 package foo
 
@@ -50,3 +61,14 @@ func thing() {
 		Email: "foo@example.com",
 	})
 }
+
+-- middle.diff --
+@@ -3,7 +3,7 @@
+ func thing() {
+ 	do(User{
+ 		Role:  Moderator,
+-		Name:  "foo",
++		ID:    "foo",
+ 		Email: "foo@example.com",
+ 	})
+ }

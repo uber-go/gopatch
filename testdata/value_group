@@ -23,6 +23,16 @@ var (
 	foo = bar + 1
 )
 
+-- top_level.diff --
+@@ -1,6 +1,6 @@
+ package a
+ 
+ var (
+-	foo = 43
+ 	bar = 42
++	foo = bar + 1
+ )
+
 -- func.in.go --
 package a
 
@@ -44,3 +54,15 @@ func foo() {
 	)
 	fmt.Println(foo, bar)
 }
+
+-- func.diff --
+@@ -2,8 +2,8 @@
+ 
+ func foo() {
+ 	var (
+-		foo = 43
+ 		bar = 42
++		foo = bar + 1
+ 	)
+ 	fmt.Println(foo, bar)
+ }

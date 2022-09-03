@@ -28,3 +28,14 @@ func do() {
 	var buff *bytes.Buffer
 	buff.Write(results())
 }
+
+-- buffer.diff --
+@@ -2,7 +2,5 @@
+ 
+ func do() {
+ 	var buff *bytes.Buffer
+-	for _, c := range results() {
+-		buff.WriteByte(c)
+-	}
++	buff.Write(results())
+ }

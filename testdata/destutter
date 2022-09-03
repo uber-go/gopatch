@@ -43,6 +43,28 @@ func (c *Client) Do(
 	return c.client.Do(r.WithContext(ctx))
 }
 
+-- http_client.diff --
+@@ -2,15 +2,15 @@
+ 
+ import "net/http"
+ 
+-type HTTPClient struct {
++type Client struct {
+ 	client *http.Client
+ }
+ 
+-func New(c *http.Client) *HTTPClient {
+-	return &HTTPClient{c}
++func New(c *http.Client) *Client {
++	return &Client{c}
+ }
+ 
+-func (c *HTTPClient) Do(
++func (c *Client) Do(
+ 	ctx context.Context,
+ 	r *http.Request,
+ ) (*http.Response, error) {
+
 -- unqualified_import.in.go --
 package foo
 
@@ -69,6 +91,17 @@ func doStuff(client *http.Client) err {
 	return res.Body.Close()
 }
 
+-- unqualified_import.diff --
+@@ -2,7 +2,7 @@
+ 
+ import "example.com/http"
+ 
+-func doStuff(client *http.HTTPClient) err {
++func doStuff(client *http.Client) err {
+ 	res, err := client.Do(getRequest())
+ 	if err != nil {
+ 		return err
+
 -- qualified_import.in.go --
 package bar
 
@@ -94,3 +127,13 @@ import (
 func buildClient(c *http.Client) *myhttp.Client {
 	return myhttp.New(c)
 }
+
+-- qualified_import.diff --
+@@ -6,6 +6,6 @@
+ 	myhttp "example.com/http"
+ )
+ 
+-func buildClient(c *http.Client) *myhttp.HTTPClient {
++func buildClient(c *http.Client) *myhttp.Client {
+ 	return myhttp.New(c)
+ }

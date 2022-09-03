@@ -26,3 +26,13 @@ func foo() {
 	var x bar.Baz
 	x.Do(bar.Option())
 }
+
+-- match.diff --
+@@ -1,6 +1,6 @@
+ package a
+ 
+-import "foo/bar.git"
++import bar "foo/bar.git"
+ 
+ func foo() {
+ 	var x bar.Baz

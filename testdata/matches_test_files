@@ -20,6 +20,15 @@ func y() {
 	bar()
 }
 
+-- foo.diff --
+@@ -1,5 +1,5 @@
+ package x
+ 
+ func y() {
+-	foo()
++	bar()
+ }
+
 -- foo_test.in.go --
 package x
 
@@ -37,3 +46,12 @@ import "testing"
 func TestThing(t *testing.T) {
 	bar()
 }
+
+-- foo_test.diff --
+@@ -3,5 +3,5 @@
+ import "testing"
+ 
+ func TestThing(t *testing.T) {
+-	foo()
++	bar()
+ }

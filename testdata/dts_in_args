@@ -19,3 +19,12 @@ package a
 func name(foo string, thingOne string, thingTwo func(...string) string, bar int) string {
 	return "very valid go"
 }
+
+-- dts_in_args.diff --
+@@ -1,5 +1,5 @@
+ package a
+ 
+-func name(foo string, bar int, thingOne string, thingTwo func(...string) string) string {
++func name(foo string, thingOne string, thingTwo func(...string) string, bar int) string {
+ 	return "very valid go"
+ }

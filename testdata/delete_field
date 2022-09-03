@@ -37,6 +37,17 @@ func bar() {
 	})
 }
 
+-- named.diff --
+@@ -5,7 +5,7 @@
+ func bar() {
+ 	foogit.Initialize(foogit.Params{
+ 		Name: "name",
+-		Foo: foogit.GetClient(),
++
+ 		Value: "bar",
+ 	})
+ }
+
 -- unnamed.in.go --
 package a
 
@@ -62,3 +73,14 @@ func bar() {
 		Value: "bar",
 	})
 }
+
+-- unnamed.diff --
+@@ -5,7 +5,7 @@
+ func bar() {
+ 	foo.Initialize(foo.Params{
+ 		Name: "name",
+-		Foo: foo.GetClient(),
++
+ 		Value: "bar",
+ 	})
+ }

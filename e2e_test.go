@@ -24,6 +24,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -114,26 +115,38 @@ func runIntegrationTest(t *testing.T, testFile string) {
 			}
 
 			filePath := filepath.Join(dir, tt.Give)
-			if len(tt.WantDiff) > 0 {
+			t.Run("diff", func(t *testing.T) {
 				args := append([]string{"-d", filePath}, args...)
 				var stderr, stdout bytes.Buffer
 				require.NoError(t, run(args, bytes.NewReader(stdin), &stderr, &stdout),
 					"could not run patch")
-				wantSplit := strings.Split(string(tt.WantDiff), "\n")
-				// 1st two lines skipped as they contain absolute path that keeps changing every testcase
-				gotSplit := strings.Split(stdout.String(), "\n")[2:]
-				assert.Equal(t, wantSplit, gotSplit)
+				assert.Equal(t,
+					string(tt.WantDiff),
+					dropLinesN(stdout.String(), 2), // first two lines file paths, which are dynamic
+					"output of --diff did not match")
 				assert.Equal(t, string(tt.WantComment), stderr.String())
+			})
 
-			}
 			args := append([]string{filePath}, args...)
-			require.NoError(t, run(args, bytes.NewReader(stdin), new(bytes.Buffer), new(bytes.Buffer)),
+			require.NoError(t, run(args, bytes.NewReader(stdin), io.Discard, io.Discard),
 				"could not run patch")
 			got, err := os.ReadFile(filePath)
 			require.NoErrorf(t, err, "failed to read %q", filePath)
 			assert.Equal(t, string(tt.Want), string(got))
 		})
 	}
+}
+
+// drops up to N lines from the start of the given string.
+func dropLinesN(s string, n int) string {
+	for ; n > 0; n-- {
+		idx := strings.IndexRune(s, '\n')
+		if idx < 0 {
+			return s
+		}
+		s = s[idx+1:]
+	}
+	return s
 }
 
 func skipTest(testFile, testName string) bool {

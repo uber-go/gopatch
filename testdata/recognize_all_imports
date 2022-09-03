@@ -25,6 +25,16 @@ func foo() {
 	foo.X()
 }
 
+-- unnamed.diff --
+@@ -1,6 +1,6 @@
+ package whatever
+ 
+-import "example.com/foo-go.git"
++import "example.com/foo.git"
+ 
+ func foo() {
+ 	foo.X()
+
 -- named.in.go --
 package whatever
 
@@ -42,3 +52,13 @@ import bar "example.com/foo.git"
 func foo() {
 	bar.X()
 }
+
+-- named.diff --
+@@ -1,6 +1,6 @@
+ package whatever
+ 
+-import bar "example.com/foo-go.git"
++import bar "example.com/foo.git"
+ 
+ func foo() {
+ 	bar.X()

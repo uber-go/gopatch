@@ -29,6 +29,16 @@ func x() {
 	client.SendRequest(fooclient.NewRequest())
 }
 
+-- has_same_named_import.diff --
+@@ -1,6 +1,6 @@
+ package bar
+ 
+-import fooclient "foo-go/client"
++import fooclient "foo-client"
+ 
+ func x() {
+ 	var client fooclient.Interface
+
 -- has_different_named_import.in.go --
 package baz
 
@@ -49,6 +59,16 @@ func y() {
 	c.SendRequest(client.NewRequest())
 }
 
+-- has_different_named_import.diff --
+@@ -1,6 +1,6 @@
+ package baz
+ 
+-import client "foo-go/client"
++import client "foo-client"
+ 
+ func y() {
+ 	c := client.New()
+
 -- no_named_import.in.go --
 package baz
 
@@ -66,3 +86,13 @@ import "foo-client"
 func z() {
 	fooclient.NewRequest()
 }
+
+-- no_named_import.diff --
+@@ -1,6 +1,6 @@
+ package baz
+ 
+-import "foo-go/client"
++import "foo-client"
+ 
+ func z() {
+ 	fooclient.NewRequest()

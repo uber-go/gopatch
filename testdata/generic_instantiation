@@ -24,3 +24,16 @@ func baz() {
 	bar[[]byte]([]byte("hello"))
 	bar[List[int]](nil)
 }
+
+-- a.diff --
+@@ -1,7 +1,7 @@
+ package a
+ 
+ func baz() {
+-	foo[int](42)
+-	foo[[]byte]([]byte("hello"))
+-	foo[List[int]](nil)
++	bar[int](42)
++	bar[[]byte]([]byte("hello"))
++	bar[List[int]](nil)
+ }

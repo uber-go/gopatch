@@ -32,3 +32,18 @@ func baz() {
 	bar[int](42)
 }
 
+
+-- a.diff --
+@@ -2,10 +2,10 @@
+ 
+ import "fmt"
+ 
+-func foo[T any](x T) {
++func bar[T any](x T) {
+ 	fmt.Println(x)
+ }
+ 
+ func baz() {
+-	foo[int](42)
++	bar[int](42)
+ }

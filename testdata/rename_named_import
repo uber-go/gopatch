@@ -27,3 +27,17 @@ func stuff() {
 	var a baz.Bar
 	baz.Init(&a)
 }
+
+-- a.diff --
+@@ -1,8 +1,8 @@
+ package a
+ 
+-import foo "bar"
++import baz "bar"
+ 
+ func stuff() {
+-	var a foo.Bar
+-	foo.Init(&a)
++	var a baz.Bar
++	baz.Init(&a)
+ }

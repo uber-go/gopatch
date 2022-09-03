@@ -34,6 +34,17 @@ func foo(close func(*log.Logger) error) string {
 	return "very valid go"
 }
 
+-- one_dots.diff --
+@@ -5,7 +5,7 @@
+ 	"os"
+ )
+ 
+-func foo(close func(*log.Logger)) string {
++func foo(close func(*log.Logger) error) string {
+ 	logger := log.New(os.Stdout, name, 0)
+ 	defer close(logger)
+ 	return "very valid go"
+
 -- two_dots.patch --
 @@
 @@

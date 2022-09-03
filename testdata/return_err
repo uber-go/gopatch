@@ -19,3 +19,12 @@ package foo
 func bar() error {
 	return nil
 }
+
+-- foo.diff --
+@@ -1,4 +1,5 @@
+ package foo
+ 
+-func bar() {
++func bar() error {
++	return nil
+ }

@@ -40,3 +40,12 @@ func main() {
 
 	fmt.Println("elapsed time:", time.Since(start))
 }
+
+-- example.diff --
+@@ -13,5 +13,5 @@
+ 		log.Fatal(err)
+ 	}
+ 
+-	fmt.Println("elapsed time:", time.Now().Sub(start))
++	fmt.Println("elapsed time:", time.Since(start))
+ }
