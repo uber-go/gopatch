@@ -332,7 +332,7 @@ func (cmd *mainCmd) Run(args []string) error {
 		case opts.Diff:
 			err = cmd.preview(sourcePath.Provided, content, bs, comments)
 		case opts.Print:
-			cmd.printComments(sourcePath.Original, comments)
+			cmd.printComments(sourcePath.Provided, comments)
 			_, err = cmd.Stdout.Write(bs)
 		default:
 			err = os.WriteFile(filename, bs, 0o644)
