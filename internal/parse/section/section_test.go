@@ -182,14 +182,14 @@ func TestSplit(t *testing.T) {
 			),
 			want: Program{
 				{
-					HeaderPos: 32,
+					HeaderPos: 19,
 					Meta: Section{
-						line(68, "var x identifier"),
+						line(55, "var x identifier"),
 					},
-					AtPos: 85,
+					AtPos: 72,
 					Patch: Section{
-						line(88, "-x()"),
-						line(129, "+x(42)"),
+						line(75, "-x()"),
+						line(116, "+x(42)"),
 					},
 					Comments: []string{
 						"Add an argument",
@@ -197,11 +197,11 @@ func TestSplit(t *testing.T) {
 				},
 			},
 			wantPosInfo: map[token.Pos]posInfo{
-				32:  {L: 2, C: 1}, // @@
-				68:  {L: 4, C: 1}, // var x
-				85:  {L: 5, C: 1}, // @@
-				88:  {L: 6, C: 1}, // -x()
-				129: {L: 8, C: 1}, // +x(42)
+				19:  {L: 2, C: 1}, // @@
+				55:  {L: 4, C: 1}, // var x
+				72:  {L: 5, C: 1}, // @@
+				75:  {L: 6, C: 1}, // -x()
+				116: {L: 8, C: 1}, // +x(42)
 			},
 		},
 		{
