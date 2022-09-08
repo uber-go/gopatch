@@ -230,7 +230,16 @@ gopatch supports the following command line options.
 
     If this flag is omitted, normal patching occurs which modifies the
     file instead.
-
+- `--print-only`
+  
+  Flag to turn on print-only mode. Provide this flag to write the changed code to stdout instead of modifying the
+  file and display applied patches' description comments to stderr if they exist.
+  Use in conjunction with -p to provide patch file.
+  
+  Only need to apply the flag once to turn on print-only mode
+    ```shell
+    $ gopatch --print-only -p foo.patch -p bar.patch path/to/my/project
+    ```
    
 
 # Patches
