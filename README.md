@@ -168,50 +168,6 @@ return fmt.Errorf("invalid port: %v", err)
 
   ```
   Note: Only the description comments of patches that actually **apply** are displayed.
-- `cd` to your Go project's directory.
-
-  ```shell
-  $ cd ~/go/src/example.com/myproject
-  ```
-
-  Run `gopatch` on the project, supplying the previously written patch with the
-  `-p` flag along with '--print-only' flag.
-
-  ```shell
-  $ gopatch --print-only -p ~/s1028.patch ./...
-  ```
-
-  This will turn on print-only mode and will print the changed code stdout instead of modifying
-  all the Go code in your project. To provide more context on what the patch does, if
-  there were description comments in the patch, they will be printed to stderr .
-  To learn more about description comments jump to section [here](#description-comments)
-
-  For example if we applied patch error.patch to our testfile error.go
-  ```shell
-  $ gopatch --print-only -p ./testdata/patch/error.go ./testdata/test_files/diff_example/
-  ```
-  Output would be :
-  ```
-  This patch replaces instances of fmt.Sprintf()
-  with fmt.Errorf()
-  Patch files can be applied to mutiple files
-  package diff_example
-
-  import (
-        "errors"
-        "fmt"
-  )
-
-  func boo() error {
-        err := errors.New("test")
-        return fmt.Errorf("error: %v", err)
-  }
-
-  func main() {
-        fmt.Println(boo())
-  }
-  ```
-  Note: Only the description comments of patches that actually **apply** are displayed.
 
 ## Next steps
 
