@@ -39,7 +39,6 @@ import (
 	"github.com/pkg/diff"
 	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
-	"github.com/uber-go/gopatch/internal/parse"
 	"go.uber.org/multierr"
 	"golang.org/x/tools/imports"
 )
@@ -54,6 +53,7 @@ type arguments struct {
 
 type options struct {
 	Patches        []string  `short:"p" long:"patch" value-name:"file"`
+	PatchesFile    string    `short:"P" long:"patches-file" value-name:"file"`
 	Diff           bool      `short:"d" long:"diff"`
 	DisplayVersion bool      `long:"version"`
 	Print          bool      `long:"print-only"`
@@ -81,6 +81,10 @@ func newArgParser() (*flags.Parser, *options) {
 		"Multiple patches may be provided to be applied in-order. " +
 		"If the flag is omitted, a patch will be read from stdin."
 
+	parser.FindOptionByLongName("patches-file").
+		Description = "File containing a list of paths to patch files. " +
+		"Each file must be listed on its own line."
+
 	parser.FindOptionByLongName("diff").
 		Description = "Print a diff of the proposed changes to stdout but don't modify any files."
 
@@ -95,47 +99,29 @@ func newArgParser() (*flags.Parser, *options) {
 	return parser, &opts
 }
 
-func parseAndCompile(fset *token.FileSet, name string, src []byte) (*engine.Program, error) {
-	astProg, err := parse.Parse(fset, name, src)
-	if err != nil {
-		return nil, err
-	}
-	return engine.Compile(fset, astProg)
-}
-
+// loadPatches loads patches specified by command line options.
 func loadPatches(fset *token.FileSet, opts *options, stdin io.Reader) ([]*engine.Program, error) {
-	if len(opts.Patches) == 0 {
-		// No patches. Read from stdin.
-		src, err := io.ReadAll(stdin)
-		if err != nil {
-			return nil, err
+	loader := newPatchLoader(fset)
+	if len(opts.Patches) == 0 && len(opts.PatchesFile) == 0 {
+		// If -p and -P are unset, read from stdin.
+		if err := loader.LoadReader("stdin", stdin); err != nil {
+			return nil, fmt.Errorf("load patch from stdin: %w", err)
 		}
-
-		prog, err := parseAndCompile(fset, "stdin", src)
-		if err != nil {
-			return nil, err
-		}
-
-		return []*engine.Program{prog}, err
 	}
 
-	// Load each patch provided with "-p".
-	var progs []*engine.Program
 	for _, path := range opts.Patches {
-		src, err := os.ReadFile(path)
-		if err != nil {
-			return nil, fmt.Errorf("could not read %q: %v", path, err)
+		if err := loader.LoadFile(path); err != nil {
+			return nil, fmt.Errorf("load patch %q: %w", path, err)
 		}
-
-		prog, err := parseAndCompile(fset, path, src)
-		if err != nil {
-			return nil, fmt.Errorf("could not load patch %q: %v", path, err)
-		}
-
-		progs = append(progs, prog)
 	}
 
-	return progs, nil
+	if file := opts.PatchesFile; len(file) > 0 {
+		if err := loader.LoadFileList(file); err != nil {
+			return nil, fmt.Errorf("load patches file %q: %w", file, err)
+		}
+	}
+
+	return loader.Programs(), nil
 }
 
 // sourcePath is the path to a Go source file.
