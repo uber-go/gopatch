@@ -26,6 +26,7 @@ import (
 	"bytes"
 	"go/token"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -74,7 +75,8 @@ func TestNewArgParser(t *testing.T) {
 
 func TestLoadPatches(t *testing.T) {
 	t.Parallel()
-	t.Run("Success", func(t *testing.T) {
+
+	t.Run("single patch", func(t *testing.T) {
 		opts := &options{
 			Patches:        []string{"testdata/patch/error.patch"},
 			Diff:           true,
@@ -86,7 +88,8 @@ func TestLoadPatches(t *testing.T) {
 		assert.Len(t, patch, 1)
 		require.NoError(t, err)
 	})
-	t.Run("Success - mutiple patches", func(t *testing.T) {
+
+	t.Run("multiple patches", func(t *testing.T) {
 		opts := &options{
 			Patches:        []string{"testdata/patch/error.patch"},
 			Diff:           true,
@@ -99,7 +102,26 @@ func TestLoadPatches(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 2, len(patch))
 	})
-	t.Run("Failure", func(t *testing.T) {
+
+	t.Run("patches file", func(t *testing.T) {
+		patchesFile := writeFile(t, filepath.Join(t.TempDir(), "patches.txt"),
+			"testdata/patch/error.patch",
+			"testdata/patch/time.patch",
+		)
+		opts := &options{
+			PatchesFile: patchesFile,
+			Diff:        true,
+			Args: arguments{
+				Patterns: []string{"testdata/test_files/lint_example/"},
+			},
+		}
+
+		patch, err := loadPatches(token.NewFileSet(), opts, bytes.NewReader(nil))
+		require.NoError(t, err)
+		assert.Equal(t, 2, len(patch))
+	})
+
+	t.Run("error", func(t *testing.T) {
 		path := "testdata/patch/error1.patch"
 		opts := &options{
 			Patches:        []string{path},
