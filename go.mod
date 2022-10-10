@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/google/go-intervals v0.0.2
 	github.com/jessevdk/go-flags v1.5.0
-	github.com/kr/pretty v0.3.0
+	github.com/kr/pretty v0.3.1
 	github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e
 	github.com/rogpeppe/go-internal v1.9.0
 	github.com/stretchr/testify v1.8.0
