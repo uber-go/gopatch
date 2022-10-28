@@ -1,0 +1,68 @@
+-- in.patch --
+@@
+@@
+ func f() (...) {
+- fmt.Println("")
++ fmt.Println("hello")
+  ...
+ }
+
+-- group.in.go --
+package foo
+
+func f() (string, error) {
+	fmt.Println("")
+	return "", nil
+}
+
+-- group.out.go --
+package foo
+
+func f() (string, error) {
+	fmt.Println("hello")
+
+	return "", nil
+}
+
+-- group.diff --
+--- group.go
++++ group.go
+@@ -1,6 +1,7 @@
+ package foo
+ 
+ func f() (string, error) {
+-	fmt.Println("")
++	fmt.Println("hello")
++
+ 	return "", nil
+ }
+
+-- single.in.go --
+package foo
+
+func f() string {
+	fmt.Println("")
+	return ""
+}
+
+-- single.out.go --
+package foo
+
+func f() string {
+	fmt.Println("hello")
+
+	return ""
+}
+
+-- single.diff --
+--- single.go
++++ single.go
+@@ -1,6 +1,7 @@
+ package foo
+ 
+ func f() string {
+-	fmt.Println("")
++	fmt.Println("hello")
++
+ 	return ""
+ }

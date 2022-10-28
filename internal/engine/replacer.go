@@ -88,6 +88,8 @@ func (c *replacerCompiler) compile(v reflect.Value) Replacer {
 			}
 			return ok
 		})
+	case goast.FieldListPtrType:
+		return c.compileFieldList(v)
 	case goast.ForStmtPtrType:
 		return c.compileForStmt(v)
 	case goast.CommentGroupPtrType:

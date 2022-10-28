@@ -97,6 +97,8 @@ func (c *matcherCompiler) compile(v reflect.Value) Matcher {
 			}
 			return ok
 		})
+	case goast.FieldListPtrType:
+		return c.compileFieldList(v)
 	case goast.ForStmtPtrType:
 		return c.compileForStmt(v)
 
