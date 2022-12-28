@@ -33,7 +33,7 @@ type value struct {
 
 	// Only one of the following three is set.
 	isNil    bool
-	value    interface{}
+	value    any
 	Elem     *value
 	Children []*value
 
@@ -43,13 +43,13 @@ type value struct {
 	Comments []*ast.CommentGroup
 }
 
-func (v *value) Type() reflect.Type     { return v.t }
-func (v *value) Kind() reflect.Kind     { return v.t.Kind() }
-func (v *value) Pos() token.Pos         { return v.pos }
-func (v *value) End() token.Pos         { return v.end }
-func (v *value) Interface() interface{} { return v.value }
-func (v *value) Len() int               { return len(v.Children) }
-func (v *value) IsNil() bool            { return v.isNil }
+func (v *value) Type() reflect.Type { return v.t }
+func (v *value) Kind() reflect.Kind { return v.t.Kind() }
+func (v *value) Pos() token.Pos     { return v.pos }
+func (v *value) End() token.Pos     { return v.end }
+func (v *value) Interface() any     { return v.value }
+func (v *value) Len() int           { return len(v.Children) }
+func (v *value) IsNil() bool        { return v.isNil }
 
 func snapshot(v reflect.Value, cmap ast.CommentMap) (val *value) {
 	t := v.Type()

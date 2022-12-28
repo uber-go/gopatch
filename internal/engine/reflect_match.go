@@ -184,7 +184,7 @@ func (m InterfaceMatcher) Match(got reflect.Value, d data.Data, r Region) (data.
 // ValueMatcher matches a value as-is.
 type ValueMatcher struct {
 	Type  reflect.Type // underlying type
-	Value interface{}  // value to match
+	Value any          // value to match
 }
 
 // Match matches a value as-is.

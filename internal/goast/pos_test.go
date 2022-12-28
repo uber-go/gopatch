@@ -35,7 +35,7 @@ import (
 func TestOffsetPos(t *testing.T) {
 	type testCase struct {
 		desc   string
-		give   interface{}
+		give   any
 		offset int
 		want   ast.Node
 	}

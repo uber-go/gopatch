@@ -31,7 +31,7 @@ import (
 
 // Sprint is used primarily for debugging and prints a readable representation
 // of the provided value.
-func Sprint(x interface{}) string {
+func Sprint(x any) string {
 	switch v := x.(type) {
 	case Matcher:
 		return fmt.Sprintf("%T", v)

@@ -125,7 +125,7 @@ type programSplitter struct {
 }
 
 // Posts an error message with positional information.
-func (p *programSplitter) errf(off int, msg string, args ...interface{}) {
+func (p *programSplitter) errf(off int, msg string, args ...any) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}

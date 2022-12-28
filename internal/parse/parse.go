@@ -40,7 +40,7 @@ func newParser(fset *token.FileSet) *parser {
 	return &parser{fset: fset}
 }
 
-func (p *parser) errf(pos token.Pos, msg string, args ...interface{}) error {
+func (p *parser) errf(pos token.Pos, msg string, args ...any) error {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}
