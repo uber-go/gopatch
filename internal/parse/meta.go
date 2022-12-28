@@ -81,7 +81,7 @@ func (p *metaParser) onError(pos token.Position, msg string) {
 }
 
 // Posts a formatted error message to the parser.
-func (p *metaParser) errf(msg string, args ...interface{}) {
+func (p *metaParser) errf(msg string, args ...any) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}

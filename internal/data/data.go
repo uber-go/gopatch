@@ -32,10 +32,10 @@ import (
 type Data interface {
 	// Keys returns all known keys for this Data object in an unspecified
 	// order.
-	Keys() []interface{}
+	Keys() []any
 
 	// Values retrives the value associated with the given key or nil.
-	Value(k interface{}) interface{}
+	Value(k any) any
 }
 
 // New builds a new empty Data.
@@ -45,8 +45,8 @@ func New() Data {
 
 type emptyData struct{}
 
-func (d *emptyData) Keys() []interface{}           { return nil }
-func (d *emptyData) Value(interface{}) interface{} { return nil }
+func (d *emptyData) Keys() []any   { return nil }
+func (d *emptyData) Value(any) any { return nil }
 
 // WithValue returns a new Data with the given key-value pair associated with
 // it.
@@ -61,7 +61,7 @@ func (d *emptyData) Value(interface{}) interface{} { return nil }
 // optimize for read-heavy use cases, use the Index function.
 //
 // Panics if either the key or the value are nil.
-func WithValue(d Data, k, v interface{}) Data {
+func WithValue(d Data, k, v any) Data {
 	if k == nil || v == nil {
 		panic("key or value may not be nil")
 	}
@@ -71,14 +71,14 @@ func WithValue(d Data, k, v interface{}) Data {
 type valueData struct {
 	Data
 
-	k, v interface{}
+	k, v any
 }
 
-func (d *valueData) Keys() []interface{} {
+func (d *valueData) Keys() []any {
 	return append(d.Data.Keys(), d.k)
 }
 
-func (d *valueData) Value(k interface{}) interface{} {
+func (d *valueData) Value(k any) any {
 	if k == d.k {
 		return d.v
 	}
@@ -97,7 +97,7 @@ func (d *valueData) Value(k interface{}) interface{} {
 //
 // Panics if the type of the value for the pointer is not compatible with the
 // value associated with the key.
-func Lookup(d Data, k, vptr interface{}) (ok bool) {
+func Lookup(d Data, k, vptr any) (ok bool) {
 	dest := reflect.ValueOf(vptr)
 	if t := dest.Type(); t.Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("Lookup target must be a pointer, not %v", t))
@@ -126,7 +126,7 @@ func Index(d Data) Data {
 	}
 
 	keys := d.Keys()
-	items := make(map[interface{}]interface{})
+	items := make(map[any]any)
 	for _, k := range keys {
 		items[k] = d.Value(k)
 	}
@@ -138,16 +138,16 @@ func Index(d Data) Data {
 }
 
 type indexedData struct {
-	keys  []interface{}
-	items map[interface{}]interface{}
+	keys  []any
+	items map[any]any
 }
 
-func (d *indexedData) Keys() []interface{} {
-	keys := make([]interface{}, len(d.keys))
+func (d *indexedData) Keys() []any {
+	keys := make([]any, len(d.keys))
 	copy(keys, d.keys)
 	return keys
 }
 
-func (d *indexedData) Value(k interface{}) interface{} {
+func (d *indexedData) Value(k any) any {
 	return d.items[k]
 }

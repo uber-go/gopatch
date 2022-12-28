@@ -50,7 +50,7 @@ func newCompiler(fset *token.FileSet) *compiler {
 }
 
 // Convenience function to build error messages with positioning data.
-func (c *compiler) errf(pos token.Pos, msg string, args ...interface{}) {
+func (c *compiler) errf(pos token.Pos, msg string, args ...any) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}

@@ -22,7 +22,7 @@ package engine
 
 import "reflect"
 
-func refl(v interface{}) reflect.Value {
+func refl(v any) reflect.Value {
 	return reflect.ValueOf(v)
 }
 

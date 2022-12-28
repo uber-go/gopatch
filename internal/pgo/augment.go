@@ -74,7 +74,7 @@ func newAugmenter(file *token.File, augs []augment.Augmentation, adj *posAdjuste
 
 // errf logs errors at the given position. Position must be in the augmented
 // file, not the original file.
-func (a *augmenter) errf(pos token.Pos, msg string, args ...interface{}) {
+func (a *augmenter) errf(pos token.Pos, msg string, args ...any) {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(msg, args...)
 	}

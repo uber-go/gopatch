@@ -32,7 +32,7 @@ import (
 //
 // Caveat: Free-floating comments on File objects are not handled by
 // TransformPos.
-func TransformPos(n interface{}, transform func(token.Pos) token.Pos) {
+func TransformPos(n any, transform func(token.Pos) token.Pos) {
 	transformPos(reflect.ValueOf(n), transform)
 }
 
@@ -41,7 +41,7 @@ func TransformPos(n interface{}, transform func(token.Pos) token.Pos) {
 //
 // Caveat: Free-floating comments on File objects are not handled by
 // OffsetPos.
-func OffsetPos(n interface{}, offset int) {
+func OffsetPos(n any, offset int) {
 	TransformPos(n, func(pos token.Pos) token.Pos { return pos + token.Pos(offset) })
 }
 
