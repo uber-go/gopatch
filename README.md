@@ -64,7 +64,7 @@ running the following command in your terminal and place it on your `$PATH`.
   [Releases page]: https://github.com/uber-go/gopatch/releases
 
 ```bash
-VERSION=0.1.1
+VERSION=0.2.0
 URL="https://github.com/uber-go/gopatch/releases/download/v$VERSION/gopatch_${VERSION}_$(uname -s)_$(uname -m).tar.gz"
 curl -L "$URL" | tar xzv gopatch
 ```
