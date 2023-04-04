@@ -97,7 +97,9 @@ func TestOffsetPos(t *testing.T) {
 			}
 
 			file := &ast.File{
-				Package: 4,
+				Package:   4,
+				FileStart: 4,
+				FileEnd:   30,
 				Name: &ast.Ident{
 					Name:    "foo",
 					NamePos: 12,
@@ -159,7 +161,9 @@ func TestOffsetPos(t *testing.T) {
 			}
 
 			file := &ast.File{
-				Package: 11,
+				Package:   11,
+				FileStart: 11,
+				FileEnd:   44,
 				Name: &ast.Ident{
 					Name:    "foo",
 					NamePos: 19,
