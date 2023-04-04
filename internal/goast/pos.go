@@ -64,6 +64,8 @@ func transformPos(v reflect.Value, transformFn func(token.Pos) token.Pos) {
 		transformPos(v.FieldByName("Package"), transformFn)
 		transformPos(v.FieldByName("Name"), transformFn)
 		transformPos(v.FieldByName("Decls"), transformFn)
+		transformPos(v.FieldByName("FileStart"), transformFn)
+		transformPos(v.FieldByName("FileEnd"), transformFn)
 
 		// NOTE: File.Comments contains both, comments that document
 		// objects (also referenced by those nodes' Doc fields), and
