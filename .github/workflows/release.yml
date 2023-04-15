@@ -23,7 +23,7 @@ jobs:
         fetch-depth: 0
 
     - name: Load cached dependencies
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
