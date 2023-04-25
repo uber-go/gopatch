@@ -40,7 +40,6 @@ import (
 	"github.com/uber-go/gopatch/internal/astdiff"
 	"github.com/uber-go/gopatch/internal/engine"
 	"go.uber.org/multierr"
-	"golang.org/x/tools/imports"
 )
 
 func main() {
@@ -302,17 +301,7 @@ func (cmd *mainCmd) Run(args []string) error {
 			continue
 		}
 
-		bs, err := imports.Process(filename, out.Bytes(), &imports.Options{
-			Comments:   true,
-			TabIndent:  true,
-			TabWidth:   8,
-			FormatOnly: true,
-		})
-		if err != nil {
-			log.Printf("%s: failed: %v", filename, err)
-			errors = append(errors, fmt.Errorf("reformat %q: %v", filename, err))
-			continue
-		}
+		bs := out.Bytes()
 
 		switch {
 		case opts.Diff:
