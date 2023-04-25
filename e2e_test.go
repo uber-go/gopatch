@@ -124,12 +124,24 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	}
 
 	for _, tt := range ta.Files {
+		filePath := tt.Give
 		t.Run(tt.Name, func(t *testing.T) {
+			t.Run("skipImportProcessing", func(t *testing.T) {
+				if includeSkipImportTest(testFile, tt.Name) {
+					stdout, stderr, err := run("--skip-import-processing", "-d", filePath)
+					require.NoError(t, err, "could not run patch")
+					assert.Equal(t,
+						string(tt.WantSkipImportProcessing),
+						stdout,
+						"output of --skip-import-processing did not match")
+					assert.Equal(t, string(tt.WantComment), stderr)
+				}
+			})
+
 			if skipTest(testFile, tt.Name) {
 				t.Skipf("skipping unfixed test case %v/%v", testFile, tt.Name)
 			}
 
-			filePath := tt.Give
 			t.Run("diff", func(t *testing.T) {
 				stdout, stderr, err := run("-d", filePath)
 				require.NoError(t, err, "could not run patch")
@@ -157,6 +169,15 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	}
 }
 
+// includeSkipImportTest returns whether we should include a testfile for
+// the skipImportProcessing flag testing
+func includeSkipImportTest(testFile, testName string) bool {
+	fullName := filepath.Join(filepath.Base(testFile), testName)
+	_, enable := groupImportTestFiles[fullName]
+	return enable
+}
+
+// skipTest returns whether we should skip a testfile
 func skipTest(testFile, testName string) bool {
 	fullName := filepath.Join(filepath.Base(testFile), testName)
 	_, skip := testsToSkip[fullName]
@@ -184,13 +205,20 @@ var testsToSkip = map[string]struct{}{
 	"range_value_elision/two_params": {},
 }
 
+// groupImportTestFiles is a set of integration tests that test the
+// --skip-import-processing flag
+var groupImportTestFiles = map[string]struct{}{
+	"noop_import/remove_some": {},
+}
+
 const (
-	_patch  = ".patch"
-	_in     = ".in.go"
-	_out    = ".out.go"
-	_go     = ".go"
-	_diff   = ".diff"
-	_stderr = ".diff.stderr"
+	_patch                = ".patch"
+	_in                   = ".in.go"
+	_out                  = ".out.go"
+	_go                   = ".go"
+	_diff                 = ".diff"
+	_skipImportProcessing = ".groupimports"
+	_stderr               = ".diff.stderr"
 )
 
 type testArchive struct {
@@ -215,6 +243,10 @@ type testFile struct {
 	// Expected contents of the Go file after the patches have been
 	// applied.
 	Want []byte
+
+	// Expected diff after the patches have been applied with
+	// import processing skipped.
+	WantSkipImportProcessing []byte
 
 	// Expected diff if tool run in --diff mode
 	WantDiff []byte
@@ -270,6 +302,10 @@ func loadTestArchive(path string) (*testArchive, error) {
 		case strings.HasSuffix(f.Name, _diff):
 			name := strings.TrimSuffix(f.Name, _diff) // foo.diff => foo
 			getTestFile(name).WantDiff = singleTrailingNewline(f.Data)
+
+		case strings.HasSuffix(f.Name, _skipImportProcessing):
+			name := strings.TrimSuffix(f.Name, _skipImportProcessing) // foo.groupimports => foo
+			getTestFile(name).WantSkipImportProcessing = singleTrailingNewline(f.Data)
 
 		case strings.HasSuffix(f.Name, _stderr):
 			name := strings.TrimSuffix(f.Name, _stderr)

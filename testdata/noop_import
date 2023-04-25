@@ -75,10 +75,13 @@ func foo(s string) *bool {
 package main
 
 import (
+	"fmt"
+
 	"conversion/to.git"
 )
 
 func foo(s string) *bool {
+	fmt.Println("Hello World")
 	if to.StrPtr(s) == nil {
 		return to.BoolPtr(false)
 	}
@@ -94,12 +97,15 @@ func foo(s string) *bool {
 package main
 
 import (
+	"fmt"
+
 	"conversion/to.git"
 
 	"go.uber.org/thriftrw/ptr"
 )
 
 func foo(s string) *bool {
+	fmt.Println("Hello World")
 	if ptr.String(s) == nil {
 		return ptr.Bool(false)
 	}
@@ -114,15 +120,16 @@ func foo(s string) *bool {
 -- remove_some.diff --
 --- remove_some.go
 +++ remove_some.go
-@@ -2,16 +2,18 @@
+@@ -4,17 +4,19 @@
+ 	"fmt"
  
- import (
  	"conversion/to.git"
 +
 +	"go.uber.org/thriftrw/ptr"
  )
  
  func foo(s string) *bool {
+ 	fmt.Println("Hello World")
 -	if to.StrPtr(s) == nil {
 -		return to.BoolPtr(false)
 +	if ptr.String(s) == nil {
@@ -137,3 +144,31 @@ func foo(s string) *bool {
 -	return to.BoolPtr(true)
 +	return ptr.Bool(true)
  }
+
+-- remove_some.groupimports --
+--- remove_some.go
++++ remove_some.go
+@@ -4,17 +4,18 @@
+ 	"fmt"
+ 
+ 	"conversion/to.git"
++	"go.uber.org/thriftrw/ptr"
+ )
+ 
+ func foo(s string) *bool {
+ 	fmt.Println("Hello World")
+-	if to.StrPtr(s) == nil {
+-		return to.BoolPtr(false)
++	if ptr.String(s) == nil {
++		return ptr.Bool(false)
+ 	}
+ 
+ 	if to.DecimalPtr(s) == nil {
+-		return to.BoolPtr(false)
++		return ptr.Bool(false)
+ 	}
+ 
+-	return to.BoolPtr(true)
++	return ptr.Bool(true)
+ }
+
