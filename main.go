@@ -52,13 +52,14 @@ type arguments struct {
 }
 
 type options struct {
-	Patches        []string  `short:"p" long:"patch" value-name:"file"`
-	PatchesFile    string    `short:"P" long:"patches-file" value-name:"file"`
-	Diff           bool      `short:"d" long:"diff"`
-	DisplayVersion bool      `long:"version"`
-	Print          bool      `long:"print-only"`
-	Args           arguments `positional-args:"yes"`
-	Verbose        bool      `short:"v" long:"verbose"`
+	Patches              []string  `short:"p" long:"patch" value-name:"file"`
+	PatchesFile          string    `short:"P" long:"patches-file" value-name:"file"`
+	Diff                 bool      `short:"d" long:"diff"`
+	DisplayVersion       bool      `long:"version"`
+	Print                bool      `long:"print-only"`
+	SkipImportProcessing bool      `long:"skip-import-processing"`
+	Args                 arguments `positional-args:"yes"`
+	Verbose              bool      `short:"v" long:"verbose"`
 }
 
 func newArgParser() (*flags.Parser, *options) {
@@ -91,6 +92,8 @@ func newArgParser() (*flags.Parser, *options) {
 	parser.FindOptionByLongName("print-only").
 		Description = "Print files to stdout without modifying them."
 
+	parser.FindOptionByLongName("skip-import-processing").
+		Description = "Skips processing of imports."
 	parser.Args()[0].
 		Description = "One or more files or directores containing Go code. " +
 		"When directories are provided, all Go files in them and their " +
@@ -277,7 +280,6 @@ func (cmd *mainCmd) Run(args []string) error {
 		}
 		f, err := parser.ParseFile(fset, filename, content /* src */, parser.AllErrors|parser.ParseComments)
 		if err != nil {
-			log.Printf("%s: failed: %v", filename, err)
 			errors = append(errors, fmt.Errorf("could not parse %q: %v", filename, err))
 			continue
 		}
@@ -301,17 +303,21 @@ func (cmd *mainCmd) Run(args []string) error {
 			errors = append(errors, fmt.Errorf("failed to rewrite %q: %v", filename, err))
 			continue
 		}
+		bs := out.Bytes()
+		if !opts.SkipImportProcessing {
+			bs, err = imports.Process(filename, bs, &imports.Options{
+				Comments:   true,
+				TabIndent:  true,
+				TabWidth:   8,
+				FormatOnly: true,
+			})
+			// This error shouldn't occur due to checks in
+			// findFiles, loadPatches and format.Node()
+			if err != nil {
+				errors = append(errors, fmt.Errorf("reformat %q: %w", filename, err))
+				continue
+			}
 
-		bs, err := imports.Process(filename, out.Bytes(), &imports.Options{
-			Comments:   true,
-			TabIndent:  true,
-			TabWidth:   8,
-			FormatOnly: true,
-		})
-		if err != nil {
-			log.Printf("%s: failed: %v", filename, err)
-			errors = append(errors, fmt.Errorf("reformat %q: %v", filename, err))
-			continue
 		}
 
 		switch {

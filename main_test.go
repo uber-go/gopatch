@@ -54,9 +54,19 @@ func TestNewArgParser(t *testing.T) {
 				desc: "diff",
 				give: []string{"--diff", "-p", "testdata/patch/error.patch", "testdata/test_files/lint_example/test2.go"},
 				want: options{
-					Patches: []string{"testdata/patch/error.patch"},
-					Args:    arguments{Patterns: []string{"testdata/test_files/lint_example/test2.go"}},
-					Diff:    true,
+					Patches:              []string{"testdata/patch/error.patch"},
+					Args:                 arguments{Patterns: []string{"testdata/test_files/lint_example/test2.go"}},
+					Diff:                 true,
+					SkipImportProcessing: false,
+				},
+			},
+			{
+				desc: "skip-import-processing",
+				give: []string{"--skip-import-processing", "-p", "testdata/patch/replace_to_with_ptr.patch", "testdata/test_files/skip_import_processing_example/test1.go"},
+				want: options{
+					Patches:              []string{"testdata/patch/replace_to_with_ptr.patch"},
+					Args:                 arguments{Patterns: []string{"testdata/test_files/skip_import_processing_example/test1.go"}},
+					SkipImportProcessing: true,
 				},
 			},
 		}
@@ -68,6 +78,7 @@ func TestNewArgParser(t *testing.T) {
 				assert.Equal(t, tt.want.Patches, opts.Patches)
 				assert.Equal(t, tt.want.Args, opts.Args)
 				assert.Equal(t, tt.want.Diff, opts.Diff)
+				assert.Equal(t, tt.want.SkipImportProcessing, opts.SkipImportProcessing)
 			})
 		}
 	})

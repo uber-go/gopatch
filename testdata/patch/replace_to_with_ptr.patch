@@ -1,0 +1,21 @@
+@@
+var to identifier
+@@
+import(
+-	to "conversion/to.git"
++	"go.uber.org/thriftrw/ptr"
+)
+
+-	to.StrPtr(...)
++	ptr.String(...)
+
+@@
+var to identifier
+@@
+import(
+-	to "conversion/to.git"
++	"go.uber.org/thriftrw/ptr"
+)
+
+-	to.BoolPtr(...)
++	ptr.Bool(...)
