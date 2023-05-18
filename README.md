@@ -237,8 +237,14 @@ gopatch supports the following command line options.
   
     ```shell
     $ gopatch --print-only -p foo.patch -p bar.patch path/to/my/project
+    ```  
+- `--skip-import-processing`
+  
+  Flag to turn on skip-import-processing mode. Provide this flag to disable
+  import formatting for imports that were not part of the patch changes.
+    ```shell
+    $ gopatch --skip-import-processing -p foo.patch -p bar.patch path/to/my/project
     ```
-   
 
 # Patches
 
