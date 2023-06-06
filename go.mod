@@ -10,7 +10,7 @@ require (
 	github.com/rogpeppe/go-internal v1.10.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/multierr v1.11.0
-	golang.org/x/tools v0.9.2
+	golang.org/x/tools v0.9.3
 )
 
 require (
