@@ -55,7 +55,7 @@ jobs:
       with:
         distribution: goreleaser
         version: latest
-        args: release --rm-dist --release-notes changes.${{ env.VERSION }}.txt
+        args: release --clean --release-notes changes.${{ env.VERSION }}.txt
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GORELEASER_CURRENT_TAG: ${{ env.VERSION }}
