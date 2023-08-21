@@ -1,0 +1,8 @@
+# Elision on function return argument
+@@
+@@
+ func f() (...) {
+- fmt.Println("")
++ fmt.Println("hello")
+  ...
+ }

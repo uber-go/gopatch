@@ -22,6 +22,7 @@ package engine
 
 import (
 	"go/ast"
+	"go/token"
 	"reflect"
 
 	"github.com/uber-go/gopatch/internal/data"
@@ -146,13 +147,49 @@ func (c *matcherCompiler) compileStruct(v reflect.Value) Matcher {
 	}
 }
 
+// Checks for special case of matching 1 return value w/o () against (...)
+// the matcher expects a bracket but got i.e. the target node has none
+func checkElision(got reflect.Value, m StructMatcher, i int) bool {
+	var ok bool
+	f := got.Field(i).Interface().(token.Pos)
+	// if current f is PositionMatcher and next Matcher is a SliceDotsMatcher
+	// then we should return true without modifying the data
+	// i.e. (...
+	if i+1 < len(m.Fields) {
+		if i+1 < len(m.Fields) {
+			if _, ok := m.Fields[i+1].(SliceDotsMatcher); ok && !f.IsValid() {
+				return true
+			}
+		}
+	}
+	// if current f is PosMatcher and previos Matcher is a SliceDotsMatcher
+	// then we should return true without modifying the data
+	// i.e. ...)
+	if i > 1 {
+		if _, ok = m.Fields[i-1].(SliceDotsMatcher); ok && !f.IsValid() {
+			return true
+		}
+	}
+	return false
+}
+
 // Match matches a struct.
 func (m StructMatcher) Match(got reflect.Value, d data.Data, r Region) (data.Data, bool) {
 	if m.Type != got.Type() {
 		return d, false
 	}
+
 	for i, f := range m.Fields {
 		var ok bool
+		// checks for special case of matching elision against 1
+		// return value without paranthesis
+		if _, check := f.(PosMatcher); check && checkElision(got, m, i) {
+			// Return truw without modifying data d and move to
+			// next matcher
+			ok = true
+			continue
+		}
+
 		d, ok = f.Match(got.Field(i), d, r)
 		if !ok {
 			return d, false
