@@ -24,6 +24,7 @@ package main
 
 import (
 	"bytes"
+	"go/ast"
 	"go/token"
 	"os"
 	"path/filepath"
@@ -61,6 +62,15 @@ func TestNewArgParser(t *testing.T) {
 				},
 			},
 			{
+				desc: "skip-generated",
+				give: []string{"--skip-generated", "-p", "testdata/patch/replace_to_with_ptr.patch", "testdata/test_files/skip_generated_files/test1.go"},
+				want: options{
+					Patches:       []string{"testdata/patch/replace_to_with_ptr.patch"},
+					Args:          arguments{Patterns: []string{"testdata/test_files/skip_generated_files/test1.go"}},
+					SkipGenerated: true,
+				},
+			},
+			{
 				desc: "skip-import-processing",
 				give: []string{"--skip-import-processing", "-p", "testdata/patch/replace_to_with_ptr.patch", "testdata/test_files/skip_import_processing_example/test1.go"},
 				want: options{
@@ -78,6 +88,7 @@ func TestNewArgParser(t *testing.T) {
 				assert.Equal(t, tt.want.Patches, opts.Patches)
 				assert.Equal(t, tt.want.Args, opts.Args)
 				assert.Equal(t, tt.want.Diff, opts.Diff)
+				assert.Equal(t, tt.want.SkipGenerated, opts.SkipGenerated)
 				assert.Equal(t, tt.want.SkipImportProcessing, opts.SkipImportProcessing)
 			})
 		}
@@ -210,4 +221,42 @@ func TestPreview(t *testing.T) {
 				"+++ testdata/test_files/lint_example/time.go\n",
 			stdout.String())
 	})
+}
+
+func TestCheckGeneratedCode(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		file *ast.File
+		want bool
+	}{
+		{
+			name: "@generated",
+			file: &ast.File{
+				Doc: &ast.CommentGroup{
+					List: []*ast.Comment{
+						{Text: "@generated"},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "non-generated code",
+			file: &ast.File{
+				Doc: &ast.CommentGroup{
+					List: []*ast.Comment{
+						{Text: "sad times"},
+						{Text: "not generated code"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := checkGeneratedCode(tt.file)
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
