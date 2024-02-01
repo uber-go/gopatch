@@ -83,6 +83,7 @@ Write your first patch.
 
 ```shell
 $ cat > ~/s1028.patch
+# Replace redundant fmt.Sprintf with fmt.Errorf
 @@
 @@
 -import "errors"

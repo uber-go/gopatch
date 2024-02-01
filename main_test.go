@@ -43,19 +43,19 @@ func TestNewArgParser(t *testing.T) {
 		}{
 			{
 				desc: "-d",
-				give: []string{"-d", "-p", "testdata/patch/error.patch", "testdata/test_files/lint_example/test2.go"},
+				give: []string{"-d", "-p", "testdata/patch/error.patch", "testdata/test_files/diff_example/error.go"},
 				want: options{
 					Patches: []string{"testdata/patch/error.patch"},
-					Args:    arguments{Patterns: []string{"testdata/test_files/lint_example/test2.go"}},
+					Args:    arguments{Patterns: []string{"testdata/test_files/diff_example/error.go"}},
 					Diff:    true,
 				},
 			},
 			{
 				desc: "diff",
-				give: []string{"--diff", "-p", "testdata/patch/error.patch", "testdata/test_files/lint_example/test2.go"},
+				give: []string{"--diff", "-p", "testdata/patch/error.patch", "testdata/test_files/diff_example/error.go"},
 				want: options{
 					Patches:              []string{"testdata/patch/error.patch"},
-					Args:                 arguments{Patterns: []string{"testdata/test_files/lint_example/test2.go"}},
+					Args:                 arguments{Patterns: []string{"testdata/test_files/diff_example/error.go"}},
 					Diff:                 true,
 					SkipImportProcessing: false,
 				},
@@ -94,7 +94,7 @@ func TestLoadPatches(t *testing.T) {
 			DisplayVersion: false,
 			Verbose:        false,
 		}
-		opts.Args.Patterns = []string{"testdata/test_files/lint_example/test2.go"}
+		opts.Args.Patterns = []string{"testdata/test_files/diff_example/error.go"}
 		patch, err := loadPatches(token.NewFileSet(), opts, bytes.NewReader(nil))
 		assert.Len(t, patch, 1)
 		require.NoError(t, err)
