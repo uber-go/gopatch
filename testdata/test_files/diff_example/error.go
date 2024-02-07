@@ -1,15 +1,15 @@
-package lint_example
+package diff_example
 
 import (
 	"errors"
 	"fmt"
 )
 
-func boo() error {
+func foo() error {
 	err := errors.New("test")
 	return errors.New(fmt.Sprintf("error: %v", err))
 }
 
 func main() {
-	fmt.Println(boo())
+	fmt.Println(foo())
 }
