@@ -58,6 +58,7 @@ type options struct {
 	DisplayVersion       bool      `long:"version"`
 	Print                bool      `long:"print-only"`
 	SkipImportProcessing bool      `long:"skip-import-processing"`
+	SkipGenerated        bool      `long:"skip-generated"`
 	Args                 arguments `positional-args:"yes"`
 	Verbose              bool      `short:"v" long:"verbose"`
 }
@@ -94,6 +95,10 @@ func newArgParser() (*flags.Parser, *options) {
 
 	parser.FindOptionByLongName("skip-import-processing").
 		Description = "Skips processing of imports."
+
+	parser.FindOptionByLongName("skip-generated").
+		Description = "Skips running on files with generated code."
+
 	parser.Args()[0].
 		Description = "One or more files or directores containing Go code. " +
 		"When directories are provided, all Go files in them and their " +
@@ -284,6 +289,11 @@ func (cmd *mainCmd) Run(args []string) error {
 			continue
 		}
 
+		if opts.SkipGenerated && checkGeneratedCode(f) {
+			log.Printf("generated file %s: skipped", filename)
+			continue
+		}
+
 		f, comments, ok := patchRunner.Apply(filename, f)
 		// If at least one patch didn't match, there's nothing to do.
 		// If --print-only was passed, print the contents out as-is.
@@ -339,6 +349,18 @@ func (cmd *mainCmd) Run(args []string) error {
 
 	errors = append(errors, patchRunner.errors...)
 	return multierr.Combine(errors...)
+}
+
+func checkGeneratedCode(f *ast.File) bool {
+	if ast.IsGenerated(f) {
+		return true
+	}
+	for _, comm := range f.Doc.List {
+		if strings.Contains(comm.Text, "@generated") {
+			return true
+		}
+	}
+	return false
 }
 
 func (cmd *mainCmd) preview(

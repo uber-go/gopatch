@@ -169,6 +169,43 @@ func runIntegrationTest(t *testing.T, testFile string) {
 	}
 }
 
+func TestGeneratedE2e(t *testing.T) {
+	patch := "testdata/patch/time.patch"
+	t.Parallel()
+	tests := []struct {
+		name string
+		path string
+		want string
+	}{
+		{
+			name: "go special comment for generated code",
+			path: "testdata/test_files/skip_generated_files/special_notation_generated.go",
+		},
+		{
+			name: "@generated",
+			path: "testdata/test_files/skip_generated_files/simple_generated.go",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			want, err := os.ReadFile(tt.path)
+			require.NoError(t, err)
+			var stdoutbuf bytes.Buffer
+			cmd := mainCmd{
+				Stdout: &stdoutbuf,
+				Getwd:  os.Getwd,
+			}
+			err = cmd.Run([]string{"--skip-generated", "-p", patch, tt.path})
+			require.NoError(t, err, "could not run patch")
+			assert.Empty(t, stdoutbuf)
+			// verify the target file's content didn't modify.
+			got, err := os.ReadFile(tt.path)
+			require.NoError(t, err)
+			assert.Equal(t, want, got)
+		})
+	}
+}
+
 // includeSkipImportTest returns whether we should include a testfile for
 // the skipImportProcessing flag testing
 func includeSkipImportTest(testFile, testName string) bool {

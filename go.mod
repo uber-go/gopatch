@@ -1,6 +1,6 @@
 module github.com/uber-go/gopatch
 
-go 1.18
+go 1.22
 
 require (
 	github.com/google/go-intervals v0.0.2
