@@ -355,6 +355,9 @@ func checkGeneratedCode(f *ast.File) bool {
 	if ast.IsGenerated(f) {
 		return true
 	}
+	if f.Doc == nil {
+		return false
+	}
 	for _, comm := range f.Doc.List {
 		if strings.Contains(comm.Text, "@generated") {
 			return true
