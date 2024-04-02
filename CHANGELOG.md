@@ -5,8 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
-- No changes yet.
+## 0.4.0 - 2024-04-03
+### Added
+- ([#150]) `--skip-generated` flag to skip running on files containing
+  generated code.
+
+  [#150]: https://github.com/uber-go/gopatch/pull/150
 
 ## 0.3.0 - 2023-07-14
 ### Added
