@@ -64,7 +64,7 @@ running the following command in your terminal and place it on your `$PATH`.
   [Releases page]: https://github.com/uber-go/gopatch/releases
 
 ```bash
-VERSION=0.3.0
+VERSION=0.4.0
 URL="https://github.com/uber-go/gopatch/releases/download/v$VERSION/gopatch_${VERSION}_$(uname -s)_$(uname -m).tar.gz"
 curl -L "$URL" | tar xzv gopatch
 ```
@@ -245,6 +245,16 @@ gopatch supports the following command line options.
   import formatting for imports that were not part of the patch changes.
     ```shell
     $ gopatch --skip-import-processing -p foo.patch -p bar.patch path/to/my/project
+    ```
+
+- `--skip-generated`
+  
+  Flag to turn on skip-generated code mode. Provide this flag to skip running the
+  tool on generated code. A file is considered containing generated code if it 
+  has `@generated` or `^// Code generated .* DO NOT EDIT\.$` in the comment
+  header.
+    ```shell
+    $ gopatch --skip-generated -p foo.patch -p bar.patch path/to/my/project
     ```
 
 # Patches
