@@ -252,6 +252,10 @@ func TestCheckGeneratedCode(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "non-generated code with no package comment",
+			file: &ast.File{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
