@@ -33,6 +33,7 @@ import (
 	"github.com/rogpeppe/go-internal/txtar"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/uber-go/gopatch/patch"
 	"go.uber.org/multierr"
 )
 
@@ -157,6 +158,19 @@ func runIntegrationTest(t *testing.T, testFile string) {
 				require.NoError(t, err, "could not run patch")
 				assert.Equal(t, string(tt.Want), stdout)
 				assert.Equal(t, string(tt.WantComment), stderr)
+			})
+
+			t.Run("api", func(t *testing.T) {
+				if stdin == nil {
+					t.Skipf("this test case is not single patch: %v", args)
+				}
+				got, err := os.ReadFile(filepath.Join(dir, filePath))
+				require.NoError(t, err, "failed to read %q", filePath)
+				patchFile, err := patch.Parse(filePath, stdin)
+				require.NoError(t, err, "failed to parse patch file %q", filePath)
+				actual, err := patchFile.Apply(filePath, got)
+				require.NoError(t, err, "failed to apply patch file %q", filePath)
+				assert.Equal(t, string(tt.Want), string(actual))
 			})
 
 			_, _, err := run(filePath)
