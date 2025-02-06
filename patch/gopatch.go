@@ -40,16 +40,16 @@ func Parse(patchFileName string, src []byte) (*PatchFile, error) {
 
 // Apply takes the Go file name and its contents and returns a Go file with the patch applied.
 func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
-	f, err := parser.ParseFile(patchFile.fset, filename, src, parser.AllErrors|parser.ParseComments)
+	f, err := parser.ParseFile(pf.fset, filename, src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse %q: %w", filename, err)
 	}
 
-	snap := astdiff.Before(f, ast.NewCommentMap(patchFile.fset, f, f.Comments))
+	snap := astdiff.Before(f, ast.NewCommentMap(pf.fset, f, f.Comments))
 
 	var fout *ast.File
 	var retErr error
-	for _, c := range patchFile.prog.Changes {
+	for _, c := range pf.prog.Changes {
 		d, ok := c.Match(f)
 		if !ok {
 			// This patch didn't modify the file. Try the next one.
@@ -65,7 +65,7 @@ func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
 		}
 
 		snap = snap.Diff(fout, cl)
-		cleanupFilePos(patchFile.fset.File(fout.Pos()), cl, fout.Comments)
+		cleanupFilePos(pf.fset.File(fout.Pos()), cl, fout.Comments)
 	}
 
 	if retErr != nil {
@@ -77,7 +77,7 @@ func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
 	}
 
 	var out bytes.Buffer
-	err = format.Node(&out, patchFile.fset, fout)
+	err = format.Node(&out, pf.fset, fout)
 	if err != nil {
 		return nil, err
 	}
