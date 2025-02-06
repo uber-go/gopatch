@@ -39,7 +39,7 @@ func Parse(patchFileName string, src []byte) (*PatchFile, error) {
 }
 
 // Apply takes the Go file name and its contents and returns a Go file with the patch applied.
-func (patchFile *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
+func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
 	f, err := parser.ParseFile(patchFile.fset, filename, src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse %q: %w", filename, err)
