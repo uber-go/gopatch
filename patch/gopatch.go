@@ -16,14 +16,14 @@ import (
 	"github.com/uber-go/gopatch/internal/parse"
 )
 
-// PatchFile is a patch difference that can be applied to Go file.
-type PatchFile struct {
+// File is a patch difference file that can be applied to Go file.
+type File struct {
 	fset *token.FileSet
 	prog *engine.Program
 }
 
 // Parse the patch file and creates data that can be applied to the Go file.
-func Parse(patchFileName string, src []byte) (*PatchFile, error) {
+func Parse(patchFileName string, src []byte) (*File, error) {
 	fset := token.NewFileSet()
 
 	astProg, err := parse.Parse(fset, patchFileName, src)
@@ -35,22 +35,22 @@ func Parse(patchFileName string, src []byte) (*PatchFile, error) {
 		return nil, fmt.Errorf("compile: %w", err)
 	}
 
-	return &PatchFile{fset: fset, prog: prog}, nil
+	return &File{fset: fset, prog: prog}, nil
 }
 
 // Apply takes the Go file name and its contents and returns a Go file with the patch applied.
-func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
-	f, err := parser.ParseFile(pf.fset, filename, src, parser.AllErrors|parser.ParseComments)
+func (f *File) Apply(filename string, src []byte) ([]byte, error) {
+	base, err := parser.ParseFile(f.fset, filename, src, parser.AllErrors|parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse %q: %w", filename, err)
 	}
 
-	snap := astdiff.Before(f, ast.NewCommentMap(pf.fset, f, f.Comments))
+	snap := astdiff.Before(base, ast.NewCommentMap(f.fset, base, base.Comments))
 
 	var fout *ast.File
 	var retErr error
-	for _, c := range pf.prog.Changes {
-		d, ok := c.Match(f)
+	for _, c := range f.prog.Changes {
+		d, ok := c.Match(base)
 		if !ok {
 			// This patch didn't modify the file. Try the next one.
 			continue
@@ -65,7 +65,7 @@ func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
 		}
 
 		snap = snap.Diff(fout, cl)
-		cleanupFilePos(pf.fset.File(fout.Pos()), cl, fout.Comments)
+		cleanupFilePos(f.fset.File(fout.Pos()), cl, fout.Comments)
 	}
 
 	if retErr != nil {
@@ -77,7 +77,7 @@ func (pf *PatchFile) Apply(filename string, src []byte) ([]byte, error) {
 	}
 
 	var out bytes.Buffer
-	err = format.Node(&out, pf.fset, fout)
+	err = format.Node(&out, f.fset, fout)
 	if err != nil {
 		return nil, err
 	}
