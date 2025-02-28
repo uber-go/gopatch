@@ -19,7 +19,7 @@ refactoring and restyling.
   - [Elision](#elision)
   - [Comments](#comments)
     - [Description comments](#description-comments)
-    - [Usage in diff mode](#usage-during-diff-mode)
+    - [Usage in diff mode](#usage-with---diff)
 - [Examples](#examples)
 - [Project status](#project-status)
   - [Goals](#goals)
@@ -82,7 +82,7 @@ Note: If you're using Go < 1.16, use `go get github.com/uber-go/gopatch@latest` 
 Write your first patch.
 
 ```shell
-$ cat > ~/s1028.patch
+$ cat > ~/s1028.patch << EOF
 # Replace redundant fmt.Sprintf with fmt.Errorf
 @@
 @@
@@ -90,6 +90,7 @@ $ cat > ~/s1028.patch
 
 -errors.New(fmt.Sprintf(...))
 +fmt.Errorf(...)
+EOF
 ```
 
 This patch is a fix for staticcheck [S1028]. It searches for uses of
