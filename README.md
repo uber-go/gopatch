@@ -19,7 +19,7 @@ refactoring and restyling.
   - [Elision](#elision)
   - [Comments](#comments)
     - [Description comments](#description-comments)
-    - [Usage in diff mode](#usage-during-diff-mode)
+    - [Usage in diff mode](#usage-with---diff)
 - [Examples](#examples)
 - [Project status](#project-status)
   - [Goals](#goals)
