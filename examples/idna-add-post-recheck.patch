@@ -1,0 +1,100 @@
+# idna-add-post-recheck: stage 1 of 2. Run before idna-add-sentinel.sh.
+#
+# Inserts a post-IDNA IP-literal recheck guard after every call to a
+# UTS-46-mapping idna.ToASCII variant. Mitigates the digit-fold IP
+# literal smuggling class.
+#
+# Inserted guard:
+#
+#     if _, ipErr := netip.ParseAddr(strings.TrimRight(out, ".")); ipErr == nil {
+#             return "", errIDNAIPLiteralSmuggle
+#     }
+#
+# Two properties matter:
+#
+#   1. strings.TrimRight, not TrimSuffix. UTS-46 mapping can produce
+#      multiple trailing ASCII dots when fullwidth (U+FF0E) or
+#      ideographic (U+3002) dot characters compose with ASCII dots; for
+#      example, "0.<FW1>.0.0<FW.><FW.>" maps to "0.1.0.0..".
+#      TrimSuffix(out, ".") strips only one dot, leaving "0.1.0.0." which
+#      netip.ParseAddr rejects, so the smuggle passes through. TrimRight
+#      removes any number of trailing dots and closes that variant.
+#
+#   2. The guard does NOT mutate `out`. The recheck operates on a
+#      trimmed copy passed to netip.ParseAddr. The ToASCII output reaches
+#      the caller verbatim, matching the shape of a defensive-option
+#      proposal upstream.
+#
+# Three patches in this file, one per supported call shape:
+#   1. pkg-level   idna.Lookup.ToASCII / idna.Display.ToASCII /
+#                  idna.Registration.ToASCII
+#   2. builder     idna.New(...).ToASCII / idna.MapForLookup() chain
+#   3. receiver    (*idna.Profile).ToASCII via a named profile var
+#
+# Idempotence
+# -----------
+# gopatch has no negative-lookahead. A second run re-matches the
+# original assignment and re-emits the guard. The driver script
+# (test_codemod.sh) gates on grep -F 'errIDNAIPLiteralSmuggle' so
+# already-patched files are skipped before gopatch is invoked.
+#
+# Out-of-scope by design
+# ----------------------
+#   * idna.Punycode.ToASCII: no NFKC mapping, no smuggle surface.
+#   * idna.New(..., idna.StrictNoIPLiteral(), ...): the profile rejects
+#     post-mapping IP literals on its own; no caller-side guard needed.
+#   * Bare idna.ToASCII(x) package-level helper: deprecated upstream.
+@@
+# Patch 1: idna.Lookup.ToASCII / idna.Display.ToASCII /
+#          idna.Registration.ToASCII
+var profile identifier
+var out, err identifier
+var in expression
+@@
+ import "golang.org/x/net/idna"
++import "net/netip"
++import "strings"
+
+-out, err := idna.profile.ToASCII(in)
++out, err := idna.profile.ToASCII(in)
++if _, ipErr := netip.ParseAddr(strings.TrimRight(out, ".")); ipErr == nil {
++	return "", errIDNAIPLiteralSmuggle
++}
+
+@@
+# Patch 2: builder form -- idna.New(...).ToASCII(in)
+var out, err identifier
+var in expression
+var opts expression
+@@
+ import "golang.org/x/net/idna"
++import "net/netip"
++import "strings"
+
+-out, err := idna.New(opts).ToASCII(in)
++out, err := idna.New(opts).ToASCII(in)
++if _, ipErr := netip.ParseAddr(strings.TrimRight(out, ".")); ipErr == nil {
++	return "", errIDNAIPLiteralSmuggle
++}
+
+@@
+# Patch 3: receiver form, profileVar.ToASCII(in).
+#
+# This shape relies on the file already importing
+# "golang.org/x/net/idna" and on the profile variable being typed
+# *idna.Profile. gopatch matches on syntactic shape; the import
+# constraint stops the patch firing on unrelated *.ToASCII methods
+# from other packages.
+var prof identifier
+var out, err identifier
+var in expression
+@@
+ import "golang.org/x/net/idna"
++import "net/netip"
++import "strings"
+
+-out, err := prof.ToASCII(in)
++out, err := prof.ToASCII(in)
++if _, ipErr := netip.ParseAddr(strings.TrimRight(out, ".")); ipErr == nil {
++	return "", errIDNAIPLiteralSmuggle
++}

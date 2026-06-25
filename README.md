@@ -640,6 +640,7 @@ Note that some of these patches are not perfect and may have false positives.
 - [s1038.patch](examples/s1038.patch): Fix for staticcheck [S1038](https://staticcheck.io/docs/checks#S1038).
 - [gomock-v1.5.0.patch](examples/gomock-v1.5.0.patch): Drops unnecessary call to `Finish` method for users of gomock.
 - [destutter.patch](examples/destutter.patch): Demonstrates renaming a type and updating its consumers.
+- [idna-add-post-recheck.patch](examples/idna-add-post-recheck.patch): Adds an IP-literal recheck after a UTS-46 mapping ToASCII call.
 
 # Project status
 
